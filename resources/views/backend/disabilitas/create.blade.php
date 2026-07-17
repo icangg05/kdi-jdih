@@ -1,0 +1,699 @@
+{{-- resources/views/backend/disabilitas/create.blade.php --}}
+@php
+    $isCreate = true; // Karena ini adalah halaman create
+    $title = 'Tambah Data Disabilitas';
+    $disabilitas = null; // Set null karena tidak ada data untuk edit
+@endphp
+
+<x-layouts.backend
+    :title="$title"
+    :listNav="[['label' => 'Disabilitas', 'route' => route('backend.disabilitas.index')], ['label' => $title]]">
+
+    <div class="box-body no-padding">
+        <div class="section">
+            <form
+                class="form-horizontal"
+                action="{{ route('backend.disabilitas.store') }}"
+                method="POST"
+                enctype="multipart/form-data">
+                @csrf
+
+                <!-- Informasi Dasar Dokumen Disabilitas -->
+                <div class="box box-primary box-solid">
+                    <div class="box-header with-border">
+                        <b><i class="fa fa-info-circle"></i> Informasi Dasar Dokumen</b>
+                    </div>
+                    <div class="box-body">
+                        {{-- Jenis Dokumen Disabilitas --}}
+                        <x-backend.input.select
+                            label="Jenis Dokumen"
+                            key="jenis_dokumen"
+                            placeholder="--Pilih jenis dokumen--"
+                            required
+                            :value="old('jenis_dokumen')"
+                            :data="[
+                                ['label' => 'Undang-Undang', 'value' => 'uu'],
+                                ['label' => 'Peraturan Pemerintah', 'value' => 'pp'],
+                                ['label' => 'Peraturan Presiden', 'value' => 'perpres'],
+                                ['label' => 'Peraturan Menteri', 'value' => 'permen'],
+                                ['label' => 'Peraturan Daerah', 'value' => 'perda'],
+                                ['label' => 'Keputusan Presiden', 'value' => 'keppres'],
+                                ['label' => 'Keputusan Menteri', 'value' => 'kepmen'],
+                                ['label' => 'Peraturan Walikota', 'value' => 'perwal'],
+                                ['label' => 'Keputusan Walikota', 'value' => 'kepwal'],
+                                ['label' => 'Surat Edaran', 'value' => 'se'],
+                                ['label' => 'Petunjuk Teknis', 'value' => 'juknis'],
+                                ['label' => 'Panduan', 'value' => 'panduan'],
+                                ['label' => 'Laporan', 'value' => 'laporan'],
+                                ['label' => 'Studi/Kajian', 'value' => 'kajian'],
+                                ['label' => 'Naskah Akademik', 'value' => 'naskah_akademik'],
+                                ['label' => 'Rancangan Peraturan', 'value' => 'rancangan'],
+                                ['label' => 'Lainnya', 'value' => 'lainnya'],
+                            ]" />
+
+                        {{-- Judul Dokumen --}}
+                        <x-backend.input.textarea
+                            label="Judul Dokumen"
+                            key="judul"
+                            placeholder="Tulis lengkap judul dokumen disabilitas"
+                            required
+                            rows="2"
+                            :value="old('judul')" />
+
+                        {{-- Nomor Dokumen --}}
+                        <x-backend.input.text
+                            label="Nomor Dokumen"
+                            key="nomor_dokumen"
+                            placeholder="Contoh: 8 Tahun 2016, 52 Tahun 2019"
+                            required
+                            :value="old('nomor_dokumen')" />
+
+                        {{-- Tahun Dokumen --}}
+                        <x-backend.input.text
+                            label="Tahun"
+                            key="tahun"
+                            placeholder="Tahun dokumen"
+                            required
+                            type="number"
+                            min="1900"
+                            max="{{ date('Y') + 5 }}"
+                            :value="old('tahun')" />
+
+                        {{-- Tempat Penetapan --}}
+                        <x-backend.input.text
+                            label="Tempat Penetapan"
+                            key="tempat_penetapan"
+                            placeholder="Contoh: Jakarta"
+                            :value="old('tempat_penetapan')" />
+
+                        {{-- Tanggal Penetapan --}}
+                        <x-backend.input.date
+                            label="Tanggal Penetapan"
+                            key="tanggal_penetapan"
+                            placeholder="Tanggal ditetapkan"
+                            :value="old('tanggal_penetapan')" />
+
+                        {{-- Lembaga Penetap --}}
+                        <x-backend.input.text
+                            label="Lembaga Penetap"
+                            key="lembaga_penetap"
+                            placeholder="Contoh: Presiden RI, DPR RI, Kementerian Sosial"
+                            required
+                            :value="old('lembaga_penetap')" />
+
+                        {{-- Status Dokumen --}}
+                        <x-backend.input.select
+                            label="Status Dokumen"
+                            key="status_dokumen"
+                            placeholder="--Pilih status--"
+                            required
+                            :value="old('status_dokumen')"
+                            :data="[
+                                ['label' => 'Berlaku', 'value' => 'berlaku'],
+                                ['label' => 'Tidak Berlaku', 'value' => 'tidak_berlaku'],
+                                ['label' => 'Mencabut', 'value' => 'mencabut'],
+                                ['label' => 'Diubah', 'value' => 'diubah'],
+                                ['label' => 'Dicabut', 'value' => 'dicabut'],
+                                ['label' => 'Draft', 'value' => 'draft'],
+                            ]" />
+
+                        {{-- Dokumen yang Dicabut/Diamandemen --}}
+                        <x-backend.input.text
+                            label="Terkait dengan Dokumen"
+                            key="dokumen_terkait"
+                            placeholder="Nomor dokumen yang dicabut/diamandemen"
+                            :value="old('dokumen_terkait')" />
+                    </div>
+                </div>
+
+                <!-- Informasi Tambahan Dokumen -->
+                <div class="box box-info box-solid">
+                    <div class="box-header with-border">
+                        <b><i class="fa fa-info-circle"></i> Informasi Tambahan Dokumen</b>
+                    </div>
+                    <div class="box-body">
+                        {{-- Penulis --}}
+                        <x-backend.input.text
+                            label="Penulis"
+                            key="penulis"
+                            placeholder="Nama penulis dokumen"
+                            :value="old('penulis')" />
+
+                        {{-- Penerbit --}}
+                        <x-backend.input.text
+                            label="Penerbit"
+                            key="penerbit"
+                            placeholder="Nama penerbit dokumen"
+                            :value="old('penerbit')" />
+
+                        {{-- ISBN/ISSN --}}
+                        <x-backend.input.text
+                            label="ISBN/ISSN"
+                            key="isbn_issn"
+                            placeholder="Nomor ISBN/ISSN"
+                            :value="old('isbn_issn')" />
+
+                        {{-- DOI --}}
+                        <x-backend.input.text
+                            label="DOI"
+                            key="doi"
+                            placeholder="Digital Object Identifier"
+                            :value="old('doi')" />
+
+                        {{-- Sumber --}}
+                        <x-backend.input.text
+                            label="Sumber"
+                            key="sumber"
+                            placeholder="Sumber dokumen"
+                            :value="old('sumber')" />
+
+                        {{-- URL Referensi --}}
+                        <x-backend.input.text
+                            label="URL Referensi"
+                            key="url_referensi"
+                            placeholder="https://example.com"
+                            type="url"
+                            :value="old('url_referensi')" />
+                    </div>
+                </div>
+
+                <!-- Klasifikasi Disabilitas -->
+                <div class="box box-success box-solid">
+                    <div class="box-header with-border">
+                        <b><i class="fa fa-wheelchair"></i> Klasifikasi Disabilitas</b>
+                    </div>
+                    <div class="box-body">
+                        {{-- Jenis Disabilitas --}}
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Jenis Disabilitas</label>
+                            <div class="col-sm-10">
+                                <div class="checkbox">
+                                    @php
+                                        $jenisDisabilitas = old('jenis_disabilitas', []);
+                                    @endphp
+                                    <label>
+                                        <input type="checkbox" name="jenis_disabilitas[]" value="fisik" 
+                                            {{ in_array('fisik', $jenisDisabilitas) ? 'checked' : '' }}>
+                                        Disabilitas Fisik
+                                    </label>
+                                    <label style="margin-left: 20px;">
+                                        <input type="checkbox" name="jenis_disabilitas[]" value="intelektual" 
+                                            {{ in_array('intelektual', $jenisDisabilitas) ? 'checked' : '' }}>
+                                        Disabilitas Intelektual
+                                    </label>
+                                    <label style="margin-left: 20px;">
+                                        <input type="checkbox" name="jenis_disabilitas[]" value="mental" 
+                                            {{ in_array('mental', $jenisDisabilitas) ? 'checked' : '' }}>
+                                        Disabilitas Mental
+                                    </label>
+                                    <label style="margin-left: 20px;">
+                                        <input type="checkbox" name="jenis_disabilitas[]" value="sensorik" 
+                                            {{ in_array('sensorik', $jenisDisabilitas) ? 'checked' : '' }}>
+                                        Disabilitas Sensorik
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="jenis_disabilitas[]" value="ganda" 
+                                            {{ in_array('ganda', $jenisDisabilitas) ? 'checked' : '' }}>
+                                        Disabilitas Ganda/Majemuk
+                                    </label>
+                                    <label style="margin-left: 20px;">
+                                        <input type="checkbox" name="jenis_disabilitas[]" value="lainnya" 
+                                            {{ in_array('lainnya', $jenisDisabilitas) ? 'checked' : '' }}>
+                                        Lainnya
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Ruang Lingkup --}}
+                        <x-backend.input.select
+                            label="Ruang Lingkup"
+                            key="ruang_lingkup"
+                            placeholder="--Pilih ruang lingkup--"
+                            required
+                            :value="old('ruang_lingkup')"
+                            :data="[
+                                ['label' => 'Nasional', 'value' => 'nasional'],
+                                ['label' => 'Provinsi', 'value' => 'provinsi'],
+                                ['label' => 'Kabupaten/Kota', 'value' => 'kabupaten_kota'],
+                                ['label' => 'Internasional', 'value' => 'internasional'],
+                            ]" />
+
+                        {{-- Sektor/Kebijakan --}}
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Sektor Kebijakan</label>
+                            <div class="col-sm-10">
+                                @php
+                                    $sektor = old('sektor_kebijakan', []);
+                                @endphp
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label class="checkbox-inline">
+                                            <input type="checkbox" name="sektor_kebijakan[]" value="pendidikan" 
+                                                {{ in_array('pendidikan', $sektor) ? 'checked' : '' }}>
+                                            Pendidikan
+                                        </label><br>
+                                        <label class="checkbox-inline">
+                                            <input type="checkbox" name="sektor_kebijakan[]" value="kesehatan" 
+                                                {{ in_array('kesehatan', $sektor) ? 'checked' : '' }}>
+                                            Kesehatan
+                                        </label><br>
+                                        <label class="checkbox-inline">
+                                            <input type="checkbox" name="sektor_kebijakan[]" value="ketenagakerjaan" 
+                                                {{ in_array('ketenagakerjaan', $sektor) ? 'checked' : '' }}>
+                                            Ketenagakerjaan
+                                        </label><br>
+                                        <label class="checkbox-inline">
+                                            <input type="checkbox" name="sektor_kebijakan[]" value="sosial" 
+                                                {{ in_array('sosial', $sektor) ? 'checked' : '' }}>
+                                            Sosial
+                                        </label>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="checkbox-inline">
+                                            <input type="checkbox" name="sektor_kebijakan[]" value="aksesibilitas" 
+                                                {{ in_array('aksesibilitas', $sektor) ? 'checked' : '' }}>
+                                            Aksesibilitas
+                                        </label><br>
+                                        <label class="checkbox-inline">
+                                            <input type="checkbox" name="sektor_kebijakan[]" value="hukum" 
+                                                {{ in_array('hukum', $sektor) ? 'checked' : '' }}>
+                                            Hukum & HAM
+                                        </label><br>
+                                        <label class="checkbox-inline">
+                                            <input type="checkbox" name="sektor_kebijakan[]" value="politik" 
+                                                {{ in_array('politik', $sektor) ? 'checked' : '' }}>
+                                            Politik
+                                        </label><br>
+                                        <label class="checkbox-inline">
+                                            <input type="checkbox" name="sektor_kebijakan[]" value="lainnya" 
+                                                {{ in_array('lainnya', $sektor) ? 'checked' : '' }}>
+                                            Lainnya
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Konten dan Dokumen -->
+                <div class="box box-warning box-solid">
+                    <div class="box-header with-border">
+                        <b><i class="fa fa-file-text"></i> Konten dan Dokumen</b>
+                    </div>
+                    <div class="box-body">
+                        {{-- Abstrak/Sinopsis --}}
+                        <x-backend.input.textarea
+                            label="Abstrak/Sinopsis"
+                            key="abstrak"
+                            rows="4"
+                            placeholder="Ringkasan isi dokumen (maksimal 500 kata)"
+                            :value="old('abstrak')" />
+
+                        {{-- Kata Kunci --}}
+                        <x-backend.input.text
+                            label="Kata Kunci"
+                            key="kata_kunci"
+                            placeholder="Pisahkan dengan koma, contoh: disabilitas, inklusi, aksesibilitas, hak"
+                            :value="old('kata_kunci')" />
+
+                        {{-- Jumlah Halaman --}}
+                        <x-backend.input.text
+                            label="Jumlah Halaman"
+                            key="jumlah_halaman"
+                            placeholder="Jumlah halaman dokumen"
+                            type="number"
+                            min="1"
+                            :value="old('jumlah_halaman')" />
+
+                        {{-- Bahasa --}}
+                        <x-backend.input.select
+                            label="Bahasa"
+                            key="bahasa"
+                            placeholder="--Pilih bahasa--"
+                            :value="old('bahasa')"
+                            :data="[
+                                ['label' => 'Indonesia', 'value' => 'indonesia'],
+                                ['label' => 'Inggris', 'value' => 'inggris'],
+                                ['label' => 'Daerah', 'value' => 'daerah'],
+                                ['label' => 'Lainnya', 'value' => 'lainnya'],
+                            ]" />
+
+                        {{-- Dokumen Utama --}}
+                        <x-backend.input.file-small
+                            label="Dokumen Utama (PDF)"
+                            key="dokumen_utama"
+                            :value="''"
+                            :mimes="['pdf']"
+                            required />
+
+                        {{-- Cover/Thumbnail --}}
+                        <x-backend.input.file-small
+                            label="Cover/Thumbnail (Gambar)"
+                            key="cover"
+                            :value="''"
+                            :mimes="['jpg', 'jpeg', 'png', 'gif']" />
+
+                        {{-- Lampiran (opsional) --}}
+                        <x-backend.input.file-small
+                            label="Lampiran (PDF/Doc)"
+                            key="lampiran"
+                            :value="''"
+                            :mimes="['pdf', 'doc', 'docx']" />
+                    </div>
+                </div>
+
+                <!-- Hak Akses dan Status -->
+                <div class="box box-danger box-solid">
+                    <div class="box-header with-border">
+                        <b><i class="fa fa-lock"></i> Hak Akses dan Status</b>
+                    </div>
+                    <div class="box-body">
+                        {{-- Status Publikasi --}}
+                        <x-backend.input.select
+                            label="Status Publikasi"
+                            key="status_publikasi"
+                            placeholder="--Pilih status publikasi--"
+                            required
+                            :value="old('status_publikasi', 'draft')"
+                            :data="[
+                                ['label' => 'Draft', 'value' => 'draft'],
+                                ['label' => 'Telah Diunggah', 'value' => 'uploaded'],
+                                ['label' => 'Telah Direview', 'value' => 'reviewed'],
+                                ['label' => 'Dipublikasikan', 'value' => 'published'],
+                                ['label' => 'Ditunda', 'value' => 'pending'],
+                                ['label' => 'Dihapus', 'value' => 'deleted'],
+                            ]" />
+
+                        {{-- Hak Akses --}}
+                        <x-backend.input.select
+                            label="Hak Akses"
+                            key="hak_akses"
+                            placeholder="--Pilih hak akses--"
+                            required
+                            :value="old('hak_akses', 'public')"
+                            :data="[
+                                ['label' => 'Publik (Semua Orang)', 'value' => 'public'],
+                                ['label' => 'Terbatas (Login)', 'value' => 'restricted'],
+                                ['label' => 'Admin Only', 'value' => 'admin'],
+                                ['label' => 'Internal Only', 'value' => 'internal'],
+                            ]" />
+
+                        {{-- Tanggal Unggah --}}
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="tanggal_unggah">
+                                Tanggal Unggah <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-10">
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text"
+                                           class="form-control datepicker"
+                                           id="tanggal_unggah"
+                                           name="tanggal_unggah"
+                                           value="{{ old('tanggal_unggah', \Carbon\Carbon::now()->format('j/n/Y')) }}"
+                                           placeholder="Pilih tanggal unggah"
+                                           required
+                                           autocomplete="off">
+                                </div>
+                                <small class="text-muted">Pilih tanggal ketika dokumen diunggah</small>
+                            </div>
+                        </div>
+
+                        {{-- Keterangan Tambahan --}}
+                        <x-backend.input.textarea
+                            label="Keterangan Tambahan"
+                            key="keterangan"
+                            rows="3"
+                            placeholder="Catatan internal atau keterangan lainnya"
+                            :value="old('keterangan')" />
+
+                        {{-- Pengunggah --}}
+                        <x-backend.input.text
+                            label="Pengunggah"
+                            key="pengunggah"
+                            placeholder="Nama pengunggah"
+                            :value="old('pengunggah', auth()->user()->username ?? '')"
+                            readonly />
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="box-footer">
+                    <button
+                        type="submit"
+                        class="btn btn-success btn-flat">
+                        <i class="fa fa-save"></i> Simpan Data
+                    </button>
+                    <a
+                        href="{{ route('backend.disabilitas.index') }}"
+                        class="btn btn-danger btn-flat">
+                        <i class="fa fa-times"></i> Batal
+                    </a>
+                    <button
+                        type="reset"
+                        class="btn btn-default btn-flat">
+                        <i class="fa fa-refresh"></i> Reset Form
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @push('script')
+        <script>
+            $(document).ready(function() {
+                console.log('Document ready - Inisialisasi form create');
+                
+                // Initialize datepicker untuk semua input dengan class datepicker
+                $('.datepicker').datepicker({
+                    format: 'dd/mm/yyyy',
+                    autoclose: true,
+                    todayHighlight: true,
+                    language: 'id',
+                    weekStart: 1,
+                    daysOfWeekHighlighted: "0,6",
+                    todayBtn: "linked",
+                    clearBtn: true,
+                    orientation: "auto"
+                });
+
+                // Pastikan icon kalender juga berfungsi
+                $('.input-group-addon').on('click', function() {
+                    $(this).closest('.input-group').find('input').datepicker('show');
+                });
+
+                // Auto-fill tahun saat ini jika kosong
+                if (!$('#tahun').val()) {
+                    $('#tahun').val(new Date().getFullYear());
+                }
+
+                // Format kata kunci
+                $('#kata_kunci').on('blur', function() {
+                    let value = $(this).val();
+                    if (value) {
+                        // Hapus spasi berlebihan dan format
+                        let keywords = value.split(',')
+                            .map(k => k.trim())
+                            .filter(k => k !== '')
+                            .join(', ');
+                        $(this).val(keywords);
+                    }
+                });
+
+                // Preview file sebelum upload
+                $('input[type="file"]').change(function() {
+                    const file = this.files[0];
+                    const inputId = $(this).attr('id');
+                    const previewDiv = $('#' + inputId + '-preview');
+                    
+                    if (file) {
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                previewDiv.html(
+                                    '<div class="alert alert-info">' +
+                                    '<i class="fa fa-image"></i> Preview: ' + file.name + 
+                                    '<br><small>Size: ' + (file.size / 1024).toFixed(2) + ' KB</small>' +
+                                    '</div>'
+                                );
+                            }
+                            reader.readAsDataURL(file);
+                        } else {
+                            previewDiv.html(
+                                '<div class="alert alert-info">' +
+                                '<i class="fa fa-file"></i> File: ' + file.name + 
+                                '<br><small>Size: ' + (file.size / 1024).toFixed(2) + ' KB</small>' +
+                                '</div>'
+                            );
+                        }
+                    }
+                });
+
+                // Konversi format tanggal sebelum submit (untuk semua datepicker)
+                $('form').submit(function(e) {
+                    // Konversi format tanggal dari dd/mm/yyyy ke yyyy-mm-dd untuk semua datepicker
+                    $('.datepicker').each(function() {
+                        const $input = $(this);
+                        if ($input.val()) {
+                            const parts = $input.val().split('/');
+                            if (parts.length === 3) {
+                                const formattedDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+                                $input.val(formattedDate);
+                                console.log('Tanggal dikonversi:', $input.attr('id'), 'dari', $input.val(), 'ke', formattedDate);
+                            }
+                        }
+                    });
+
+                    // Validasi form
+                    let isValid = true;
+                    let errorFields = [];
+                    
+                    // Cek required fields
+                    $('[required]').each(function() {
+                        const $field = $(this);
+                        const fieldValue = $field.val();
+                        const fieldName = $field.attr('name') || $field.attr('id');
+                        
+                        if (!$field.val() && $field.attr('type') !== 'file') {
+                            isValid = false;
+                            errorFields.push(fieldName);
+                            $field.addClass('error');
+                            $field.closest('.form-group').addClass('has-error');
+                        } else {
+                            $field.removeClass('error');
+                            $field.closest('.form-group').removeClass('has-error');
+                        }
+                    });
+
+                    // Validasi file PDF untuk dokumen utama
+                    const dokumenUtama = $('#dokumen_utama')[0];
+                    if (dokumenUtama && dokumenUtama.files.length > 0) {
+                        const file = dokumenUtama.files[0];
+                        if (file.type !== 'application/pdf') {
+                            isValid = false;
+                            alert('Dokumen utama harus berformat PDF!');
+                        }
+                    } else {
+                        isValid = false;
+                        alert('Dokumen utama harus diunggah!');
+                    }
+
+                    // Debug: log data yang akan disubmit
+                    console.log('Data form yang akan disubmit:');
+                    const formData = new FormData(this);
+                    for (let [key, value] of formData.entries()) {
+                        console.log(key + ':', value);
+                    }
+
+                    if (!isValid) {
+                        e.preventDefault();
+                        alert('Harap lengkapi semua field yang wajib diisi!');
+                        console.log('Field yang error:', errorFields);
+                        
+                        // Scroll ke field error pertama
+                        if (errorFields.length > 0) {
+                            $('html, body').animate({
+                                scrollTop: $('.error').first().offset().top - 100
+                            }, 500);
+                        }
+                    } else {
+                        console.log('Form valid, submit akan diproses');
+                    }
+                });
+
+                // Format tanggal untuk display
+                function formatDateForDisplay(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const year = date.getFullYear();
+                    return day + '/' + month + '/' + year;
+                }
+
+                // Handle URL Referensi validation
+                $('#url_referensi').on('blur', function() {
+                    const url = $(this).val();
+                    if (url && !isValidUrl(url)) {
+                        alert('URL tidak valid. Format harus: https://example.com');
+                        $(this).val('');
+                    }
+                });
+
+                function isValidUrl(string) {
+                    try {
+                        new URL(string);
+                        return true;
+                    } catch (_) {
+                        return false;
+                    }
+                }
+            });
+        </script>
+        
+        <style>
+            .box-header {
+                background-color: #3c8dbc !important;
+            }
+            .box-success .box-header {
+                background-color: #00a65a !important;
+            }
+            .box-warning .box-header {
+                background-color: #f39c12 !important;
+            }
+            .box-info .box-header {
+                background-color: #00c0ef !important;
+            }
+            .box-danger .box-header {
+                background-color: #dd4b39 !important;
+            }
+            .checkbox label, .checkbox-inline {
+                margin-right: 15px;
+            }
+            .form-group {
+                margin-bottom: 20px;
+            }
+            input[readonly] {
+                background-color: #f5f5f5;
+                cursor: not-allowed;
+            }
+            /* Datepicker styles */
+            .datepicker {
+                border-radius: 4px;
+            }
+            .datepicker-dropdown {
+                padding: 10px;
+            }
+            .datepicker table tr td.today {
+                background-color: #ffdb99;
+            }
+            .datepicker table tr td.active,
+            .datepicker table tr td.active:hover {
+                background-color: #337ab7;
+                background-image: none;
+            }
+            .input-group-addon {
+                background-color: #eee;
+                border: 1px solid #ccc;
+                border-right: none;
+                cursor: pointer;
+            }
+            .input-group-addon:hover {
+                background-color: #ddd;
+            }
+            .input-group .form-control {
+                border-left: none;
+            }
+            /* Style untuk section baru */
+            .box-info .box-header {
+                background-color: #00c0ef !important;
+            }
+        </style>
+    @endpush
+</x-layouts.backend>

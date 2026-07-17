@@ -1,0 +1,56 @@
+# Dev-only overrides. Auto-loaded by `docker compose up`.
+# Runs the Vite dev server so Tailwind/CSS/JS hot-reload instead of needing `npm run build`,
+# plus a local MySQL + phpMyAdmin for managing the data.
+services:
+  app:
+    environment:
+      APP_ENV: local # overrides .env (Dotenv won't override an already-set var)
+      DB_HOST: mysql
+      DB_PORT: 3306
+    depends_on:
+      - mysql
+
+  vite:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules # keep container's node_modules off the host mount (native binaries)
+    networks:
+      - kominfonetwork_shared
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: jdihkendarikota
+      MYSQL_USER: jdihkendari
+      MYSQL_PASSWORD: m67iEudLY25AXUm21UEMN
+      MYSQL_ROOT_PASSWORD: m67iEudLY25AXUm21UEMN
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Auto-imports on first run (empty volume only). Delete the volume to re-seed.
+      - ./jdihkendarikota.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - kominfonetwork_shared
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      UPLOAD_LIMIT: 256M
+    ports:
+      - "8091:80"
+    depends_on:
+      - mysql
+    networks:
+      - kominfonetwork_shared
+
+volumes:
+  mysql_data:

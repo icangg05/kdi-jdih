@@ -1,0 +1,10 @@
+<div>
+	@include('components.frontend.hero-section')
+	@include('components.frontend.pejabat-section')
+	@include('components.frontend.statistik-section')
+	@include('components.frontend.peraturan-section')
+	@include('components.frontend.monografi-section')
+	@include('components.frontend.pengumuman-section')
+	@include('components.frontend.video-section')
+	@include('components.frontend.berita-section')
+</div>

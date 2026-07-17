@@ -1,0 +1,253 @@
+<?php
+
+return [
+  [
+    'icon'     => 'fa fa-dashboard',
+    'label'    => 'Dashboard',
+    'route'    => 'backend.dashboard',
+    'isActive' => 'dashboard',
+  ],
+  [
+    'icon'     => 'fa fa-bank',
+    'label'    => 'Dokumen Hukum',
+    'route'    => 'backend.dashboard',
+    'isActive' => ['dashboard/peraturan*', 'dashboard/monografi*', 'dashboard/artikel*', 'dashboard/putusan*','dashboard/form*',],
+    'subMenu'  => [
+      [
+        'icon'     => 'fa fa-pencil-square-o',
+        'label'    => 'Peraturan',
+        'route'    => 'backend.peraturan.index',
+        'isActive' => 'dashboard/peraturan*',
+      ],
+      [
+        'icon'     => 'fa fa-pencil-square-o',
+        'label'    => 'Monografi Hukum',
+        'route'    => 'backend.monografi.index',
+        'isActive' => 'dashboard/monografi*',
+      ],
+      [
+        'icon'     => 'fa fa-pencil-square-o',
+        'label'    => 'Artikel Hukum',
+        'route'    => 'backend.artikel.index',
+        'isActive' => 'dashboard/artikel*',
+      ],
+      [
+        'icon'     => 'fa fa-balance-scale',
+        'label'    => 'Putusan',
+        'route'    => 'backend.putusan.index',
+        'isActive' => 'dashboard/putusan*',
+      ],
+    ],
+  ],
+  // [
+  //   'icon'     => 'fa fa-recycle',
+  //   'label'    => 'Sirkulasi',
+  //   'route'    => 'backend.dashboard',
+  //   'isActive' => 'backend/sirkulasi*',
+  //   'subMenu'  => [
+  //     [
+  //       'icon'     => 'fa fa-circle-o',
+  //       'label'    => 'Peminjaman',
+  //       'route'    => 'backend.dashboard',
+  //       'isActive' => 'backend/sirkulasi/peminjaman',
+  //     ],
+  //     [
+  //       'icon'     => 'fa fa-circle-o',
+  //       'label'    => 'Pengembalian',
+  //       'route'    => 'backend.dashboard',
+  //       'isActive' => 'backend/sirkulasi/pengembalian',
+  //     ],
+  //     [
+  //       'icon'     => 'fa fa-circle-o',
+  //       'label'    => 'Sejarah Peminjaman',
+  //       'route'    => 'backend.dashboard',
+  //       'isActive' => 'backend/sirkulasi/index',
+  //     ],
+  //   ],
+  // ],
+  [
+    'icon'     => 'fa fa-image',
+    'label'    => 'Berita',
+    'route'    => 'backend.berita.index',
+    'isActive' => 'dashboard/berita*',
+  ],
+  [
+    'icon'     => 'fa fa-pencil-square-o',
+    'label'    => 'Narasi & Quotes',
+    'route'    => 'backend.narasi.edit',
+    'isActive' => 'dashboard/narasi*',
+  ],
+  [
+    'icon'     => 'fa fa-pencil-square-o',
+    'label'    => 'Informasi Hukum',
+    'route'    => 'backend.informasi-hukum.index',
+    'isActive' => 'dashboard/informasi-hukum*',
+  ],
+  [
+    'icon'     => 'fa fa-wheelchair',
+    'label'    => 'Disabilitas',
+    'route'    => 'backend.disabilitas.index',
+    'isActive' => 'dashboard/disabilitas*',
+  ],
+  [
+    'icon'     => 'fa fa-gavel',
+    'label'    => 'Pembentukan PUU',
+    'route'    => 'backend.pembentukan-puu.index',
+    'isActive' => 'dashboard/pembentukan-puu*',
+    
+  ],
+  [
+    'icon'     => 'fa fa-image',
+    'label'    => 'Pengumuman',
+    'route'    => 'backend.pengumuman.index',
+    'isActive' => 'dashboard/pengumuman*',
+  ],
+  [
+    'icon'     => 'fa fa-video-camera',
+    'label'    => 'Video',
+    'route'    => 'backend.video.index',
+    'isActive' => 'dashboard/video*',
+  ],
+  [
+    'icon'     => 'fa fa-database',
+    'label'    => 'Master Data',
+    'route'    => 'backend.dashboard',
+    'isActive' => 'backend/*',
+    'subMenu'  => [
+      // [
+      //   'icon'     => 'fa fa-circle-o',
+      //   'label'    => 'GMD',
+      //   'route'    => 'backend.dashboard',
+      //   'isActive' => 'backend/gmd*',
+      // ],
+      [
+        'icon'     => 'fa fa-circle-o',
+        'label'    => 'Jenis Informasi Hukum',
+        'route'    => 'backend.dashboard',
+        'isActive' => 'backend/jenis-informasi-hukum*',
+      ],
+      [
+        'icon'     => 'fa fa-circle-o',
+        'label'    => 'Jenis Pengarang',
+        'route'    => 'backend.dashboard',
+        'isActive' => 'backend/jenis-pengarang*',
+      ],
+      [
+        'icon'     => 'fa fa-circle-o',
+        'label'    => 'Kala Terbit',
+        'route'    => 'backend.dashboard',
+        'isActive' => 'backend/kala-terbit*',
+      ],
+      // [
+      //   'icon'     => 'fa fa-circle-o',
+      //   'label'    => 'Penerbit',
+      //   'route'    => 'backend.dashboard',
+      //   'isActive' => 'backend/penerbit*',
+      // ],
+      [
+        'icon'     => 'fa fa-circle-o',
+        'label'    => 'Pengarang',
+        'route'    => 'backend.dashboard',
+        'isActive' => 'backend/pengarang*',
+      ],
+      // [
+      //   'icon'     => 'fa fa-circle-o',
+      //   'label'    => 'Pola Eksemplar',
+      //   'route'    => 'backend.dashboard',
+      //   'isActive' => 'backend/pola-eksemplar*',
+      // ],
+      // [
+      //   'icon'     => 'fa fa-circle-o',
+      //   'label'    => 'Tempat Penetapan',
+      //   'route'    => 'backend.dashboard',
+      //   'isActive' => 'backend/daerah*',
+      // ],
+      [
+        'icon'     => 'fa fa-circle-o',
+        'label'    => 'Tipe Koleksi',
+        'route'    => 'backend.dashboard',
+        'isActive' => 'backend/tipe-koleksi*',
+      ],
+      [
+        'icon'     => 'fa fa-circle-o',
+        'label'    => 'Tipe Pengarang',
+        'route'    => 'backend.dashboard',
+        'isActive' => 'backend/tipe-pengarang*',
+      ],
+      // [
+      //   'icon'     => 'fa fa-circle-o',
+      //   'label'    => 'Tipe Dokumen',
+      //   'route'    => 'backend.dashboard',
+      //   'isActive' => 'backend/tipe-dokumen*',
+      // ],
+      [
+        'icon'     => 'fa fa-circle-o',
+        'label'    => 'Tipe Kata Kunci',
+        'route'    => 'backend.dashboard',
+        'isActive' => 'backend/tipe-kata-kunci*',
+      ],
+      // [
+      //   'icon'     => 'fa fa-circle-o',
+      //   'label'    => 'Klasifikasi',
+      //   'route'    => 'backend.dashboard',
+      //   'isActive' => 'backend/klasifikasi*',
+      // ],
+      [
+        'icon'     => 'fa fa-circle-o',
+        'label'    => 'Bidang Hukum',
+        'route'    => 'backend.dashboard',
+        'isActive' => 'backend/bidang-hukum*',
+      ],
+      [
+        'icon'     => 'fa fa-circle-o',
+        'label'    => 'Bahasa',
+        'route'    => 'backend.dashboard',
+        'isActive' => 'backend/bahasa*',
+      ],
+      [
+        'icon'     => 'fa fa-circle-o',
+        'label'    => 'Urusan Pemerintahan',
+        'route'    => 'backend.dashboard',
+        'isActive' => 'backend/urusan-pemerintahan*',
+      ],
+    ],
+  ],
+  [
+    'icon'     => 'fa fa-unlock',
+    'label'    => 'Akses Kontrol',
+    'route'    => 'backend.dashboard',
+    'isActive' => 'backend/admin*' || 'backend/member*',
+    'subMenu'  => [
+      [
+        'icon'     => 'fa fa-users',
+        'label'    => 'User',
+        'route'    => 'backend.user.index',
+        'isActive' => 'backend/admin/user*',
+      ],
+      // [
+      //   'icon'     => 'fa fa-users',
+      //   'label'    => 'Member',
+      //   'route'    => 'backend.dashboard',
+      //   'isActive' => 'backend/member*',
+      // ],
+      // [
+      //   'icon'     => 'fa fa-gears',
+      //   'label'    => 'Route',
+      //   'route'    => 'backend.dashboard',
+      //   'isActive' => 'backend/admin/route*',
+      // ],
+      // [
+      //   'icon'     => 'fa fa-cog',
+      //   'label'    => 'Role',
+      //   'route'    => 'backend.dashboard',
+      //   'isActive' => 'backend/admin/role*',
+      // ],
+      // [
+      //   'icon'     => 'fa fa-map',
+      //   'label'    => 'Menu',
+      //   'route'    => 'backend.dashboard',
+      //   'isActive' => 'backend/admin/menu*',
+      // ],
+    ],
+  ],
+];

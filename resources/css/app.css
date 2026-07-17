@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+  --font-opensans: "Open Sans", sans-serif;
+
+  --color-primary: #ff891e;
+  --color-primary-hover: #ea8221;
+  --color-darkbg: #0f172a;
+  --color-accent: #015BA5;
+  --color-accent-hover: #014f8e;
+}
+
+.bline {
+  @apply border border-red-500;
+}

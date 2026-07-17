@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentasi API JDIH Kota Kendari v1.0</title>
+</head>
+<body>
+    <h1>Dokumentasi API JDIH Kota Kendari v1.0</h1>
+    <p>Untuk integrasi dengan JDIHN Nasional</p>
+    <p><strong>Status:</strong> AKTIF siap integrasi</p>
+    
+    <h2>Informasi API</h2>
+    <p><strong>Base URL Production:</strong> https://jdih.kendarikota.go.id/api/jdih/</p>
+    <p><strong>Base URL Testing:</strong> http://localhost:8000/api/jdih/</p>
+    <p><strong>Format:</strong> JSON</p>
+    <p><strong>Authentication:</strong> API Key (Header: X-API-Key)</p>
+    
+    <h2>Authentication & API Keys</h2>
+    
+    <h3>API Key Permanen untuk JDIHN:</h3>
+    <p><strong>API Key:</strong> jdih_kendari_jdihn_permanent</p>
+    <p><strong>Status:</strong> ⭐ PERMANEN - Tidak pernah kadaluarsa ⭐</p>
+    <p><strong>Rate limit:</strong> 1000 request/jam</p>
+    
+    <h3>API Key Legacy (tetap didukung):</h3>
+    <p><strong>API Key:</strong> jdih_kendari_jdihn_2025_001</p>
+    <p><strong>Valid hingga:</strong> 31 Desember 2030</p>
+    <p><strong>Rate limit:</strong> 1000 request/jam</p>
+    
+    <h3>Cara Penggunaan:</h3>
+    <pre>curl -X GET "https://jdih.kendarikota.go.id/api/jdih/health" \
+     -H "X-API-Key: jdih_kendari_jdihn_permanent"</pre>
+    
+    <h3>Catatan Penting:</h3>
+    <ul>
+        <li>Gunakan <strong>jdih_kendari_jdihn_permanent</strong> untuk integrasi jangka panjang</li>
+        <li>Key ini tidak akan kadaluarsa secara otomatis</li>
+        <li>Monitoring dan security audit dilakukan berkala</li>
+        <li>Key dapat dinonaktifkan manual jika ditemukan penyalahgunaan</li>
+    </ul>
+    
+    <h2>Endpoint</h2>
+    
+    <h3>1. Health Check</h3>
+    <p><strong>GET</strong> /health</p>
+    <p>Endpoint untuk mengecek status API. Tidak perlu authentication.</p>
+    <p><strong>Contoh Request:</strong></p>
+    <pre>curl -X GET "https://jdih.kendarikota.go.id/api/jdih/health"</pre>
+    <p><strong>Contoh Response:</strong></p>
+    <pre>{
+  "status": "success",
+  "service": "JDIH Kota Kendari API",
+  "version": "1.0.0",
+  "timestamp": "2026-01-18 11:12:00"
+}</pre>
+    
+    <h3>2. Search Documents</h3>
+    <p><strong>GET</strong> /search</p>
+    <p>Mencari dokumen hukum di database JDIH.</p>
+    <p><strong>Parameter:</strong></p>
+    <ul>
+        <li><strong>q</strong> (required) - Kata kunci pencarian</li>
+        <li><strong>limit</strong> (optional, default: 20) - Jumlah hasil per halaman</li>
+        <li><strong>page</strong> (optional, default: 1) - Nomor halaman</li>
+        <li><strong>tahun</strong> (optional) - Filter tahun terbit</li>
+        <li><strong>tipe_dokumen</strong> (optional) - ID tipe dokumen (1-132)</li>
+        <li><strong>status</strong> (optional) - Status dokumen (Berlaku, Dicabut, Tidak Berlaku, Diubah)</li>
+        <li><strong>bidang_hukum</strong> (optional) - Bidang hukum</li>
+        <li><strong>sort</strong> (optional) - Sorting (terbaru, terlama, relevansi)</li>
+    </ul>
+    <p><strong>Contoh Request:</strong></p>
+    <pre>curl -X GET "https://jdih.kendarikota.go.id/api/jdih/search?q=disabilitas&limit=5&tahun=2024" \
+-H "X-API-Key: jdih_kendari_jdihn_permanent"</pre>
+    <p><strong>Contoh Response:</strong></p>
+    <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": 123,
+      "judul": "Peraturan Daerah tentang Hak Penyandang Disabilitas",
+      "nomor_peraturan": "12",
+      "tahun_terbit": 2024,
+      "tipe_dokumen_nama": "PERATURAN DAERAH",
+      "tipe_dokumen_singkatan": "PERDA",
+      "status": "Berlaku",
+      "abstrak": "Peraturan ini mengatur tentang hak-hak penyandang disabilitas...",
+      "bidang_hukum": "Sosial",
+      "detail_url": "https://jdih.kendarikota.go.id/api/jdih/documents/123",
+      "download_url": "https://jdih.kendarikota.go.id/api/jdih/documents/123/download"
+    }
+  ],
+  "pagination": {
+    "total": 15,
+    "page": 1,
+    "limit": 5,
+    "total_pages": 3,
+    "has_more": true
+  }
+}</pre>
+    
+    <h3>3. Document Details</h3>
+    <p><strong>GET</strong> /documents/{id}</p>
+    <p>Mendapatkan detail lengkap dokumen berdasarkan ID.</p>
+    <p><strong>Parameter Path:</strong></p>
+    <ul>
+        <li><strong>id</strong> (required) - ID dokumen</li>
+    </ul>
+    <p><strong>Contoh Request:</strong></p>
+    <pre>curl -X GET "https://jdih.kendarikota.go.id/api/jdih/documents/123" \
+-H "X-API-Key: jdih_kendari_jdihn_permanent"</pre>
+    <p><strong>Contoh Response (partial):</strong></p>
+    <pre>{
+  "success": true,
+  "data": {
+    "metadata": {
+      "tipe_dokumen": {
+        "id": 1,
+        "nama": "PERATURAN DAERAH",
+        "singkatan": "PERDA"
+      },
+      "judul": "Peraturan Daerah Kota Kendari Nomor 8 Tahun 2025",
+      "nomor_peraturan": "8",
+      "tahun_terbit": 2025,
+      "bentuk_peraturan": "Peraturan Daerah",
+      "jenis_peraturan": "Umum"
+    },
+    "informasi_publikasi": {
+      "tempat_terbit": "Kendari",
+      "penerbit": "Pemerintah Kota Kendari",
+      "sumber": "Lembaran Daerah"
+    },
+    "tanggal_penting": {
+      "tanggal_penetapan": "2025-05-15",
+      "tanggal_pengundangan": "2025-05-20",
+      "created_at": "2025-05-20T10:30:00Z"
+    },
+    "kategorisasi": {
+      "bidang_hukum": "Ketahanan Pangan",
+      "bahasa": "Indonesia",
+      "klasifikasi": "340 - Hukum"
+    },
+    "status_dokumen": {
+      "status": "Berlaku",
+      "berkekuatan_hukum_tetap": "Ya"
+    },
+    "statistik": {
+      "hit_see": 150,
+      "hit_download": 45
+    }
+  }
+}</pre>
+    
+    <h3>4. Document Download</h3>
+    <p><strong>GET</strong> /documents/{id}/download</p>
+    <p>Mendownload file dokumen (format PDF).</p>
+    <p><strong>Contoh Request:</strong></p>
+    <pre>curl -X GET "https://jdih.kendarikota.go.id/api/jdih/documents/123/download" \
+-H "X-API-Key: jdih_kendari_jdihn_permanent" \
+--output document.pdf</pre>
+    <p><strong>Response:</strong></p>
+    <pre>{
+  "success": true,
+  "message": "Download request recorded.",
+  "data": {
+    "id": 123,
+    "judul": "Peraturan Daerah Kota Kendari Nomor 8 Tahun 2025",
+    "download_info": {
+      "timestamp": "2026-01-18T11:12:00Z",
+      "download_id": "550e8400-e29b-41d4-a716-446655440000"
+    }
+  }
+}</pre>
+    
+    <h3>5. Statistics</h3>
+    <p><strong>GET</strong> /statistics</p>
+    <p>Mendapatkan statistik sistem lengkap.</p>
+    <p><strong>Contoh Request:</strong></p>
+    <pre>curl -X GET "https://jdih.kendarikota.go.id/api/jdih/statistics" \
+-H "X-API-Key: jdih_kendari_jdihn_permanent"</pre>
+    <p><strong>Contoh Response (partial):</strong></p>
+    <pre>{
+  "success": true,
+  "data": {
+    "total_dokumen": 722,
+    "total_views": 39207,
+    "total_downloads": 4150,
+    "dokumen_per_tahun": [
+      {"tahun": 2025, "total": 45},
+      {"tahun": 2024, "total": 38},
+      {"tahun": 2023, "total": 32}
+    ],
+    "dokumen_per_tipe": [
+      {"tipe": "PERATURAN DAERAH", "total": 320},
+      {"tipe": "PERATURAN WALIKOTA", "total": 195}
+    ],
+    "most_viewed": [
+      {"id": 123, "judul": "Perda tentang Disabilitas", "hit_see": 450}
+    ]
+  }
+}</pre>
+    
+    <h3>6. Document Types</h3>
+    <p><strong>GET</strong> /document-types</p>
+    <p>Mendapatkan daftar hierarki tipe dokumen yang tersedia.</p>
+    <p><strong>Contoh Request:</strong></p>
+    <pre>curl -X GET "https://jdih.kendarikota.go.id/api/jdih/document-types" \
+-H "X-API-Key: jdih_kendari_jdihn_permanent"</pre>
+    
+    <h2>Error Responses</h2>
+    
+    <h3>400 - Bad Request</h3>
+    <pre>{
+  "success": false,
+  "message": "Validation error",
+  "errors": {
+    "q": ["The search query is required"]
+  },
+  "error_code": "VAL_001"
+}</pre>
+    
+    <h3>401 - Missing API Key</h3>
+    <pre>{
+  "success": false,
+  "message": "API key is required",
+  "error_code": "API_001"
+}</pre>
+    
+    <h3>403 - Invalid API Key</h3>
+    <pre>{
+  "success": false,
+  "message": "Invalid API key",
+  "error_code": "API_002",
+  "hint": "Please use a valid API key provided by JDIH Kota Kendari"
+}</pre>
+    
+    <h3>404 - Not Found</h3>
+    <pre>{
+  "success": false,
+  "message": "Dokumen tidak ditemukan",
+  "error_code": "DOC_001",
+  "requested_id": 9999
+}</pre>
+    
+    <h3>429 - Rate Limit Exceeded</h3>
+    <pre>{
+  "success": false,
+  "message": "Rate limit exceeded",
+  "error_code": "RATE_001",
+  "limit": 1000,
+  "remaining": 0,
+  "reset_in": "45 minutes"
+}</pre>
+    
+    <h2>Struktur Data Lengkap</h2>
+    
+    <h3>Document Object (Search Response)</h3>
+    <pre>{
+  "id": 123,
+  "judul": "Peraturan Daerah Kota Kendari Nomor 8 Tahun 2025",
+  "nomor_peraturan": "8",
+  "tahun_terbit": 2025,
+  "tipe_dokumen_nama": "PERATURAN DAERAH KOTA",
+  "tipe_dokumen_singkatan": "PERDA",
+  "jenis_peraturan": "Peraturan Daerah",
+  "status": "Berlaku",
+  "tanggal_penetapan": "2025-05-15",
+  "tanggal_pengundangan": "2025-05-20",
+  "abstrak": "Peraturan ini mengatur tentang...",
+  "bidang_hukum": "Ketahanan Pangan",
+  "penandatanganan": "Wali Kota Kendari",
+  "tempat_penetapan": "Kendari",
+  "hit_see": 150,
+  "hit_download": 45,
+  "created_at": "2025-05-20T10:30:00Z",
+  "updated_at": "2025-05-20T10:30:00Z",
+  "detail_url": "https://jdih.kendarikota.go.id/api/jdih/documents/123",
+  "download_url": "https://jdih.kendarikota.go.id/api/jdih/documents/123/download",
+  "gambar_sampul_url": "https://jdih.kendarikota.go.id/storage/covers/123.jpg"
+}</pre>
+    
+    <h2>Testing</h2>
+    
+    <h3>Script Testing (PowerShell):</h3>
+    <pre># test_jdihn_integration.ps1
+$API_KEY = "jdih_kendari_jdihn_permanent"
+$BASE_URL = "https://jdih.kendarikota.go.id/api/jdih"
+
+Write-Host "JDIH Kota Kendari - JDIHN Integration Test" -ForegroundColor Green
+Write-Host "=========================================="
+
+Write-Host "`n1. Testing Health Check..."
+Invoke-RestMethod -Uri "$BASE_URL/health" -Method Get
+
+Write-Host "`n2. Testing Search API..."
+$searchResult = Invoke-RestMethod -Uri "$BASE_URL/search?q=disabilitas&limit=2" `
+    -Method Get -Headers @{"X-API-Key" = $API_KEY}
+$searchResult | ConvertTo-Json -Depth 3
+
+Write-Host "`n3. Testing Statistics..."
+$stats = Invoke-RestMethod -Uri "$BASE_URL/statistics" `
+    -Method Get -Headers @{"X-API-Key" = $API_KEY}
+$stats | ConvertTo-Json -Depth 3
+
+Write-Host "`n✅ All tests completed successfully!" -ForegroundColor Green</pre>
+    
+    <h3>Script Testing (Bash/Linux):</h3>
+    <pre>#!/bin/bash
+# test_jdihn_integration.sh
+
+API_KEY="jdih_kendari_jdihn_permanent"
+BASE_URL="https://jdih.kendarikota.go.id/api/jdih"
+
+echo "JDIH Kota Kendari - JDIHN Integration Test"
+echo "=========================================="
+
+echo -e "\n1. Testing Health Check..."
+curl -s "$BASE_URL/health" | jq .
+
+echo -e "\n2. Testing Search API..."
+curl -s "$BASE_URL/search?q=disabilitas&limit=2" \
+  -H "X-API-Key: $API_KEY" | jq .
+
+echo -e "\n3. Testing Statistics..."
+curl -s "$BASE_URL/statistics" \
+  -H "X-API-Key: $API_KEY" | jq .
+
+echo -e "\n✅ All tests completed successfully!"</pre>
+    
+    <h2>Rate Limiting</h2>
+    <p><strong>JDIHN Permanent Key:</strong> 1000 request/jam</p>
+    <p><strong>Testing Key:</strong> 100 request/jam</p>
+    <p><strong>Headers untuk monitoring:</strong></p>
+    <ul>
+        <li><code>X-RateLimit-Limit</code>: Maximum requests per hour</li>
+        <li><code>X-RateLimit-Remaining</code>: Remaining requests in current window</li>
+        <li><code>X-RateLimit-Reset</code>: Unix timestamp when limit resets</li>
+        <li><code>Retry-After</code>: Seconds to wait (if limit exceeded)</li>
+    </ul>
+    
+    <h2>Kebijakan API Key Permanen</h2>
+    <ul>
+        <li><strong>Masa berlaku:</strong> ⭐ PERMANEN - Tidak ada tanggal kadaluarsa ⭐</li>
+        <li><strong>Monitoring:</strong> Aktivitas API dipantau 24/7</li>
+        <li><strong>Security:</strong> Audit keamanan berkala setiap 6 bulan</li>
+        <li><strong>Revokasi:</strong> Hanya jika ditemukan penyalahgunaan atau atas permintaan resmi</li>
+        <li><strong>Notifikasi:</strong> Pemberitahuan 30 hari sebelum perubahan kebijakan</li>
+        <li><strong>Kontinuitas:</strong> Layanan dijamin berkelanjutan untuk integrasi JDIHN</li>
+    </ul>
+    
+    <h2>Best Practices untuk Integrasi</h2>
+    <ol>
+        <li><strong>Gunakan key permanen</strong> untuk integrasi produksi</li>
+        <li><strong>Implement retry logic</strong> dengan exponential backoff</li>
+        <li><strong>Cache responses</strong> yang tidak sering berubah (statistik, tipe dokumen)</li>
+        <li><strong>Monitor rate limits</strong> via response headers</li>
+        <li><strong>Simpan API key</strong> di environment variables, bukan hardcode</li>
+        <li><strong>Gunakan pagination</strong> untuk hasil yang banyak</li>
+        <li><strong>Error handling</strong> yang baik untuk semua kode error</li>
+    </ol>
+    
+    <h2>Kontak & Support</h2>
+    <p><strong>Institusi:</strong> Pemerintah Kota Kendari</p>
+    <p><strong>Unit Teknis:</strong> Bagian Hukum Setda Kota Kendari</p>
+    <p><strong>Email:</strong> admin@jdih.kendari.go.id</p>
+    <p><strong>Telepon:</strong> (0401) 3192225</p>
+    <p><strong>Website:</strong> https://jdih.kendarikota.go.id</p>
+    <p><strong>Alamat:</strong> Jl. Mayjen Sutoyo No. 60, Kendari, Sulawesi Tenggara</p>
+    <p><strong>Jam Support:</strong> Senin-Jumat, 08:00-16:00 WITA</p>
+    
+    <h2>Catatan Penting untuk JDIHN</h2>
+    <ul>
+        <li>API key <strong>jdih_kendari_jdihn_permanent</strong> bersifat eksklusif untuk JDIHN</li>
+        <li>Key ini <strong>tidak akan kadaluarsa secara otomatis</strong></li>
+        <li>Rate limit: <strong>1000 request/jam</strong> (dapat ditingkatkan jika diperlukan)</li>
+        <li>Semua data dijamin <strong>up-to-date</strong> dengan database utama</li>
+        <li>Dokumen baru akan tersedia di API maksimal <strong>1 jam</strong> setelah diunggah</li>
+        <li>Maintenance dijadwalkan <strong>akhir pekan</strong> dengan pemberitahuan 72 jam</li>
+        <li><strong>SLA Uptime:</strong> 99.5% bulanan</li>
+        <li><strong>Support Response:</strong> Maksimal 4 jam untuk isu kritis</li>
+    </ul>
+    
+    <hr>
+    <p><strong>Dokumentasi API JDIH Kota Kendari v1.0</strong></p>
+    <p>© 2026 Pemerintah Kota Kendari. Hak cipta dilindungi undang-undang.</p>
+    <p>Versi Dokumen: 1.0.1 | Terakhir diperbarui: 18 Januari 2026</p>
+    <p>API Key Permanen untuk: <strong>Integrasi Permanen JDIHN Nasional</strong></p>
+</body>
+</html>

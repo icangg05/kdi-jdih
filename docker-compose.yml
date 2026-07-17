@@ -1,0 +1,17 @@
+services:
+  app:
+    container_name: jdihkendari-kominfo
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "6992:8000"
+    volumes:
+      - .:/app
+    networks:
+      - kominfonetwork_shared
+
+networks:
+  kominfonetwork_shared:
+    external: true
