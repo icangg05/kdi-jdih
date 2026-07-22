@@ -7,15 +7,248 @@
 @source '../**/*.js';
 
 @theme {
-  --font-opensans: "Open Sans", sans-serif;
+  --font-opensans: "Source Sans 3", sans-serif;
+  --font-serif: "Source Sans 3", sans-serif;
 
   --color-primary: #ff891e;
   --color-primary-hover: #ea8221;
   --color-darkbg: #0f172a;
   --color-accent: #015BA5;
   --color-accent-hover: #014f8e;
+
+  --animate-footer-shimmer: footer-shimmer 7s ease-in-out infinite;
+  --animate-rise: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  @keyframes footer-shimmer {
+    0%       { transform: translateX(-150%); }
+    60%, 100% { transform: translateX(450%); }
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-footer-shimmer,
+  .animate-rise {
+    animation: none !important;
+  }
+}
+
+/* Satu font: Source Sans 3 untuk heading & body.
+   Heading dapat weight 700 default; layer base = prioritas terendah, utility tetap menang. */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+  }
 }
 
 .bline {
   @apply border border-red-500;
 }
+
+/* ========== SCROLLBAR (gaya shadcn: minimalis, netral, halus) ========== */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+  scrollbar-color: color-mix(in oklab, currentColor 25%, transparent) transparent;
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  /* thumb netral semi-transparan mengikuti warna teks konteks */
+  background-color: rgba(100, 116, 139, 0.35); /* fallback */
+  background-color: color-mix(in oklab, currentColor 22%, transparent);
+  border-radius: 9999px;
+  /* border transparan + clip = thumb ramping dengan padding, khas shadcn */
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.55); /* fallback */
+  background-color: color-mix(in oklab, currentColor 40%, transparent);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* tombol panah atas/bawah bawaan OS — tidak ada di gaya shadcn */
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* ============================================================
+   Loading indicator bawaan Livewire (wire:navigate)
+   Livewire memakai var ini dengan fallback #29d (biru generik).
+   ============================================================ */
+:root {
+  --livewire-progress-bar-color: var(--color-primary);
+}
+
+/* ============================================================
+   MODE KONTRAS TINGGI
+   Diaktifkan oleh safeApp.toggleHighContrast() → body.high-contrast.
+   Sebelumnya class ini tidak punya CSS sama sekali, jadi tombolnya
+   tidak berefek apa pun.
+   ============================================================ */
+body.high-contrast {
+  /* teks abu-abu muda dinaikkan ke near-black agar lolos kontras AAA */
+  --hc-ink: #0b1220;
+  --hc-line: #0b1220;
+}
+
+body.high-contrast :is(
+  .text-slate-400, .text-slate-500, .text-slate-600,
+  .text-gray-400, .text-gray-500, .text-gray-600,
+  .text-slate-700, .text-gray-700
+) {
+  color: var(--hc-ink);
+}
+
+/* teks di atas latar gelap (header, footer, breadcrumb) dibuat putih penuh */
+body.high-contrast :is(
+  .text-white\/60, .text-white\/65, .text-white\/70,
+  .text-white\/75, .text-white\/80, .text-white\/90
+) {
+  color: #fff;
+}
+
+/* garis tipis jadi terlihat */
+body.high-contrast :is(
+  .ring-slate-200, .ring-slate-200\/70, .ring-1
+) {
+  --tw-ring-color: var(--hc-line);
+}
+
+body.high-contrast :is(
+  .border-slate-100, .border-slate-200, .border-gray-200, .border-gray-300
+) {
+  border-color: var(--hc-line);
+}
+
+/* tautan dalam konten wajib bergaris bawah, tidak mengandalkan warna saja */
+body.high-contrast main a:not([class*="bg-"]):not([class*="ring-"]) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* fokus keyboard dipertegas */
+body.high-contrast :focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ornamen dekoratif dimatikan supaya tidak menurunkan kontras */
+body.high-contrast [aria-hidden="true"].blur-3xl,
+body.high-contrast .blur-3xl {
+  display: none;
+}
+
+/* ============================================================
+   MODE MALAM
+   Diaktifkan lewat class .dark pada <html> (safeApp.toggleDarkMode()).
+
+   Strategi: memetakan ulang kosakata utility yang dipakai frontend
+   (bg-white, ring-slate-200, text-slate-*, dst) di satu tempat —
+   bukan menaburkan `dark:` di 40 file blade. Warna brand
+   (primary/accent) sengaja TIDAK diubah agar identitas tetap sama.
+   ============================================================ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark {
+  --dk-bg: #0a1020;        /* latar halaman */
+  --dk-surface: #111a2c;   /* kartu / panel */
+  --dk-subtle: #16223a;    /* blok abu tipis di dalam kartu */
+  --dk-line: #223047;      /* garis & ring */
+  --dk-line-strong: #2c3d59;
+
+  --dk-ink-900: #eef2f8;
+  --dk-ink-800: #dee5f0;
+  --dk-ink-700: #cbd5e6;
+  --dk-ink-600: #aab8d0;
+  --dk-ink-500: #94a3bd;
+  --dk-ink-400: #7f8da8;
+
+  color-scheme: dark;
+  background-color: var(--dk-bg);
+}
+
+.dark body {
+  background-color: var(--dk-bg);
+  color: var(--dk-ink-700);
+}
+
+/* ---- Permukaan ---- */
+.dark :is(.bg-white, .bg-gray-50, .bg-slate-50) { background-color: var(--dk-surface); }
+.dark :is(.bg-slate-100, .bg-gray-100, .bg-slate-50\/60, .bg-slate-200\/70) { background-color: var(--dk-subtle); }
+.dark :is(.bg-slate-200, .bg-slate-300) { background-color: var(--dk-line-strong); }
+
+/* gradien latar halaman: from-white / via-slate-50 / to-gray-50 dll */
+.dark :is(.from-white, .from-gray-50, .from-slate-50) { --tw-gradient-from: var(--dk-bg); }
+.dark :is(.via-white, .via-slate-50, .via-slate-100) { --tw-gradient-via: var(--dk-bg); }
+.dark :is(.to-gray-50, .to-slate-50, .to-slate-100, .to-white) { --tw-gradient-to: var(--dk-bg); }
+
+/* ---- Teks ---- */
+.dark :is(.text-slate-900, .text-gray-900, .text-black) { color: var(--dk-ink-900); }
+.dark :is(.text-slate-800, .text-gray-800) { color: var(--dk-ink-800); }
+.dark :is(.text-slate-700, .text-gray-700) { color: var(--dk-ink-700); }
+.dark :is(.text-slate-600, .text-gray-600) { color: var(--dk-ink-600); }
+.dark :is(.text-slate-500, .text-gray-500) { color: var(--dk-ink-500); }
+.dark :is(.text-slate-400, .text-gray-400, .text-slate-300) { color: var(--dk-ink-400); }
+
+/* ---- Garis ---- */
+.dark :is(.ring-slate-200, .ring-slate-200\/70, .ring-slate-300, .ring-black\/5) { --tw-ring-color: var(--dk-line); }
+.dark :is(.border-slate-100, .border-slate-200, .border-gray-200) { border-color: var(--dk-line); }
+.dark :is(.border-slate-300, .border-gray-300) { border-color: var(--dk-line-strong); }
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--dk-line); }
+
+/* ---- Field form ---- */
+.dark :is(input, textarea, select) {
+  background-color: var(--dk-subtle);
+  color: var(--dk-ink-800);
+}
+.dark :is(input, textarea)::placeholder { color: var(--dk-ink-400); }
+
+/* ---- Konten rich text (typography plugin) ---- */
+.dark .prose {
+  --tw-prose-body: var(--dk-ink-700);
+  --tw-prose-headings: var(--dk-ink-900);
+  --tw-prose-bold: var(--dk-ink-900);
+  --tw-prose-lead: var(--dk-ink-600);
+  --tw-prose-counters: var(--dk-ink-500);
+  --tw-prose-bullets: var(--dk-line-strong);
+  --tw-prose-hr: var(--dk-line);
+  --tw-prose-quotes: var(--dk-ink-700);
+  --tw-prose-captions: var(--dk-ink-500);
+  --tw-prose-th-borders: var(--dk-line-strong);
+  --tw-prose-td-borders: var(--dk-line);
+}
+
+/* teks paste-an CMS memakai warna inline gelap → dipaksa ikut tema */
+.dark .prose :is(p, span, li, td, div) { color: var(--dk-ink-700) !important; }
+.dark .prose :is(h1, h2, h3, h4, strong, b) { color: var(--dk-ink-900) !important; }
+.dark .prose a { color: var(--color-primary) !important; }
+
+/* ---- Media sedikit diredam agar tidak menyilaukan ---- */
+.dark :is(img, iframe):not([src*=".svg"]) { filter: brightness(0.92); }
+
+/* kontras tinggi menang atas mode malam */
+.dark body.high-contrast { background-color: #000; }
+.dark body.high-contrast :is(.bg-white, .bg-gray-50, .bg-slate-50) { background-color: #000; }

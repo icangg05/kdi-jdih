@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Livewire;
+
+use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+
+class VideoIndex extends Component
+{
+  use WithPagination;
+
+  #[Url()]
+  public $q = '';
+
+  public function search()
+  {
+    $this->resetPage();
+  }
+
+  // Live search (form-search :live) — reset halaman saat mengetik
+  public function updatedQ()
+  {
+    $this->resetPage();
+  }
+
+  public function render()
+  {
+    $data = DB::table('video')
+      ->orderBy('created_at', 'desc')
+      ->when(
+        $this->q,
+        fn($q) => $q->where('judul', 'like', "%{$this->q}%")
+      )
+      ->paginate(9)
+      ->withQueryString();
+
+    return view('livewire.video-index', compact('data'));
+  }
+}

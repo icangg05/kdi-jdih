@@ -1,61 +1,154 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# JDIH Kota Kendari
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Portal **Jaringan Dokumentasi dan Informasi Hukum (JDIH)** Pemerintah Kota Kendari — akses peraturan daerah, putusan, monografi, dan dokumen hukum secara lengkap, akurat, dan cepat. Dilengkapi REST API untuk integrasi dengan **JDIHN Nasional**.
 
-## About Laravel
+- **Produksi:** https://jdih.kendarikota.go.id
+- **Dokumentasi API:** `/api-docs`
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Fitur
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Situs publik**
+- Beranda dengan statistik dokumen, berita, pengumuman, monografi, dan video
+- Katalog dokumen: **Peraturan & Keputusan**, **Putusan**, **Monografi**, **Artikel/Majalah Hukum**, **Informasi Hukum**, **Pembentukan PUU**
+- **Layanan Disabilitas** — pencarian dokumen dengan mode suara (text‑to‑speech) & voice search
+- Berita, video, pengumuman, dan profil (sejarah, dasar hukum, visi/misi, struktur organisasi)
+- **Pencarian AI** atas dokumen hukum (Google Cloud Language + fulltext MySQL)
+- **Survei Kepuasan** pengguna
+- **Multi-bahasa**: Indonesia, Inggris, Mandarin, Korea (`id` / `en` / `zh` / `ko`)
 
-## Learning Laravel
+**Backend (dashboard admin)**
+- Manajemen seluruh jenis dokumen (CRUD), pengumuman, berita, narasi, dan layanan disabilitas
+- Statistik & aktivitas terbaru
+- Terjemahan otomatis konten dokumen (opsi "Terjemahkan otomatis")
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+**API (JDIHN)**
+- Endpoint publik ber-API Key untuk sinkronisasi ke JDIHN Nasional (`/api/jdih/*`)
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Tech Stack
 
-## Laravel Sponsors
+| Komponen        | Teknologi                          |
+|-----------------|------------------------------------|
+| Framework       | Laravel 12 (PHP ^8.2)              |
+| Frontend dinamis| Livewire 3                        |
+| Styling         | Tailwind CSS v4 + plugin Typography |
+| Build tool      | Vite 6                            |
+| Database        | MySQL 8 (utf8mb4)                 |
+| Lainnya         | google/cloud-language (AI search), stichoza/google-translate-php (auto-translate), simple-qrcode, vinkla/hashids, yoeunes/toastr |
+| Container       | Docker Compose (app, MySQL, Node/Vite, phpMyAdmin) |
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## Kebutuhan
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- PHP ^8.2, Composer
+- Node.js 20+ & npm
+- MySQL 8
+- (Opsional) Docker & Docker Compose
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Instalasi
 
-## Code of Conduct
+### A. Dengan Docker (disarankan)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+git clone <repo-url> jdihkendarikota
+cd jdihkendarikota
+cp .env.example .env
 
-## Security Vulnerabilities
+# Jalankan seluruh service (app, mysql, vite, phpmyadmin)
+docker compose up -d
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Setup aplikasi di dalam container app
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate --seed
+```
 
-## License
+Vite dev server berjalan di port `5173`, phpMyAdmin di `8091`.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### B. Tanpa Docker (lokal)
+
+```bash
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+
+# sesuaikan kredensial DB di .env, lalu:
+php artisan migrate --seed
+
+npm run dev      # atau: npm run build (produksi)
+php artisan serve
+```
+
+---
+
+## Konfigurasi `.env`
+
+```env
+APP_NAME="JDIH Kota Kendari"
+APP_URL=http://localhost:6902
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=jdihkendarikota
+DB_USERNAME=jdihkendari
+DB_PASSWORD=
+
+# Pencarian AI (opsional) — kredensial Google Cloud Language
+GOOGLE_APPLICATION_CREDENTIALS=
+```
+
+---
+
+## Multi-bahasa
+
+Situs publik mendukung `id`, `en`, `zh`, `ko`. Dua sistem terjemahan:
+
+1. **Label UI statis** — `lang/{id,en,zh,ko}.json` di-key oleh string sumber Bahasa Indonesia, dipakai via helper `__()` di blade. Fallback otomatis ke Bahasa Indonesia bila key belum ada.
+2. **Konten dinamis (DB)** — kolom sidecar `translations` (JSON) pada tabel dokumen/berita/pengumuman, dirender via helper global `tt($row, 'field')`. Diisi lewat checkbox "Terjemahkan otomatis" di admin (`stichoza/google-translate-php`, tanpa API key).
+
+Locale ditentukan lewat prefix rute `/{locale}` + middleware `SetLocale` (fallback ke session).
+
+---
+
+## Rute Penting
+
+| Rute                          | Keterangan                        |
+|-------------------------------|-----------------------------------|
+| `/{locale}`                   | Beranda (id/en/zh/ko)            |
+| `/{locale}/pembentukan-puu`   | Dokumen Pembentukan PUU          |
+| `/{locale}/layanan-disabilitas` | Layanan disabilitas            |
+| `/survei-kepuasan`            | Form survei kepuasan             |
+| `/api-docs`                   | Dokumentasi REST API             |
+| `/dashboard`                  | Backend admin (auth)             |
+| `/api/jdih/*`                 | REST API JDIHN (API Key)         |
+
+---
+
+## REST API (JDIHN)
+
+Base URL: `https://jdih.kendarikota.go.id/api/jdih/` · Format: JSON · Auth: header `X-API-Key`.
+
+Endpoint: `health`, `search`, `documents/{id}`, `documents/{id}/download`, `statistics`, `document-types`, plus format khusus `jdihn-format/*` untuk sinkronisasi. Detail lengkap parameter, contoh request/response, dan error codes ada di halaman **`/api-docs`**.
+
+---
+
+## Perintah Berguna
+
+```bash
+php artisan migrate:fresh --seed   # reset & isi ulang database
+php artisan view:clear             # bersihkan cache blade
+npm run build                      # build aset produksi
+./vendor/bin/pint                  # format kode (Laravel Pint)
+```
+
+---
+
+© 2026 Pemerintah Kota Kendari — Bagian Hukum Setda Kota Kendari.

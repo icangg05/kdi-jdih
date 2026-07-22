@@ -1,0 +1,9 @@
+{
+  "files": [
+    "resources/views/components/layouts/frontend.blade.php",
+    "resources/views/components/layouts/backend.blade.php"
+  ],
+  "insertBefore": "</body>",
+  "commentSyntax": "html",
+  "cspChecked": true
+}

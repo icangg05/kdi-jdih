@@ -7,8 +7,26 @@
 	:title="$title"
 	:listNav="[['label' => 'Peraturan', 'route' => route('backend.peraturan.index')], ['label' => $title]]">
 
-	<div class="box-body no-padding">
+	@include('backend.partials.doc-form-chrome')
+
+	<div class="box-body no-padding doc-form">
 		<div class="section">
+			<x-backend.form-hero
+				icon="fa-gavel"
+				:heading="$isCreate ? 'Tambah data peraturan' : ($peraturan->judul ?? 'Peraturan tanpa judul')"
+				:sub="$isCreate
+					? 'Lengkapi data utama, lalu unggah dokumen lampiran bila tersedia.'
+					: 'Perubahan tersimpan setelah menekan Simpan.'"
+				:viewUrl="$isCreate ? null : route('backend.peraturan.show', $peraturan->id)"
+				:chips="$isCreate
+					? []
+					: [
+						['label' => 'ID', 'value' => $peraturan->id, 'tone' => 'chip-id'],
+						['value' => $peraturan->bentuk_peraturan ?? null],
+						['label' => 'Nomor', 'value' => $peraturan->nomor_peraturan ?? null],
+						['label' => 'Tahun', 'value' => $peraturan->tahun_terbit ?? null],
+					]" />
+
 			<form
 				class="form-horizontal"
 				action="{{ $isCreate ? route('backend.peraturan.store') : route('backend.peraturan.update', $peraturan->id) }}"
@@ -21,7 +39,14 @@
 
 				<div class="box box-primary box-solid">
 					<div class="box-header with-border">
-						<b>Form Data Utama</b>
+						<div class="sec">
+							<i class="fa fa-file-text-o" aria-hidden="true"></i>
+							<span>
+								<b>Data utama</b>
+								<span class="hint">Identitas, penetapan, dan klasifikasi peraturan.</span>
+							</span>
+							<span class="rule"></span>
+						</div>
 					</div>
 					<div class="box-body">
 						{{-- Jenis peraturan --}}
@@ -212,7 +237,14 @@
 
 				<div class="box box-primary box-solid">
 					<div class="box-header with-border">
-						<b>Form Data Dokumen</b>
+						<div class="sec">
+							<i class="fa fa-paperclip" aria-hidden="true"></i>
+							<span>
+								<b>Dokumen lampiran</b>
+								<span class="hint">Judul lampiran wajib diisi bila dokumen diunggah.</span>
+							</span>
+							<span class="rule"></span>
+						</div>
 					</div>
 					<div class="box-body">
 						{{-- Judul lampiran --}}
@@ -278,12 +310,21 @@
 					</div>
 				</div>
 
-				<button
-					type="submit"
-					class="btn btn-success btn-flat">Simpan</button>
-				<a
-					href="{{ route('backend.peraturan.index') }}"
-					class="btn btn-danger btn-flat">Batal</a>
+				<div class="doc-translate">
+					@include('backend.partials.auto-translate-checkbox')
+				</div>
+
+				<div class="doc-actions">
+					<button
+						type="submit"
+						class="btn btn-simpan">
+						<i class="fa fa-check"></i> Simpan
+					</button>
+					<a
+						href="{{ route('backend.peraturan.index') }}"
+						class="btn btn-batal">Batal</a>
+					<span class="note doc-note">Batal akan kembali ke daftar peraturan tanpa menyimpan.</span>
+				</div>
 			</form>
 		</div>
 	</div>

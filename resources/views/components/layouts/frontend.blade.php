@@ -1,10 +1,38 @@
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<html lang="{{ app()->getLocale() }}" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    {{-- Tema diterapkan sebelum paint pertama agar tidak ada kedip putih (FOUC).
+         Harus inline & sinkron — jangan dipindah ke file JS eksternal.
+
+         Setelah wire:navigate, Livewire menjalankan replaceHtmlAttributes():
+         atribut <html> disalin dari HTML server (class="scroll-smooth", tanpa
+         "dark") sehingga tema ikut terhapus. Listener di bawah memasangnya
+         kembali segera setelah swap — script <head> tidak dieksekusi ulang saat
+         navigate, jadi listener ini cukup didaftarkan sekali. --}}
+    <script>
+        (function () {
+            function terapkanTema() {
+                try {
+                    var t = localStorage.getItem('theme');
+                    var gelap = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    document.documentElement.classList.toggle('dark', gelap);
+
+                    // body juga diganti saat navigate → kelas kontras ikut hilang
+                    if (document.body) {
+                        document.body.classList.toggle('high-contrast', localStorage.getItem('highContrast') === 'true');
+                    }
+                } catch (e) {}
+            }
+
+            terapkanTema();
+            document.addEventListener('livewire:navigated', terapkanTema);
+        })();
+    </script>
     <title>@yield('title', 'Situs Resmi JDIH Kota Kendari')</title>
     
     <!-- Meta Description untuk SEO -->
@@ -32,10 +60,10 @@
     <meta name="robots" content="index, follow">
     <meta name="rating" content="General">
 
-    <!-- Google font | Open Sans -->
+    <!-- Google font | Source Sans 3 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
         rel="stylesheet">
 
     <!-- Fontawesome -->
@@ -45,30 +73,18 @@
         crossorigin="anonymous" />
     
     @vite('resources/css/app.css')
-    
+
+    {{-- Aset Livewire/Alpine dimuat eksplisit agar konsisten di semua halaman (termasuk non-Livewire/@extends) --}}
+    @livewireStyles
+
     <!-- Additional Styles -->
     @stack('styles')
     
     <style>
         /* ========== GLOBAL STYLES ========== */
-        /* Custom scrollbar untuk aksesibilitas */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 5px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        
+        [x-cloak] { display: none !important; }
+        /* Scrollbar brand didefinisikan global di resources/css/app.css */
+
         /* Reduce motion untuk pengguna yang prefer */
         @media (prefers-reduced-motion: reduce) {
             * {
@@ -164,38 +180,57 @@
 <body class="font-opensans antialiased overflow-x-hidden">
     
     <!-- Skip to main content untuk aksesibilitas -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 bg-blue-600 text-white px-4 py-2 rounded-lg">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 bg-primary text-white px-4 py-2 rounded">
         <i class="fas fa-arrow-right mr-2"></i>Loncat ke konten utama
     </a>
     
     <!-- Accessibility Quick Menu -->
-    <div class="fixed bottom-4 left-4 z-40 flex flex-col gap-2 no-print">
-        <button onclick="window.safeApp?.toggleFontSize('increase')" 
-                class="bg-gray-800 text-white p-2 rounded-full hover:bg-gray-900 transition-colors"
-                title="Perbesar teks">
-            <i class="fas fa-text-height"></i>
-        </button>
-        <button onclick="window.safeApp?.toggleFontSize('decrease')" 
-                class="bg-gray-800 text-white p-2 rounded-full hover:bg-gray-900 transition-colors"
-                title="Perkecil teks">
-            <i class="fas fa-text-width"></i>
-        </button>
-        <button onclick="window.safeApp?.toggleHighContrast()" 
-                class="bg-gray-800 text-white p-2 rounded-full hover:bg-gray-900 transition-colors"
-                title="Mode kontras tinggi">
-            <i class="fas fa-adjust"></i>
-        </button>
-        <button onclick="window.safeApp?.toggleDarkMode()" 
-                class="bg-gray-800 text-white p-2 rounded-full hover:bg-gray-900 transition-colors"
-                title="Mode gelap/terang">
-            <i class="fas fa-moon"></i>
-        </button>
+    <div class="fixed bottom-4 left-4 z-50 pointer-events-auto no-print">
+        {{-- Mobile: baris mendatar (hemat tinggi layar). sm+: kolom vertikal seperti semula. --}}
+        <div class="flex flex-row sm:flex-col items-center gap-1 sm:gap-0.5 rounded bg-darkbg/70 p-1 shadow-xl ring-1 ring-white/10 backdrop-blur-lg">
+            @include('components.frontend.language-switcher')
+
+            <span aria-hidden="true" class="mx-0.5 h-6 w-px sm:mx-0 sm:my-0.5 sm:h-px sm:w-6 bg-white/10"></span>
+
+            <button onclick="window.safeApp?.toggleFontSize('increase')"
+                    class="flex h-9 w-9 items-center justify-center rounded text-sm text-white/80 transition hover:bg-white/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                    title="Perbesar teks" aria-label="Perbesar teks">
+                <i class="fas fa-magnifying-glass-plus"></i>
+            </button>
+            <button onclick="window.safeApp?.toggleFontSize('decrease')"
+                    class="flex h-9 w-9 items-center justify-center rounded text-sm text-white/80 transition hover:bg-white/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                    title="Perkecil teks" aria-label="Perkecil teks">
+                <i class="fas fa-magnifying-glass-minus"></i>
+            </button>
+            <button onclick="window.safeApp?.toggleFontSize('reset')"
+                    class="flex h-9 w-9 items-center justify-center rounded text-sm text-white/80 transition hover:bg-white/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                    title="Kembalikan ukuran teks normal" aria-label="Kembalikan ukuran teks normal">
+                <i class="fas fa-rotate-left"></i>
+            </button>
+
+            <span aria-hidden="true" class="mx-0.5 h-6 w-px sm:mx-0 sm:my-0.5 sm:h-px sm:w-6 bg-white/10"></span>
+
+            <button id="btnHighContrast"
+                    onclick="window.safeApp?.toggleHighContrast()"
+                    aria-pressed="false"
+                    class="flex h-9 w-9 items-center justify-center rounded text-sm text-white/80 transition hover:bg-white/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 aria-pressed:bg-primary aria-pressed:text-white"
+                    title="Mode kontras tinggi" aria-label="Mode kontras tinggi">
+                <i class="fas fa-circle-half-stroke"></i>
+            </button>
+            <button id="btnDarkMode"
+                    onclick="window.safeApp?.toggleDarkMode()"
+                    aria-pressed="false"
+                    class="flex h-9 w-9 items-center justify-center rounded text-sm text-white/80 transition hover:bg-white/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 aria-pressed:bg-primary aria-pressed:text-white"
+                    title="Mode gelap/terang" aria-label="Mode gelap/terang">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
     </div>
-    
+
     <!-- Progress bar -->
-    <div class="fixed top-0 left-0 w-full h-1 bg-blue-600 z-40" 
-         id="progress-bar" 
-         style="transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease;">
+    <div class="fixed top-0 left-0 w-full h-px bg-primary z-60"
+         id="progress-bar"
+         style="transform: scaleX(0); transform-origin: left; transition: transform 0.1s linear; will-change: transform;">
     </div>
 
     <!-- Header -->
@@ -214,16 +249,15 @@
     @include('frontend.partials.footer')
     
     <!-- Back to Top Button -->
-    <button id="back-to-top" 
-            class="fixed bottom-8 right-8 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all opacity-0 invisible z-40 no-print"
+    <button id="back-to-top"
+            class="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-40 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded bg-primary text-sm text-white shadow-lg shadow-primary/30 ring-1 ring-white/10 transition-all duration-300 opacity-0 invisible no-print hover:bg-primary-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             aria-label="Kembali ke atas">
         <i class="fas fa-chevron-up"></i>
     </button>
 
     <!-- JavaScript Libraries - LOAD DI AKHIR BODY -->
-    <!-- Alpine.js untuk interaktivitas -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+    {{-- Alpine.js TIDAK dimuat manual: sudah dibundel oleh Livewire (hindari "multiple instances of Alpine") --}}
+
     <!-- Chart.js untuk statistik -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -243,7 +277,6 @@
         
         // ========== INITIALIZATION ==========
         init: function() {
-            console.log('Safe App Initialized - Version 2.0');
             
             // Setup progress bar
             this.setupProgressBar();
@@ -260,9 +293,8 @@
             // Load saved accessibility settings
             this.loadAccessibilitySettings();
             
-            // Setup safe event listeners untuk header
-            this.setupSafeHeaderListeners();
-            
+            // Header dropdown kini ditangani Alpine (lihat partials/header.blade.php)
+
             // Setup Livewire compatibility
             this.setupLivewireCompatibility();
             
@@ -279,15 +311,12 @@
         // ========== LIVEWIRE COMPATIBILITY ==========
         setupLivewireCompatibility: function() {
             if (typeof Livewire !== 'undefined') {
-                console.log('Livewire detected, enabling compatibility mode');
                 
                 document.addEventListener('livewire:navigating', () => {
-                    console.log('Livewire navigating - cleaning up');
                     this.cleanupBeforeNavigation();
                 });
                 
                 document.addEventListener('livewire:navigated', () => {
-                    console.log('Livewire navigated - reinitializing');
                     setTimeout(() => {
                         this.reinitializeAfterNavigation();
                     }, 150);
@@ -301,8 +330,13 @@
         },
         
         reinitializeAfterNavigation: function() {
-            // Re-initialize semua komponen
-            this.setupSafeHeaderListeners();
+            // Kelas tema/kontras sudah dipasang ulang oleh listener di <head>
+            // (tanpa jeda, agar tidak berkedip). Di sini hanya menyelaraskan
+            // tombol panel aksesibilitas yang ikut terganti bersama <body>.
+            this.applyHighContrast(document.body.classList.contains('high-contrast'));
+            this.applyDarkMode(document.documentElement.classList.contains('dark'));
+
+            // Re-initialize semua komponen (header dropdown ditangani Alpine)
             this.setupProgressBar();
             this.setupBackToTop();
             this.setupAiSearchModal();
@@ -312,7 +346,6 @@
         
         // ========== CHART FUNCTIONS ==========
         initializeCharts: function() {
-            console.log('Initializing charts...');
             
             // Cari semua elemen chart
             const chartElements = document.querySelectorAll('[data-chart]');
@@ -376,7 +409,6 @@
                     options: mergedOptions
                 });
                 
-                console.log(`Chart ${chartId} created successfully`);
             } catch (error) {
                 console.error(`Error creating chart ${chartId}:`, error);
             }
@@ -429,24 +461,16 @@
                     }
                 });
                 
-                console.log('AI Search Modal initialized');
             }
         },
         
         openAiSearchModal: function() {
-            if (this.aiSearchModal) {
+            // dikelola ai-search-system.js (fokus ke input di dalam modal)
+            if (window.openAiSearchModal) {
+                window.openAiSearchModal();
+            } else if (this.aiSearchModal) {
                 this.aiSearchModal.classList.add('show');
                 document.body.style.overflow = 'hidden';
-                
-                // Focus ke input search
-                setTimeout(() => {
-                    const aiSearchInput = document.getElementById('aiSearchInput');
-                    if (aiSearchInput) {
-                        aiSearchInput.focus();
-                    }
-                }, 100);
-                
-                console.log('AI Search Modal opened');
             }
         },
         
@@ -454,7 +478,6 @@
             if (this.aiSearchModal) {
                 this.aiSearchModal.classList.remove('show');
                 document.body.style.overflow = '';
-                console.log('AI Search Modal closed');
             }
         },
         
@@ -483,7 +506,6 @@
                     });
                 }
                 
-                console.log('Beranda filter form initialized:', form.id || 'unnamed');
             });
             
             // Juga handle filter umum
@@ -554,58 +576,6 @@
             });
         },
         
-        // ========== SAFE HEADER LISTENERS ==========
-        setupSafeHeaderListeners: function() {
-            // Setup dropdown header dengan cara yang aman
-            const setupHeaderDropdown = () => {
-                const dropdownButtons = document.querySelectorAll('header .relative.group > button');
-                
-                dropdownButtons.forEach(button => {
-                    // Clone button untuk menghapus event listeners lama
-                    const newButton = button.cloneNode(true);
-                    button.parentNode.replaceChild(newButton, button);
-                    
-                    newButton.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        
-                        const dropdown = newButton.closest('.relative.group');
-                        const menu = dropdown?.querySelector('.absolute');
-                        
-                        if (menu) {
-                            const isVisible = menu.style.opacity === '1';
-                            
-                            // Tutup semua dropdown lain
-                            document.querySelectorAll('header .absolute').forEach(otherMenu => {
-                                if (otherMenu !== menu) {
-                                    otherMenu.style.opacity = '0';
-                                    otherMenu.style.visibility = 'hidden';
-                                }
-                            });
-                            
-                            // Toggle dropdown saat ini
-                            menu.style.opacity = isVisible ? '0' : '1';
-                            menu.style.visibility = isVisible ? 'hidden' : 'visible';
-                            menu.style.transform = isVisible ? 'translateY(10px)' : 'translateY(0)';
-                        }
-                    });
-                });
-                
-                // Close dropdowns when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!e.target.closest('header .relative.group')) {
-                        document.querySelectorAll('header .absolute').forEach(menu => {
-                            menu.style.opacity = '0';
-                            menu.style.visibility = 'hidden';
-                            menu.style.transform = 'translateY(10px)';
-                        });
-                    }
-                });
-            };
-            
-            setTimeout(setupHeaderDropdown, 50);
-        },
-        
         // ========== PROGRESS BAR ==========
         setupProgressBar: function() {
             const progressBar = document.getElementById('progress-bar');
@@ -670,14 +640,8 @@
                         mainContent.scrollIntoView({ behavior: 'smooth' });
                     }
                 }
-                // Escape key = Close dropdowns and modals
+                // Escape key = Close modals (header dropdown ditangani Alpine)
                 if (e.key === 'Escape') {
-                    document.querySelectorAll('header .absolute').forEach(menu => {
-                        menu.style.opacity = '0';
-                        menu.style.visibility = 'hidden';
-                        menu.style.transform = 'translateY(10px)';
-                    });
-                    
                     this.closeAiSearchModal();
                 }
             });
@@ -690,56 +654,65 @@
             if (fontSize) {
                 document.documentElement.style.fontSize = fontSize;
             }
-            
-            // Load dark mode preference
-            if (localStorage.getItem('theme') === 'dark' || 
-                (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
+
+            // Kontras tinggi: sebelumnya disimpan tapi tidak pernah dipulihkan
+            this.applyHighContrast(localStorage.getItem('highContrast') === 'true');
+
+            // Kelas .dark sudah dipasang script inline di <head> (anti-FOUC);
+            // di sini hanya menyelaraskan tampilan tombolnya.
+            this.applyDarkMode(document.documentElement.classList.contains('dark'));
         },
         
         toggleFontSize: function(action) {
             const html = document.documentElement;
             let currentSize = parseFloat(window.getComputedStyle(html).fontSize);
             
+            if (action === 'reset') {
+                html.style.removeProperty('font-size');
+                localStorage.removeItem('fontSize');
+                this.showToast('Ukuran teks dikembalikan ke normal', 'info');
+                return;
+            }
+
             if (action === 'increase') {
                 currentSize = Math.min(currentSize + 2, 24);
             } else if (action === 'decrease') {
                 currentSize = Math.max(currentSize - 2, 12);
             }
-            
+
             html.style.fontSize = `${currentSize}px`;
             localStorage.setItem('fontSize', `${currentSize}px`);
-            
+
             this.showToast(`Ukuran font diubah menjadi ${currentSize}px`, 'info');
         },
         
         toggleHighContrast: function() {
-            const body = document.body;
-            if (body.classList.contains('high-contrast')) {
-                body.classList.remove('high-contrast');
-                localStorage.setItem('highContrast', 'false');
-                this.showToast('Mode kontras tinggi dimatikan');
-            } else {
-                body.classList.add('high-contrast');
-                localStorage.setItem('highContrast', 'true');
-                this.showToast('Mode kontras tinggi diaktifkan');
-            }
+            const aktif = !document.body.classList.contains('high-contrast');
+            this.applyHighContrast(aktif);
+            localStorage.setItem('highContrast', aktif ? 'true' : 'false');
+            this.showToast(aktif ? 'Mode kontras tinggi diaktifkan' : 'Mode kontras tinggi dimatikan');
+        },
+
+        applyHighContrast: function(aktif) {
+            document.body.classList.toggle('high-contrast', aktif);
+            document.getElementById('btnHighContrast')?.setAttribute('aria-pressed', aktif ? 'true' : 'false');
         },
         
         toggleDarkMode: function() {
-            const html = document.documentElement;
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                this.showToast('Mode terang diaktifkan');
-            } else {
-                html.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                this.showToast('Mode gelap diaktifkan');
-            }
+            const gelap = !document.documentElement.classList.contains('dark');
+            this.applyDarkMode(gelap);
+            localStorage.setItem('theme', gelap ? 'dark' : 'light');
+            this.showToast(gelap ? 'Mode gelap diaktifkan' : 'Mode terang diaktifkan');
+        },
+
+        applyDarkMode: function(gelap) {
+            document.documentElement.classList.toggle('dark', gelap);
+
+            const btn = document.getElementById('btnDarkMode');
+            if (!btn) return;
+            btn.setAttribute('aria-pressed', gelap ? 'true' : 'false');
+            btn.querySelector('i')?.setAttribute('class', gelap ? 'fas fa-sun' : 'fas fa-moon');
+            btn.title = gelap ? 'Kembali ke mode terang' : 'Aktifkan mode gelap';
         },
         
         // ========== PRINT FUNCTIONS ==========
@@ -752,23 +725,53 @@
         },
         
         // ========== UTILITY FUNCTIONS ==========
+        // Container toast dibuat sekali; posisi bawah-tengah agar tidak menabrak
+        // tombol back-to-top (kanan bawah) & panel aksesibilitas (kiri bawah).
+        getToastContainer: function() {
+            let box = document.getElementById('toast-container');
+            if (!box) {
+                box = document.createElement('div');
+                box.id = 'toast-container';
+                box.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-60 flex w-[calc(100vw-2rem)] max-w-sm flex-col-reverse items-center gap-2 no-print pointer-events-none';
+                box.setAttribute('role', 'status');
+                box.setAttribute('aria-live', 'polite');
+                document.body.appendChild(box);
+            }
+            return box;
+        },
+
         showToast: function(message, type = 'success') {
+            const gaya = {
+                success: { ikon: 'fa-check',                chip: 'bg-primary/15 text-primary' },
+                info:    { ikon: 'fa-circle-info',          chip: 'bg-accent/20 text-white' },
+                error:   { ikon: 'fa-triangle-exclamation', chip: 'bg-red-500/20 text-red-300' },
+            }[type] ?? { ikon: 'fa-circle-info', chip: 'bg-white/10 text-white/80' };
+
             const toast = document.createElement('div');
-            toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ${
-                type === 'success' ? 'bg-green-500' : 
-                type === 'error' ? 'bg-red-500' : 
-                type === 'info' ? 'bg-blue-500' : 
-                'bg-gray-500'
-            } text-white`;
-            toast.textContent = message;
-            toast.setAttribute('role', 'alert');
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
+            toast.className = 'pointer-events-auto flex w-full items-center gap-3 rounded bg-darkbg/90 py-2.5 pl-2.5 pr-3 text-sm text-white shadow-xl ring-1 ring-white/10 backdrop-blur-lg transition-all duration-300 ease-out translate-y-2 opacity-0';
+            toast.innerHTML = `
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded ${gaya.chip}">
+                    <i class="fas ${gaya.ikon} text-xs"></i>
+                </span>
+                <span class="flex-1 leading-snug"></span>
+                <button type="button" aria-label="Tutup notifikasi"
+                    class="-mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded text-white/50 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
+                    <i class="fas fa-times text-xs"></i>
+                </button>`;
+            // textContent, bukan innerHTML — pesan bisa berisi karakter dari input
+            toast.querySelector('span.flex-1').textContent = message;
+
+            const tutup = () => {
+                if (!toast.isConnected) return;
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            };
+
+            toast.querySelector('button').addEventListener('click', tutup);
+            this.getToastContainer().appendChild(toast);
+
+            requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+            setTimeout(tutup, 3000);
         },
         
         // ========== GLOBAL EXPOSE FUNCTIONS ==========
@@ -838,5 +841,8 @@
             gtag('config', '{{ config('services.google_analytics.id') }}');
         </script>
     @endif
+
+    {{-- Livewire + Alpine (eksplisit): pastikan interaktivitas jalan di semua halaman, termasuk non-Livewire --}}
+    @livewireScripts
 </body>
 </html>

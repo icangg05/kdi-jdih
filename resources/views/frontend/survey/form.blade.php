@@ -1,276 +1,319 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ app()->getLocale() }}" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Survei Kepuasan Pengguna - JDIH Kendari</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>{{ __('Survei Kepuasan Pengguna') }} — JDIH Kota Kendari</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
+
+    <!-- Font sama dengan situs: Source Sans 3 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome sama versi -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" />
+
+    <!-- Tailwind + token brand (compiled) -->
+    @vite('resources/css/app.css')
+
     <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* Latar foto Kendari + scrim, dipasang fixed supaya kartu terasa mengambang */
+        .survey-bg {
+            position: fixed;
+            inset: 0;
+            background: url('{{ asset('assets/img/background.webp') }}') center/cover no-repeat;
         }
-        .survey-container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 40px;
+
+        .survey-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(2, 6, 23, .82) 0%, rgba(2, 6, 23, .88) 45%, rgba(2, 6, 23, .95) 100%);
         }
-        .survey-header {
-            text-align: center;
-            margin-bottom: 40px;
-            border-bottom: 3px solid #6f42c1;
-            padding-bottom: 20px;
+
+        .survey-grid {
+            position: fixed;
+            inset: 0;
+            opacity: .12;
+            background-image: radial-gradient(rgba(255, 255, 255, .7) 1px, transparent 1px);
+            background-size: 32px 32px;
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 75%);
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 75%);
         }
-        .survey-header h1 {
-            color: #6f42c1;
-            font-weight: 700;
+
+        .survey-glow {
+            position: fixed;
+            border-radius: 4px;
+            filter: blur(90px);
         }
-        .survey-header p {
-            color: #6c757d;
-            font-size: 1.1rem;
+
+        /* Kartu penilaian: bintang/emoji terpilih */
+        .rating-option:has(input:checked) {
+            border-color: var(--color-primary, #ff891e);
+            background: color-mix(in srgb, var(--color-primary, #ff891e) 12%, white);
+            color: var(--color-primary, #ff891e);
         }
-        .rating-stars {
-            font-size: 28px;
-            color: #ffc107;
-            cursor: pointer;
-            margin: 10px 0;
-        }
-        .rating-stars i {
-            margin: 0 2px;
-            transition: all 0.2s;
-        }
-        .rating-stars i:hover {
-            transform: scale(1.2);
-        }
-        .btn-submit {
-            background: linear-gradient(135deg, #6f42c1, #9c27b0);
-            color: white;
-            padding: 12px 40px;
-            font-size: 18px;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
-            transition: all 0.3s;
-            width: 100%;
-        }
-        .btn-submit:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(111, 66, 193, 0.3);
-        }
-        .form-label {
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 8px;
-        }
-        .form-control, .form-select {
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            padding: 10px 15px;
-            transition: all 0.3s;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #6f42c1;
-            box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.25);
-        }
-        .required {
-            color: #dc3545;
-        }
-        .section-title {
-            color: #6f42c1;
-            font-weight: 600;
-            margin: 30px 0 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f1f1f1;
-        }
-        .back-home {
-            display: inline-block;
-            margin-top: 20px;
-            color: #6f42c1;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .back-home:hover {
-            text-decoration: underline;
+
+        .rating-option:has(input:focus-visible) {
+            outline: 2px solid var(--color-primary, #ff891e);
+            outline-offset: 2px;
         }
     </style>
 </head>
-<body>
-   
-    
-    <div class="survey-container">
-        <div class="text-center mb-0">
-        <img src="{{ asset('assets/img/logo-new-jdih.png') }}" 
-             alt="Logo JDIH Kota Kendari" 
-             class="img-fluid" 
-             style="max-height: 100px;">
-    </div>
-        <div class="survey-header">
-            <h1><i class="fas fa-clipboard-check me-2"></i>Survei Kepuasan Pengguna</h1>
-            <p>Bantu kami meningkatkan layanan JDIH Kota Kendari dengan mengisi survei ini</p>
-            <small class="text-muted">Waktu pengisian: ±5 menit</small>
-        </div>
 
-        <form action="{{ route('survey.store') }}" method="POST">
-            @csrf
-            
-            <!-- Informasi Pengguna -->
-            <div class="mb-4">
-                <h3 class="section-title"><i class="fas fa-user me-2"></i>Informasi Pengguna</h3>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="nama" class="form-label">Nama Lengkap <span class="required">*</span></label>
-                        <input type="text" class="form-control" id="nama" name="nama" required>
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email">
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="instansi" class="form-label">Instansi/Perusahaan</label>
-                        <input type="text" class="form-control" id="instansi" name="instansi">
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label for="jenis_pengguna" class="form-label">Jenis Pengguna <span class="required">*</span></label>
-                        <select class="form-select" id="jenis_pengguna" name="jenis_pengguna" required>
-                            <option value="">Pilih Jenis Pengguna</option>
-                            <option value="Mahasiswa">Mahasiswa</option>
-                            <option value="Akademisi">Akademisi</option>
-                            <option value="Praktisi Hukum">Praktisi Hukum</option>
-                            <option value="Masyarakat Umum">Masyarakat Umum</option>
-                            <option value="Lainnya">Lainnya</option>
-                        </select>
-                    </div>
-                </div>
+<body class="font-opensans antialiased bg-darkbg text-slate-700">
+
+    <!-- LATAR -->
+    <div aria-hidden="true" class="survey-bg"></div>
+    <div aria-hidden="true" class="survey-grid"></div>
+    <div aria-hidden="true" class="survey-glow -top-32 -left-24 h-96 w-96 bg-accent/25"></div>
+    <div aria-hidden="true" class="survey-glow top-1/3 -right-32 h-96 w-96 bg-primary/20"></div>
+
+    <div class="relative px-4 py-8 lg:py-14">
+        <div class="mx-auto max-w-3xl">
+
+            <!-- NAV ATAS -->
+            <div class="mb-8 flex items-center justify-between gap-4">
+                <a href="{{ url('/') }}"
+                   class="inline-flex items-center gap-2 rounded border border-white/15 bg-white/5 px-3.5 py-2 text-sm font-medium text-white/80 backdrop-blur-sm transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
+                    <i class="fas fa-arrow-left"></i>
+                    {{ __('Kembali ke Beranda') }}
+                </a>
+                <img src="{{ asset('assets/img/logo-new-jdih.png') }}" alt="Logo JDIH Kota Kendari" class="h-10 w-auto drop-shadow">
             </div>
 
-            <!-- Penilaian -->
-            <div class="mb-4">
-                <h3 class="section-title"><i class="fas fa-star me-2"></i>Penilaian Layanan</h3>
-                <p class="text-muted">Berikan penilaian pada skala 1-5 (1 = Sangat Tidak Puas, 5 = Sangat Puas)</p>
-                
-                @foreach([
-                    ['id' => 'kemudahan_akses', 'label' => '1. Kemudahan Akses', 'desc' => 'Kemudahan dalam mengakses informasi dan dokumen hukum'],
-                    ['id' => 'kelengkapan_informasi', 'label' => '2. Kelengkapan Informasi', 'desc' => 'Kelengkapan dokumen dan informasi yang disediakan'],
-                    ['id' => 'kecepatan_loading', 'label' => '3. Kecepatan Loading', 'desc' => 'Kecepatan akses dan loading halaman website'],
-                    ['id' => 'tampilan_antarmuka', 'label' => '4. Tampilan Antarmuka', 'desc' => 'Tampilan dan user interface yang user-friendly'],
-                    ['id' => 'relevansi_pencarian', 'label' => '5. Relevansi Pencarian', 'desc' => 'Relevansi hasil pencarian dengan kata kunci yang dicari']
-                ] as $item)
-                <div class="mb-4">
-                    <label class="form-label">{{ $item['label'] }} <span class="required">*</span></label>
-                    <p class="text-muted small mb-2">{{ $item['desc'] }}</p>
-                    
-                    <div class="rating-input d-flex justify-content-between mb-2">
-                        @for($i = 1; $i <= 5; $i++)
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="{{ $item['id'] }}" id="{{ $item['id'] }}_{{ $i }}" value="{{ $i }}" required>
-                            <label class="form-check-label" for="{{ $item['id'] }}_{{ $i }}">
-                                <div class="text-center">
-                                    <div style="font-size: 24px; color: #ffc107;">{{ $i }} ⭐</div>
-                                    <small class="text-muted">{{ $i == 1 ? 'Sangat Tidak Puas' : ($i == 5 ? 'Sangat Puas' : '') }}</small>
-                                </div>
-                            </label>
+            <!-- HERO -->
+            <header class="animate-rise mb-8 text-center">
+                <span class="inline-flex items-center gap-2 rounded border border-white/15 bg-white/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-200 backdrop-blur-sm">
+                    <span class="h-1.5 w-1.5 rounded bg-primary"></span>
+                    {{ __('Suara Anda, Layanan Kami') }}
+                </span>
+
+                <h1 class="mt-5 text-3xl md:text-4xl font-bold leading-tight tracking-tight text-white text-balance">
+                    {{ __('Survei Kepuasan Pengguna') }}
+                </h1>
+                <p class="mx-auto mt-3 max-w-xl text-sm lg:text-base text-slate-300">
+                    {{ __('Lima menit dari Anda menentukan arah perbaikan JDIH Kota Kendari — dari kelengkapan dokumen sampai kecepatan pencarian.') }}
+                </p>
+
+                <div class="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-300">
+                    @foreach ([
+                        ['icon' => 'fa-clock', 'text' => __('±5 menit')],
+                        ['icon' => 'fa-shield-halved', 'text' => __('Data dijaga kerahasiaannya')],
+                        ['icon' => 'fa-list-check', 'text' => __('4 bagian singkat')],
+                    ] as $meta)
+                        <span class="inline-flex items-center gap-2 rounded border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur-sm">
+                            <i class="fas {{ $meta['icon'] }} text-primary"></i>
+                            {{ $meta['text'] }}
+                        </span>
+                    @endforeach
+                </div>
+            </header>
+
+            <!-- KARTU FORM -->
+            <div class="animate-rise relative overflow-hidden rounded bg-white shadow-2xl shadow-black/40 ring-1 ring-white/10" style="animation-delay: .08s">
+                <span aria-hidden="true" class="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-primary via-primary to-accent"></span>
+
+                <div class="p-5 sm:p-8 lg:p-10">
+                    @if ($errors->any())
+                        <div class="mb-8 flex items-start gap-3 rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                            <i class="fas fa-circle-exclamation mt-0.5"></i>
+                            <div>
+                                <p class="font-semibold">{{ __('Ada isian yang perlu diperbaiki') }}</p>
+                                <p class="mt-0.5 text-red-600/80">{{ __('Silakan cek kembali kolom yang ditandai merah di bawah.') }}</p>
+                            </div>
                         </div>
-                        @endfor
-                    </div>
+                    @endif
+
+                    <form action="{{ route('survey.store') }}" method="POST" class="space-y-10">
+                        @csrf
+
+                        <!-- 1. INFORMASI PENGGUNA -->
+                        <section>
+                            <div class="mb-5 flex items-center gap-3">
+                                <span class="flex h-9 w-9 flex-none items-center justify-center rounded bg-primary text-sm font-bold text-white">1</span>
+                                <div>
+                                    <h2 class="text-lg font-bold leading-tight text-slate-900">{{ __('Informasi Pengguna') }}</h2>
+                                    <p class="text-xs text-slate-500">{{ __('Agar kami tahu siapa yang kami layani') }}</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                <div>
+                                    <label for="nama" class="mb-1.5 block text-sm font-semibold text-slate-700">
+                                        {{ __('Nama Lengkap') }} <span class="text-primary">*</span>
+                                    </label>
+                                    <input type="text" id="nama" name="nama" value="{{ old('nama') }}" required
+                                        placeholder="{{ __('Contoh: Andi Saputra') }}"
+                                        class="w-full rounded border {{ $errors->has('nama') ? 'border-red-400' : 'border-slate-300' }} bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/30">
+                                    @error('nama') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div>
+                                    <label for="email" class="mb-1.5 block text-sm font-semibold text-slate-700">{{ __('Email') }}</label>
+                                    <input type="email" id="email" name="email" value="{{ old('email') }}"
+                                        placeholder="{{ __('nama@email.com') }}"
+                                        class="w-full rounded border {{ $errors->has('email') ? 'border-red-400' : 'border-slate-300' }} bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/30">
+                                    @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div>
+                                    <label for="instansi" class="mb-1.5 block text-sm font-semibold text-slate-700">{{ __('Instansi/Perusahaan') }}</label>
+                                    <input type="text" id="instansi" name="instansi" value="{{ old('instansi') }}"
+                                        placeholder="{{ __('Contoh: Universitas Halu Oleo') }}"
+                                        class="w-full rounded border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/30">
+                                </div>
+
+                                <div>
+                                    <label for="jenis_pengguna" class="mb-1.5 block text-sm font-semibold text-slate-700">
+                                        {{ __('Jenis Pengguna') }} <span class="text-primary">*</span>
+                                    </label>
+                                    <select id="jenis_pengguna" name="jenis_pengguna" required
+                                        class="w-full rounded border {{ $errors->has('jenis_pengguna') ? 'border-red-400' : 'border-slate-300' }} bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30">
+                                        <option value="">{{ __('Pilih Jenis Pengguna') }}</option>
+                                        <option value="Mahasiswa" @selected(old('jenis_pengguna') == 'Mahasiswa')>{{ __('Mahasiswa') }}</option>
+                                        <option value="Akademisi" @selected(old('jenis_pengguna') == 'Akademisi')>{{ __('Akademisi') }}</option>
+                                        <option value="Praktisi Hukum" @selected(old('jenis_pengguna') == 'Praktisi Hukum')>{{ __('Praktisi Hukum') }}</option>
+                                        <option value="Masyarakat Umum" @selected(old('jenis_pengguna') == 'Masyarakat Umum')>{{ __('Masyarakat Umum') }}</option>
+                                        <option value="Lainnya" @selected(old('jenis_pengguna') == 'Lainnya')>{{ __('Lainnya') }}</option>
+                                    </select>
+                                    @error('jenis_pengguna') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- 2. PENILAIAN LAYANAN -->
+                        <section>
+                            <div class="mb-5 flex items-center gap-3">
+                                <span class="flex h-9 w-9 flex-none items-center justify-center rounded bg-primary text-sm font-bold text-white">2</span>
+                                <div>
+                                    <h2 class="text-lg font-bold leading-tight text-slate-900">{{ __('Penilaian Layanan') }}</h2>
+                                    <p class="text-xs text-slate-500">{{ __('Pilih satu wajah: 1 sangat tidak puas, 5 sangat puas') }}</p>
+                                </div>
+                            </div>
+
+                            @php
+                                $skala = [
+                                    1 => ['icon' => 'fa-face-angry', 'label' => __('Sangat Tidak Puas')],
+                                    2 => ['icon' => 'fa-face-frown', 'label' => __('Tidak Puas')],
+                                    3 => ['icon' => 'fa-face-meh', 'label' => __('Cukup')],
+                                    4 => ['icon' => 'fa-face-smile', 'label' => __('Puas')],
+                                    5 => ['icon' => 'fa-face-grin-stars', 'label' => __('Sangat Puas')],
+                                ];
+                            @endphp
+
+                            <div class="space-y-4">
+                                @foreach ([
+                                    ['id' => 'kemudahan_akses', 'icon' => 'fa-hand-pointer', 'label' => 'Kemudahan Akses', 'desc' => 'Kemudahan dalam mengakses informasi dan dokumen hukum'],
+                                    ['id' => 'kelengkapan_informasi', 'icon' => 'fa-folder-open', 'label' => 'Kelengkapan Informasi', 'desc' => 'Kelengkapan dokumen dan informasi yang disediakan'],
+                                    ['id' => 'kecepatan_loading', 'icon' => 'fa-gauge-high', 'label' => 'Kecepatan Loading', 'desc' => 'Kecepatan akses dan loading halaman website'],
+                                    ['id' => 'tampilan_antarmuka', 'icon' => 'fa-palette', 'label' => 'Tampilan Antarmuka', 'desc' => 'Tampilan dan antarmuka yang mudah digunakan'],
+                                    ['id' => 'relevansi_pencarian', 'icon' => 'fa-magnifying-glass', 'label' => 'Relevansi Pencarian', 'desc' => 'Kesesuaian hasil pencarian dengan kata kunci'],
+                                ] as $index => $item)
+                                    <fieldset class="rounded border {{ $errors->has($item['id']) ? 'border-red-400' : 'border-slate-200' }} bg-slate-50/70 p-4 transition hover:border-slate-300">
+                                        <legend class="sr-only">{{ __($item['label']) }}</legend>
+
+                                        <div class="mb-3 flex items-start gap-3">
+                                            <span class="flex h-8 w-8 flex-none items-center justify-center rounded bg-white text-accent ring-1 ring-slate-200">
+                                                <i class="fas {{ $item['icon'] }} text-xs"></i>
+                                            </span>
+                                            <div>
+                                                <p class="text-sm font-semibold text-slate-800">
+                                                    <span class="text-slate-400 tabular-nums">{{ $index + 1 }}.</span> {{ __($item['label']) }}
+                                                    <span class="text-primary">*</span>
+                                                </p>
+                                                <p class="text-xs text-slate-500">{{ __($item['desc']) }}</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+                                            @foreach ($skala as $nilai => $s)
+                                                <label class="rating-option flex cursor-pointer flex-col items-center gap-1 rounded border border-slate-200 bg-white px-1 py-2.5 text-slate-400 transition hover:border-primary/50 hover:text-primary/70">
+                                                    <input type="radio" name="{{ $item['id'] }}" id="{{ $item['id'] }}_{{ $nilai }}" value="{{ $nilai }}" required @checked(old($item['id']) == $nilai) class="sr-only">
+                                                    <i class="fas {{ $s['icon'] }} text-xl"></i>
+                                                    <span class="text-[10px] font-semibold leading-tight text-center sm:text-[11px]">{{ $s['label'] }}</span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+
+                                        @error($item['id']) <p class="mt-2 text-xs text-red-500">{{ $message }}</p> @enderror
+                                    </fieldset>
+                                @endforeach
+                            </div>
+                        </section>
+
+                        <!-- 3. SARAN DAN HARAPAN -->
+                        <section>
+                            <div class="mb-5 flex items-center gap-3">
+                                <span class="flex h-9 w-9 flex-none items-center justify-center rounded bg-primary text-sm font-bold text-white">3</span>
+                                <div>
+                                    <h2 class="text-lg font-bold leading-tight text-slate-900">{{ __('Saran dan Harapan') }}</h2>
+                                    <p class="text-xs text-slate-500">{{ __('Bagian ini opsional, tapi paling kami tunggu') }}</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-5">
+                                <div>
+                                    <label for="saran_perbaikan" class="mb-1.5 block text-sm font-semibold text-slate-700">{{ __('Saran Perbaikan') }}</label>
+                                    <textarea id="saran_perbaikan" name="saran_perbaikan" rows="3" maxlength="1000"
+                                        placeholder="{{ __('Contoh: dokumen tahun 2015 ke bawah masih sulit ditemukan') }}"
+                                        class="w-full rounded border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/30">{{ old('saran_perbaikan') }}</textarea>
+                                </div>
+
+                                <div>
+                                    <label for="fitur_harapan" class="mb-1.5 block text-sm font-semibold text-slate-700">{{ __('Fitur yang Diharapkan') }}</label>
+                                    <textarea id="fitur_harapan" name="fitur_harapan" rows="3" maxlength="1000"
+                                        placeholder="{{ __('Contoh: notifikasi bila ada peraturan baru yang terbit') }}"
+                                        class="w-full rounded border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/30">{{ old('fitur_harapan') }}</textarea>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- 4. KONTAK TAMBAHAN -->
+                        <section>
+                            <div class="mb-5 flex items-center gap-3">
+                                <span class="flex h-9 w-9 flex-none items-center justify-center rounded bg-primary text-sm font-bold text-white">4</span>
+                                <div>
+                                    <h2 class="text-lg font-bold leading-tight text-slate-900">{{ __('Kontak Tambahan') }}</h2>
+                                    <p class="text-xs text-slate-500">{{ __('Opsional — hanya bila Anda ingin kami hubungi') }}</p>
+                                </div>
+                            </div>
+
+                            <label class="flex cursor-pointer items-start gap-3 rounded border border-slate-200 bg-slate-50/70 p-4 transition hover:border-primary/40">
+                                <input type="checkbox" id="bersedia_dihubungi" name="bersedia_dihubungi" value="1" @checked(old('bersedia_dihubungi'))
+                                    class="mt-0.5 h-4 w-4 rounded border-slate-300 accent-primary focus:ring-primary/40">
+                                <span class="text-sm text-slate-700">{{ __('Saya bersedia dihubungi untuk informasi lebih lanjut') }}</span>
+                            </label>
+
+                            <div class="mt-5">
+                                <label for="kontak" class="mb-1.5 block text-sm font-semibold text-slate-700">{{ __('Kontak (WhatsApp/Telepon)') }}</label>
+                                <input type="text" id="kontak" name="kontak" value="{{ old('kontak') }}" inputmode="tel"
+                                    placeholder="{{ __('Contoh: 0812-3456-7890') }}"
+                                    class="w-full rounded border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/30">
+                            </div>
+                        </section>
+
+                        <!-- SUBMIT -->
+                        <div class="border-t border-slate-200 pt-6">
+                            <button type="submit"
+                                class="flex w-full items-center justify-center gap-3 rounded bg-primary px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-hover active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2">
+                                <i class="fas fa-paper-plane"></i>
+                                {{ __('Kirim Survei') }}
+                            </button>
+                            <p class="mt-3 flex items-center justify-center gap-2 text-xs text-slate-400">
+                                <i class="fas fa-lock"></i>
+                                {{ __('Jawaban Anda hanya digunakan untuk evaluasi layanan JDIH.') }}
+                            </p>
+                        </div>
+                    </form>
                 </div>
-                @endforeach
             </div>
 
-            <!-- Saran dan Harapan -->
-            <div class="mb-4">
-                <h3 class="section-title"><i class="fas fa-comment-dots me-2"></i>Saran dan Harapan</h3>
-                
-                <div class="mb-3">
-                    <label for="saran_perbaikan" class="form-label">Saran Perbaikan</label>
-                    <textarea class="form-control" id="saran_perbaikan" name="saran_perbaikan" rows="3" placeholder="Bagaimana kami dapat meningkatkan layanan kami?"></textarea>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="fitur_harapan" class="form-label">Fitur yang Diharapkan</label>
-                    <textarea class="form-control" id="fitur_harapan" name="fitur_harapan" rows="3" placeholder="Fitur apa yang Anda harapkan untuk ditambahkan?"></textarea>
-                </div>
-            </div>
-
-            <!-- Kontak Tambahan -->
-            <div class="mb-4">
-                <h3 class="section-title"><i class="fas fa-address-card me-2"></i>Kontak Tambahan (Opsional)</h3>
-                
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="bersedia_dihubungi" name="bersedia_dihubungi" value="1">
-                    <label class="form-check-label" for="bersedia_dihubungi">
-                        Saya bersedia dihubungi untuk informasi lebih lanjut
-                    </label>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="kontak" class="form-label">Kontak (WhatsApp/Telepon)</label>
-                    <input type="text" class="form-control" id="kontak" name="kontak" placeholder="Contoh: 0812-3456-7890">
-                </div>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-submit">
-                    <i class="fas fa-paper-plane me-2"></i>Kirim Survei
-                </button>
-            </div>
-        </form>
-
-        <div class="text-center mt-4">
-            <a href="{{ url('/') }}" class="back-home">
-                <i class="fas fa-arrow-left me-1"></i> Kembali ke Beranda
-            </a>
+            <p class="mt-6 text-center text-xs text-white/40">
+                &copy; {{ date('Y') }} JDIH Kota Kendari
+            </p>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Simple form validation
-        document.querySelector('form').addEventListener('submit', function(e) {
-            let isValid = true;
-            
-            // Cek rating
-            const ratingInputs = document.querySelectorAll('input[type="radio"][required]');
-            ratingInputs.forEach(function(group) {
-                const name = group.name;
-                const checked = document.querySelectorAll(`input[name="${name}"]:checked`).length;
-                if (checked === 0) {
-                    isValid = false;
-                    const label = document.querySelector(`label[for="${group.id.split('_')[0]}"]`);
-                    alert(`Silakan beri rating untuk: ${label ? label.textContent.trim() : name}`);
-                }
-            });
-            
-            if (!isValid) {
-                e.preventDefault();
-            }
-        });
-
-        // Rating hover effect
-        document.querySelectorAll('.rating-input input').forEach(function(radio) {
-            radio.addEventListener('change', function() {
-                const stars = this.parentElement.querySelectorAll('i');
-                stars.forEach(function(star, index) {
-                    if (index < parseInt(this.value)) {
-                        star.classList.add('fas');
-                        star.classList.remove('far');
-                    } else {
-                        star.classList.add('far');
-                        star.classList.remove('fas');
-                    }
-                }.bind(this));
-            });
-        });
-    </script>
 </body>
 </html>

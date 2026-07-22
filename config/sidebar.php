@@ -109,6 +109,12 @@ return [
     'isActive' => 'dashboard/video*',
   ],
   [
+    'icon'     => 'fa fa-star',
+    'label'    => 'Survei Kepuasan',
+    'route'    => 'backend.survei.index',
+    'isActive' => 'dashboard/survei*',
+  ],
+  [
     'icon'     => 'fa fa-database',
     'label'    => 'Master Data',
     'route'    => 'backend.dashboard',

@@ -1,88 +1,49 @@
-<section class="bg-slate-50 py-20">
-	<div class="max-w-6xl mx-auto px-6">
+<section class="relative bg-slate-50 py-16 lg:py-20 overflow-hidden">
+
+	<!-- ORNAMEN LATAR -->
+	<div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
+		<div class="absolute -top-24 right-0 h-72 w-72 rounded bg-primary/5 blur-3xl"></div>
+		<div class="absolute bottom-0 left-0 h-72 w-72 rounded bg-accent/5 blur-3xl"></div>
+		<div class="absolute inset-0 opacity-70" style="background-image: radial-gradient(rgba(15,23,42,0.05) 1px, transparent 1px); background-size: 24px 24px; -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 40%, black, transparent 78%); mask-image: radial-gradient(ellipse 75% 60% at 50% 40%, black, transparent 78%);"></div>
+		<div class="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-slate-200 to-transparent"></div>
+		<i class="fas fa-newspaper absolute -bottom-8 -left-6 text-[11rem] text-slate-900/4"></i>
+	</div>
+
+	<div class="relative max-w-6xl mx-auto px-6">
 
 		<!-- Header -->
-		<div class="text-center mb-14">
-			<h2 class="text-2xl md:text-4xl font-bold text-slate-800">
-				Berita Terbaru
+		<div class="animate-rise text-center mb-14">
+			<span class="inline-flex items-center gap-2 rounded border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+				<span class="h-1.5 w-1.5 rounded bg-primary"></span>
+				{{ __('Kabar Terkini') }}
+			</span>
+			<h2 class="mt-4 text-2xl md:text-4xl font-bold tracking-tight text-slate-800">
+				{{ __('Berita Terbaru') }}
 			</h2>
-			<p class="mt-3 max-w-2xl mx-auto text-sm lg:text-base text-slate-600 leading-relaxed">
-				Kumpulan berita terkini dari Jaringan Dokumentasi dan Informasi Hukum
-				Pemerintah Kota Kendari
+			<div class="mx-auto mt-4 flex items-center justify-center gap-1">
+				<span class="h-1 w-10 rounded bg-primary"></span>
+				<span class="h-1 w-1.5 rounded bg-accent"></span>
+			</div>
+			<p class="mt-4 max-w-2xl mx-auto text-sm lg:text-base text-slate-600 leading-relaxed">
+				{{ __('Kumpulan berita terkini dari Jaringan Dokumentasi dan Informasi Hukum Pemerintah Kota Kendari') }}
 			</p>
 		</div>
 
 		<!-- Grid -->
-		<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+		<div class="grid gap-6 lg:gap-8 sm:grid-cols-2 lg:grid-cols-3">
 
 			@foreach ($berita as $v)
-				@php
-					$image = checkFilePath(config('app.img_directory'), $v->image)
-					    ? asset('storage/' . config('app.img_directory') . $v->image)
-					    : asset('assets/img/default-img.jpg');
-				@endphp
-
-				<article
-					class="group relative bg-white rounded-2xl overflow-hidden
-          border border-slate-200
-          transform-gpu will-change-transform
-          transition-all duration-300 ease-out
-          hover:-translate-y-1 hover:shadow-2xl">
-
-					<!-- Image -->
-					<div class="relative h-56 overflow-hidden">
-						<img
-							src="{{ $image }}"
-							alt="Berita"
-							class="absolute inset-0 w-full h-full object-cover
-							group-hover:scale-105 transition-transform duration-500" />
-
-						<!-- Overlay -->
-						<div class="absolute inset-0 bg-linear-to-t from-black/50 via-black/10 to-transparent"></div>
-
-						<!-- Date Badge -->
-						<span
-							class="absolute top-4 left-4 z-10
-							rounded-full bg-primary/90 text-white
-							text-xs font-semibold px-3 py-1 shadow">
-							{{ Carbon\Carbon::parse($v->created_at)->translatedFormat('d F Y') }}
-						</span>
-					</div>
-
-					<!-- Content -->
-					<div class="p-6">
-						<h3
-							class="text-base lg:text-lg font-semibold text-slate-800
-							leading-snug line-clamp-2
-							group-hover:text-primary transition">
-							{{ Str::limit($v->judul, 20) }}
-						</h3>
-
-						<p
-							class="mt-3 text-sm text-slate-600 leading-relaxed line-clamp-3">
-							{{ Str::limit(strip_tags($v->isi), 100) }}
-						</p>
-
-						<a
-							wire:navigate.hover href="{{ route('frontend.berita.show', Hashids::encode($v->id)) }}"
-							class="inline-flex items-center gap-1 mt-5
-							text-sm font-semibold text-primary
-							group-hover:gap-2 transition-all">
-							Baca Selengkapnya
-							<span>→</span>
-						</a>
-					</div>
-
-				</article>
+				<x-frontend.cards.berita-card :item="$v" :delay="$loop->index * 0.08" />
 			@endforeach
 
 		</div>
 
 		<!-- CTA -->
-		<div class="mt-16 text-center">
+		<div class="mt-14 text-center">
 			<a wire:navigate.hover href="{{ route('frontend.berita.index') }}"
-				class="text-sm lg:text-base inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 lg:px-6 py-2 lg:py-3 rounded font-semibold transition">
-				Berita Lainnya
+				class="inline-flex items-center gap-2 rounded bg-primary px-5 lg:px-6 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-white transition hover:bg-primary-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
+				{{ __('Berita Lainnya') }}
+				<i class="fas fa-arrow-right text-xs"></i>
 			</a>
 		</div>
 

@@ -7,8 +7,23 @@
 	:title="$title"
 	:listNav="[['label' => ucfirst($prefixRoute), 'route' => route('backend.' . $prefixRoute . '.index')], ['label' => $title]]">
 
-	<div class="box-body no-padding">
+	@include('backend.partials.doc-form-chrome')
+
+	<div class="box-body no-padding doc-form">
 		<div class="section">
+			<x-backend.form-hero
+				icon="fa-newspaper-o"
+				:heading="$isCreate ? 'Tambah data artikel' : ($data->judul ?? 'Dokumen tanpa judul')"
+				:sub="$isCreate
+					? 'Lengkapi data utama, lalu unggah dokumen lampiran bila tersedia.'
+					: 'Perubahan tersimpan setelah menekan Simpan.'"
+				:viewUrl="$isCreate ? null : route('backend.artikel.show', $data->id)"
+				:chips="$isCreate ? [] : [
+						['label' => 'ID', 'value' => $data->id, 'tone' => 'chip-id'],
+						['value' => $data->jenis_peraturan ?? null],
+						['label' => 'Tahun', 'value' => $data->tahun_terbit ?? null],
+					]" />
+
 			<form
 				class="form-horizontal"
 				action="{{ $isCreate ? route("backend.$prefixRoute.store") : route("backend.$prefixRoute.update", $data->id) }}"
@@ -175,12 +190,21 @@
 					</div>
 				</div>
 
-				<button
-					type="submit"
-					class="btn btn-success btn-flat">Simpan</button>
-				<a
-					href="{{ route('backend.monografi.index') }}"
-					class="btn btn-danger btn-flat">Batal</a>
+				<div class="doc-translate">
+					@include('backend.partials.auto-translate-checkbox')
+				</div>
+
+				<div class="doc-actions">
+					<button
+						type="submit"
+						class="btn btn-simpan">
+						<i class="fa fa-check"></i> Simpan
+					</button>
+					<a
+						href="{{ route('backend.artikel.index') }}"
+						class="btn btn-batal">Batal</a>
+					<span class="note doc-note">Batal akan kembali ke daftar artikel tanpa menyimpan.</span>
+				</div>
 			</form>
 		</div>
 	</div>

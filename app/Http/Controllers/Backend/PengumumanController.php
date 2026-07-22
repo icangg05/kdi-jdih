@@ -115,6 +115,10 @@ class PengumumanController extends Controller
       'updated_by' => Auth::user()->id,
     ]);
 
+    if ($request->boolean('auto_translate')) {
+      app(\App\Services\AutoTranslateService::class)->apply($dataId, ['judul', 'isi']);
+    }
+
     return redirect()->route('backend.pengumuman.show', $dataId)->with('success', 'Data pengumuman berhasil ditambahkan');
   }
 
@@ -159,6 +163,10 @@ class PengumumanController extends Controller
       'updated_at' => Carbon::now(),
       'updated_by' => Auth::user()->id,
     ]);
+
+    if ($request->boolean('auto_translate')) {
+      app(\App\Services\AutoTranslateService::class)->apply($pengumuman, ['judul', 'isi']);
+    }
 
     return redirect()->route('backend.pengumuman.show', $id)->with('success', 'Data pengumuman berhasil diupdate');
   }

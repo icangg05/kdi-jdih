@@ -9,8 +9,61 @@
     :title="$title"
     :listNav="[['label' => 'Disabilitas', 'route' => route('backend.disabilitas.index')], ['label' => $title]]">
 
+@push('link')
+<style>
+    /* ── Scoped ke halaman form ini (selaras dengan .dis-index / .dis-show) ── */
+    .dis-form { --ink:#1f2328; --muted:#6b7075; --soft:#8b9096; --accent:#c0392b; --line:#e7e4df; max-width:960px; }
+
+    /* Box → seragam, buang solid warna yang ramai */
+    .dis-form .box.box-solid { border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:9px; box-shadow:0 1px 2px rgba(31,35,40,.05); background:#fff; margin-bottom:18px; }
+    .dis-form .box.box-solid > .box-header { background:#fff !important; color:var(--ink); border-bottom:1px solid var(--line); padding:15px 20px; display:flex; align-items:center; gap:11px; border-radius:9px 9px 0 0; }
+    .dis-form .box.box-solid > .box-header::before { content:''; width:4px; height:16px; background:var(--accent); border-radius:2px; flex:none; }
+    .dis-form .box.box-solid > .box-header b { font-size:14.5px; font-weight:600; letter-spacing:-.01em; color:var(--ink); }
+    .dis-form .box.box-solid > .box-header b i { color:var(--soft); font-weight:400; }
+    .dis-form .box.box-solid > .box-body { padding:20px 22px 6px; }
+
+    /* Aksen per peran box, halus */
+    .dis-form .box.box-info    { border-top-color:#2f6fb0; }
+    .dis-form .box.box-info    > .box-header::before { background:#2f6fb0; }
+    .dis-form .box.box-success { border-top-color:#2b9348; }
+    .dis-form .box.box-success > .box-header::before { background:#2b9348; }
+    .dis-form .box.box-warning { border-top-color:#c77d0a; }
+    .dis-form .box.box-warning > .box-header::before { background:#c77d0a; }
+    .dis-form .box.box-danger,
+    .dis-form .box.box-primary { border-top-color:var(--accent); }
+
+    /* Label & input */
+    .dis-form .control-label { color:var(--muted); font-weight:600; font-size:13px; padding-top:8px; }
+    .dis-form .form-control { border-color:#dcd9d3; box-shadow:none; border-radius:6px; height:38px; transition:border-color .14s ease, box-shadow .14s ease; }
+    .dis-form textarea.form-control { height:auto; }
+    .dis-form .form-control:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(192,57,43,.10); }
+    .dis-form .form-group { margin-bottom:16px; }
+    .dis-form .help-block, .dis-form .text-muted { font-size:12px; color:var(--soft); }
+    .dis-form .text-danger, .dis-form .text-red { color:var(--accent); }
+    .dis-form .input-group-addon { background:#faf9f7; border-color:#dcd9d3; color:var(--muted); }
+    .dis-form input[readonly] { background:#f6f4f1; cursor:not-allowed; }
+
+    /* Checkbox groups (jenis disabilitas / sektor kebijakan) */
+    .dis-form .checkbox label, .dis-form .checkbox-inline { font-size:13.5px; color:var(--ink); font-weight:500; margin-right:18px; margin-bottom:6px; }
+    .dis-form .checkbox input[type=checkbox], .dis-form .checkbox-inline input[type=checkbox] { accent-color:var(--accent); }
+
+    /* Select2 selaras */
+    .dis-form .select2-container--default .select2-selection--single { border-color:#dcd9d3 !important; border-radius:6px; }
+    .dis-form .select2-container--default.select2-container--focus .select2-selection--single { border-color:var(--accent); box-shadow:0 0 0 3px rgba(192,57,43,.10); }
+
+    /* Baris aksi */
+    .dis-form .btn-flat { border-radius:6px; padding:9px 20px; font-weight:600; }
+    .dis-form .box-footer { background:transparent; border:none; padding:6px 0 0; }
+    .dis-form .btn-success.btn-flat { background:var(--accent); border-color:var(--accent); }
+    .dis-form .btn-success.btn-flat:hover, .dis-form .btn-success.btn-flat:focus { background:#a5271b; border-color:#a5271b; }
+    .dis-form .btn-danger.btn-flat { background:#fff; color:var(--muted); border:1px solid #dcd9d3; }
+    .dis-form .btn-danger.btn-flat:hover { background:#f6f4f1; color:var(--ink); }
+    .dis-form .btn-default.btn-flat { border-radius:6px; }
+</style>
+@endpush
+
     <div class="box-body no-padding">
-        <div class="section">
+        <div class="section dis-form">
             <form
                 class="form-horizontal"
                 action="{{ route('backend.disabilitas.store') }}"
@@ -470,12 +523,13 @@
             $(document).ready(function() {
                 console.log('Document ready - Inisialisasi form create');
                 
-                // Initialize datepicker untuk semua input dengan class datepicker
-                $('.datepicker').datepicker({
+                // Initialize datepicker untuk semua input dengan class datepicker.
+                // Krajee me-noConflict $.fn.datepicker menjadi $.fn.kvDatepicker,
+                // jadi harus pakai .kvDatepicker (bukan .datepicker yang sudah undefined).
+                $('.datepicker').kvDatepicker({
                     format: 'dd/mm/yyyy',
                     autoclose: true,
                     todayHighlight: true,
-                    language: 'id',
                     weekStart: 1,
                     daysOfWeekHighlighted: "0,6",
                     todayBtn: "linked",
@@ -485,7 +539,7 @@
 
                 // Pastikan icon kalender juga berfungsi
                 $('.input-group-addon').on('click', function() {
-                    $(this).closest('.input-group').find('input').datepicker('show');
+                    $(this).closest('.input-group').find('input').kvDatepicker('show');
                 });
 
                 // Auto-fill tahun saat ini jika kosong
@@ -636,64 +690,5 @@
                 }
             });
         </script>
-        
-        <style>
-            .box-header {
-                background-color: #3c8dbc !important;
-            }
-            .box-success .box-header {
-                background-color: #00a65a !important;
-            }
-            .box-warning .box-header {
-                background-color: #f39c12 !important;
-            }
-            .box-info .box-header {
-                background-color: #00c0ef !important;
-            }
-            .box-danger .box-header {
-                background-color: #dd4b39 !important;
-            }
-            .checkbox label, .checkbox-inline {
-                margin-right: 15px;
-            }
-            .form-group {
-                margin-bottom: 20px;
-            }
-            input[readonly] {
-                background-color: #f5f5f5;
-                cursor: not-allowed;
-            }
-            /* Datepicker styles */
-            .datepicker {
-                border-radius: 4px;
-            }
-            .datepicker-dropdown {
-                padding: 10px;
-            }
-            .datepicker table tr td.today {
-                background-color: #ffdb99;
-            }
-            .datepicker table tr td.active,
-            .datepicker table tr td.active:hover {
-                background-color: #337ab7;
-                background-image: none;
-            }
-            .input-group-addon {
-                background-color: #eee;
-                border: 1px solid #ccc;
-                border-right: none;
-                cursor: pointer;
-            }
-            .input-group-addon:hover {
-                background-color: #ddd;
-            }
-            .input-group .form-control {
-                border-left: none;
-            }
-            /* Style untuk section baru */
-            .box-info .box-header {
-                background-color: #00c0ef !important;
-            }
-        </style>
     @endpush
 </x-layouts.backend>

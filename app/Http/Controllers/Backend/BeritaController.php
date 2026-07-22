@@ -97,7 +97,7 @@ class BeritaController extends Controller
       $image = uploadFile($this->imgDirectory, $request->file('image'));
 
     // Set data
-    $data               = $request->except('_token');
+    $data               = $request->except('_token', 'auto_translate');
     $data['tanggal']    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
     $data['image']      = $image ?? null;
     $data['created_at'] = now();
@@ -107,6 +107,9 @@ class BeritaController extends Controller
 
     $dataId = Berita::create($data);
 
+    if ($request->boolean('auto_translate')) {
+      app(\App\Services\AutoTranslateService::class)->apply($dataId, ['judul', 'isi']);
+    }
 
     return redirect()->route('backend.berita.show', $dataId)->with('success', 'Data berita berhasil ditambahkan');
   }
@@ -131,7 +134,7 @@ class BeritaController extends Controller
     // Validate data
     $request->validate($this->validate);
 
-    // Get data 
+    // Get data
     $dataUpdate  = Berita::findOrFail($id);
 
     // Upload image if exists
@@ -139,7 +142,7 @@ class BeritaController extends Controller
       $image = uploadFile($this->imgDirectory, $request->file('image'));
 
     // Set data
-    $data               = $request->except('_token');
+    $data               = $request->except('_token', 'auto_translate');
     $data['tanggal']    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
     $data['image']      = $image ?? $dataUpdate->image;
     $data['updated_at'] = now();
@@ -148,6 +151,9 @@ class BeritaController extends Controller
     // Update data
     $dataUpdate->update($data);
 
+    if ($request->boolean('auto_translate')) {
+      app(\App\Services\AutoTranslateService::class)->apply($dataUpdate, ['judul', 'isi']);
+    }
 
     return redirect()->route('backend.berita.show', $id)->with('success', 'Data berita berhasil diupdate');
   }

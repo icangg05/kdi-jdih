@@ -24,8 +24,12 @@ class NarasiController extends Controller
 	public function update(Request $request, $id)
 	{
 		$data = Narasi::findOrFail($id);
-		
-		$data->update($request->all());
+
+		$data->update($request->except('_token', '_method', 'auto_translate'));
+
+		if ($request->boolean('auto_translate')) {
+			app(\App\Services\AutoTranslateService::class)->apply($data, ['text']);
+		}
 
 		return redirect()->route('backend.narasi.edit')->with('success', 'Data narasi berhasil diupdate');
 	}

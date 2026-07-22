@@ -27,6 +27,12 @@ class InformasiHukum extends Component
     $this->resetPage();
   }
 
+  // Live search (form-search :live) — reset halaman saat mengetik
+  public function updatedQ()
+  {
+    $this->resetPage();
+  }
+
 
   public function render()
   {

@@ -66,13 +66,9 @@ return [
         ],
     ],
     [
-        'label'       => 'Pengumuman',
-        'startActive' => 'pengumuman',
-        'route'       => 'frontend.pengumuman.index',
-    ],
-    [
         'label'       => 'Informasi Hukum',
-        'startActive' => 'informasi-hukum',
+        // Pembentukan PUU tampil sebagai submenu di sini, tapi URL-nya beda prefix
+        'startActive' => ['informasi-hukum', 'pembentukan-puu'],
         'sub'         => [
             // POSISI PALING ATAS: Menu Pembentukan PUU (tanpa submenu di sini)
             [
@@ -84,14 +80,19 @@ return [
         ],
     ],
     [
-        'label' => 'LAYANAN DISABILITAS',  
-        'route' => 'frontend.disabilitas', 
-        'startActive' => 'disabilitas', 
+        'label' => 'LAYANAN DISABILITAS',
+        'route' => 'frontend.disabilitas',
+        // dua prefix: /disabilitas (route alternatif) & /layanan-disabilitas (index + detail)
+        'startActive' => ['disabilitas', 'layanan-disabilitas'],
     ],
     [
-        'label'       => 'Berita',
-        'startActive' => 'berita',
-        'route'       => 'frontend.berita.index',
+        'label'       => 'Publikasi',
+        'startActive' => ['berita', 'pengumuman', 'video'],
+        'sub'         => [
+            ['label' => 'Berita', 'route' => 'frontend.berita.index'],
+            ['label' => 'Pengumuman', 'route' => 'frontend.pengumuman.index'],
+            ['label' => 'Video', 'route' => 'frontend.video.index'],
+        ],
     ]
 ],
 
@@ -173,6 +174,9 @@ return [
     */
 
   'locale' => env('APP_LOCALE', 'id'),
+
+  // Bahasa yang didukung halaman publik (multi-bahasa)
+  'supported_locales' => ['id', 'en', 'zh', 'ko'],
 
   'fallback_locale' => env('APP_FALLBACK_LOCALE', 'id'),
 

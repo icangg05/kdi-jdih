@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-18T00:00:00Z",
+  "title": "Design System: JDIH Kota Kendari",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Kendari Amber", "canonical": "#ff891e", "tonalRamp": ["#3d1f04", "#5c2f06", "#8a460a", "#b85d0e", "#e57411", "#ff891e", "#ffab5c", "#ffd0a3"] },
+      "accent": { "role": "secondary", "displayName": "Civic Blue", "canonical": "#015ba5", "tonalRamp": ["#021a30", "#032948", "#043a66", "#014f8e", "#015ba5", "#2a7fc0", "#6ba8d6", "#aecfe9"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#1e293b", "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"] },
+      "surface": { "role": "neutral", "displayName": "Reading Room White", "canonical": "#ffffff", "tonalRamp": ["#e2e8f0", "#eef2f6", "#f1f5f9", "#f8fafc", "#ffffff", "#ffffff", "#ffffff", "#ffffff"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero / page headline. Restrained; a public portal informs, not shouts." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles on landing and index pages." },
+      "title": { "displayName": "Title", "purpose": "Card and document-list titles." },
+      "body": { "displayName": "Body", "purpose": "Descriptions, metadata, prose. Cap prose at 65-75ch." },
+      "label": { "displayName": "Label", "purpose": "Buttons, eyebrows, tags — often uppercase with tracking." }
+    },
+    "shadows": [
+      { "name": "resting-card", "value": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)", "purpose": "Separate a white card from the page at rest." },
+      { "name": "hover-lift", "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", "purpose": "Card hover, paired with translateY(-2px)." },
+      { "name": "floating-layer", "value": "0 25px 50px -12px rgb(0 0 0 / 0.25)", "purpose": "Hero search box, dropdowns, modals that float above the page." }
+    ],
+    "motion": [
+      { "name": "state-transition", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for hover/focus/color state changes, ~150-250ms." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The main action — search, submit, primary CTA. Kendari Amber, white text, often a leading icon.",
+      "html": "<button class=\"ds-btn-primary\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M21 21l-4.35-4.35\"/></svg>Cari</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #ff891e; color: #fff; font-family: 'Open Sans', sans-serif; font-weight: 600; font-size: 0.875rem; padding: 0.75rem 2rem; border: none; border-radius: 0.25rem; cursor: pointer; transition: background 0.18s cubic-bezier(0.4,0,0.2,1); } .ds-btn-primary:hover { background: #ea8221; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,137,30,0.45); }"
+    },
+    {
+      "name": "Accent Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "Secondary-but-prominent action where amber would over-signal. Civic Blue.",
+      "html": "<button class=\"ds-btn-accent\">Lihat Detail</button>",
+      "css": ".ds-btn-accent { display: inline-flex; align-items: center; gap: 0.5rem; background: #015ba5; color: #fff; font-family: 'Open Sans', sans-serif; font-weight: 600; font-size: 0.875rem; padding: 0.75rem 2rem; border: none; border-radius: 0.25rem; cursor: pointer; transition: background 0.18s cubic-bezier(0.4,0,0.2,1); } .ds-btn-accent:hover { background: #014f8e; } .ds-btn-accent:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(1,91,165,0.45); }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Document search field with a leading magnifier icon. The primary retrieval affordance.",
+      "html": "<div class=\"ds-search\"><svg class=\"ds-search__icon\" viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M21 21l-4.35-4.35\"/></svg><input class=\"ds-search__field\" type=\"text\" placeholder=\"Cari dokumen hukum...\"></div>",
+      "css": ".ds-search { position: relative; } .ds-search__icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; } .ds-search__field { width: 100%; font-family: 'Open Sans', sans-serif; font-size: 0.875rem; color: #1e293b; background: #fff; border: 1px solid #d1d5db; border-radius: 0.25rem; padding: 0.875rem 1rem 0.875rem 3rem; transition: border-color 0.18s, box-shadow 0.18s; } .ds-search__field::placeholder { color: #64748b; } .ds-search__field:focus { outline: none; border-color: #015ba5; box-shadow: 0 0 0 2px rgba(1,91,165,0.35); }"
+    },
+    {
+      "name": "Document Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A single result in a document list. Flat at rest, lifts on hover.",
+      "html": "<article class=\"ds-doc-card\"><h3 class=\"ds-doc-card__title\">Peraturan Daerah Kota Kendari Nomor 5 Tahun 2024</h3><p class=\"ds-doc-card__meta\">Peraturan Daerah · No. 5 · 2024 · Berlaku</p><p class=\"ds-doc-card__excerpt\">Tentang penyelenggaraan ketertiban umum dan ketentraman masyarakat.</p><a class=\"ds-doc-card__link\" href=\"#\">Lihat dokumen</a></article>",
+      "css": ".ds-doc-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08); transition: box-shadow 0.18s, transform 0.18s cubic-bezier(0.4,0,0.2,1); } .ds-doc-card:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); transform: translateY(-2px); } .ds-doc-card__title { font-family: 'Open Sans', sans-serif; font-weight: 600; font-size: 1.125rem; line-height: 1.4; color: #1e293b; margin: 0 0 0.5rem; } .ds-doc-card__meta { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: #475569; margin: 0 0 0.75rem; } .ds-doc-card__excerpt { font-size: 0.875rem; line-height: 1.6; color: #475569; margin: 0 0 1rem; } .ds-doc-card__link { font-size: 0.875rem; font-weight: 600; color: #015ba5; text-decoration: none; } .ds-doc-card__link:hover { color: #014f8e; text-decoration: underline; }"
+    },
+    {
+      "name": "Section Eyebrow + Heading",
+      "kind": "custom",
+      "refersTo": "headline",
+      "description": "Section title pattern used on landing/index pages, with the amber underline accent.",
+      "html": "<header class=\"ds-section-head\"><span class=\"ds-section-head__eyebrow\">Katalog</span><h2 class=\"ds-section-head__title\">Peraturan &amp; Keputusan</h2><span class=\"ds-section-head__rule\"></span></header>",
+      "css": ".ds-section-head__eyebrow { display: block; font-family: 'Open Sans', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #015ba5; margin: 0 0 0.5rem; } .ds-section-head__title { font-family: 'Open Sans', sans-serif; font-weight: 700; font-size: 1.5rem; line-height: 1.25; color: #1e293b; margin: 0; text-wrap: balance; } .ds-section-head__rule { display: block; width: 3.5rem; height: 0.25rem; background: #ff891e; border-radius: 9999px; margin-top: 0.75rem; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Civic Reading Room",
+    "overview": "JDIH Kota Kendari behaves like a well-run public reading room for legal records: calm, bright, and orderly. The primary job of every screen is retrieval — a citizen or a legal practitioner arrives looking for a specific document, and the interface walks them to it with minimal friction. The palette is disciplined: Kendari Amber is signage (point, mark, primary action), Civic Blue is the institutional voice, everything else is quiet white and cool slate. It explicitly rejects the old-government-portal feel — dense raw tables, cramped type, documents buried behind layered menus — without becoming a flashy marketing site.",
+    "keyCharacteristics": [
+      "Retrieval-first: every screen shortens the path to a document.",
+      "One warm accent (amber) used sparingly, one institutional accent (blue) for support.",
+      "Flat surfaces lifted by soft shadows only when they separate content or respond to state.",
+      "Single type family (Open Sans) carrying the full hierarchy — clarity over ornament.",
+      "Accessible by default: WCAG 2.1 AA contrast, keyboard paths, prefers-reduced-motion, multi-language."
+    ],
+    "rules": [
+      { "name": "The Amber Sparingly Rule", "body": "Kendari Amber marks primary action, current position, and highlight — nothing else, under ~10% of any screen. When amber fills whole sections it stops meaning 'act here'.", "section": "colors" },
+      { "name": "The No-Washed-Text Rule", "body": "Body text on white is Ink or Ink Muted (#1e293b / #475569), never lighter. Gray text on amber or blue is forbidden — use white or a darker shade of the same hue.", "section": "colors" },
+      { "name": "The One-Family Rule", "body": "Open Sans in multiple weights carries display through label. No display or secondary font for flavor; hierarchy is a weight-and-size problem.", "section": "typography" },
+      { "name": "The Flat-At-Rest Rule", "body": "Surfaces are flat when idle. A shadow that grows is a response to state (hover, float, focus), not decoration on every card.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep Kendari Amber (#ff891e) to primary action, current state, and highlight — under ~10% of any screen.",
+      "Do use Civic Blue (#015ba5) for secondary actions, links, and focus rings.",
+      "Do hold body text at Ink (#1e293b) or Ink Muted (#475569) on white; verify >=4.5:1 (>=3:1 for large/bold text).",
+      "Do carry the whole type hierarchy with Open Sans in different weights.",
+      "Do keep surfaces flat at rest; add shadow only on hover, float, or focus.",
+      "Do give every interactive element a visible focus state and keep touch targets >=44px.",
+      "Do honor prefers-reduced-motion for every AOS/scroll reveal and keep transitions ~150-250ms."
+    ],
+    "donts": [
+      "Don't recreate the old-government-portal feel: dense raw tables with no hierarchy, cramped small type, or documents buried behind layered menus.",
+      "Don't flood whole sections with amber fills — it destroys the 'act here' signal.",
+      "Don't use light/faint gray for body or placeholder text 'for elegance'; it fails contrast and readability.",
+      "Don't introduce a display or second body font (no spreading Poppins/Inter); it breaks the One-Family Rule.",
+      "Don't put gray text on amber or blue backgrounds — use white or a darker shade of the same hue.",
+      "Don't use border-left/border-right thicker than 1px as a colored accent stripe; use a full border, a tint, or a leading icon.",
+      "Don't ship interactive components with half their states — default, hover, focus, active, disabled, loading, and error all matter.",
+      "Don't render suggestion/dropdown panels inside overflow-hidden containers where they clip; float them properly above the page."
+    ]
+  }
+}

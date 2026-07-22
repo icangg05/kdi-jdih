@@ -99,7 +99,7 @@ class InformasiHukumController extends Controller
       $dokumen = uploadFile($this->docDirectory, $request->file('dokumen'));
 
     // Set data
-    $data               = $request->except('_token');
+    $data               = $request->except('_token', 'auto_translate');
     $data['tanggal']    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
     $data['image']      = $image ?? '';
     $data['dokumen']    = $dokumen ?? '';
@@ -110,6 +110,9 @@ class InformasiHukumController extends Controller
 
     $dataId = InformasiHukum::create($data);
 
+    if ($request->boolean('auto_translate')) {
+      app(\App\Services\AutoTranslateService::class)->apply($dataId, ['judul', 'isi']);
+    }
 
     return redirect()->route('backend.informasi-hukum.show', $dataId)->with('success', 'Data informasi hukum berhasil ditambahkan');
   }
@@ -145,7 +148,7 @@ class InformasiHukumController extends Controller
       $dokumen = uploadFile($this->docDirectory, $request->file('dokumen'));
 
     // Set data
-    $data               = $request->except('_token');
+    $data               = $request->except('_token', 'auto_translate');
     $data['tanggal']    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
     $data['image']      = $image ?? $dataUpdate->image;
     $data['dokumen']    = $dokumen ?? $dataUpdate->dokumen;
@@ -155,6 +158,9 @@ class InformasiHukumController extends Controller
     // Update data
     $dataUpdate->update($data);
 
+    if ($request->boolean('auto_translate')) {
+      app(\App\Services\AutoTranslateService::class)->apply($dataUpdate, ['judul', 'isi']);
+    }
 
     return redirect()->route('backend.informasi-hukum.show', $id)->with('success', 'Data informasi hukum berhasil diupdate');
   }

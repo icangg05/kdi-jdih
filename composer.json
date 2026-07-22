@@ -15,6 +15,7 @@
     "laravel/tinker": "^2.10.1",
     "livewire/livewire": "^3.6",
     "simplesoftwareio/simple-qrcode": "^4.2",
+    "stichoza/google-translate-php": "^5.3",
     "vinkla/hashids": "^13.0",
     "yoeunes/toastr": "^3.1"
   },

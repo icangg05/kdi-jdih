@@ -57,6 +57,7 @@ class PembentukanPuuController extends Controller
         // Data untuk filter
         $jenisDokumenList = [
             'naskah_akademik' => 'Naskah Akademik',
+            'naskah_keterangan_penjelasan' => 'Naskah Keterangan dan/atau Penjelasan',
             'rancangan_puu' => 'Rancangan PUU',
             'penelitian_hukum' => 'Penelitian Hukum',
             'pengkajian_hukum' => 'Pengkajian Hukum',

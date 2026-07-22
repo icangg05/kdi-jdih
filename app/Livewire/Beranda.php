@@ -12,19 +12,19 @@ class Beranda extends Component
 		// Data pejabat kota kendari
 		$pejabat = [
 			[
-				'nama'    => 'dr. Hj. SISKA KARINA IMRANd, SKM',
+				'nama'    => 'dr. Hj. SISKA KARINA IMRAN, SKM',
 				'jabatan' => 'Wali Kota Kendari',
-				'gambar'  => "assets/img/1.jpg",
+				'gambar'  => "assets/img/1.webp",
 			],
 			[
 				'nama'    => 'SUDIRMAN',
 				'jabatan' => 'Wakil Wali Kota Kendari',
-				'gambar'  => "assets/img/2.jpg",
+				'gambar'  => "assets/img/2.webp",
 			],
 			[
 				'nama'    => 'AMIR HASAN, STP, SH, M.Si',
 				'jabatan' => 'Sekretaris Daerah Kota Kendari',
-				'gambar'  => "assets/img/3.jpg",
+				'gambar'  => "assets/img/3.webp",
 			],
 		];
 

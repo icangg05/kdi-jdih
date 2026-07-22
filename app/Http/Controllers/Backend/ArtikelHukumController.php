@@ -107,7 +107,7 @@ class ArtikelHukumController extends Controller
 			$abstrak = uploadFile($this->docDirectory, $request->file('abstrak'));
 
 		// Set data document
-		$data = $request->except('_token', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
+		$data = $request->except('_token', 'auto_translate', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
 
 		$data['tipe_dokumen']      = 3;
 		$data['tanggal_penetapan'] = Carbon::createFromFormat('d-F-Y', $request->tanggal_penetapan)->format('Y-m-d');
@@ -117,6 +117,10 @@ class ArtikelHukumController extends Controller
 
 		// Store to database
 		$dataId = Document::create($data)->id;
+
+		if ($request->boolean('auto_translate')) {
+			app(\App\Services\AutoTranslateService::class)->apply(Document::find($dataId), ['judul']);
+		}
 
 
 		// Process lampiran data
@@ -165,7 +169,7 @@ class ArtikelHukumController extends Controller
 			$abstrak = uploadFile($this->docDirectory, $request->file('abstrak'));
 
 		// Set data document
-		$data = $request->except('_token', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
+		$data = $request->except('_token', 'auto_translate', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
 
 		$data['abstrak']           = $abstrak ?? $dataUpdate->abstrak;
 		$data['tanggal_penetapan'] = Carbon::createFromFormat('d-F-Y', $request->tanggal_penetapan)->format('Y-m-d');
@@ -174,6 +178,10 @@ class ArtikelHukumController extends Controller
 
 		// Update data
 		$dataUpdate->update($data);
+
+		if ($request->boolean('auto_translate')) {
+			app(\App\Services\AutoTranslateService::class)->apply($dataUpdate, ['judul']);
+		}
 
 
 		// Process lampiran data

@@ -27,6 +27,14 @@ class Dokumen extends Component
     $this->resetPage();
   }
 
+  // Auto-apply: setiap filter berubah (live), reset ke halaman 1
+  public function updated($property)
+  {
+    if (in_array($property, ['q', 'jenis', 'tahun', 'status', 'nomor'])) {
+      $this->resetPage();
+    }
+  }
+
   public function resetFilter()
   {
     $this->reset([
@@ -43,28 +51,28 @@ class Dokumen extends Component
   public function render(Request $request)
   {
     if ($this->kategori === 'peraturan') {
-      $title = 'Peraturan dan Keputusan';
+      $title = __('Peraturan dan Keputusan');
       $data  = DB::table('document')->where('tipe_dokumen', 1)
         ->leftJoin('data_lampiran', 'document.id', '=', 'data_lampiran.id_dokumen')
         ->select('document.*', 'data_lampiran.judul_lampiran', 'data_lampiran.dokumen_lampiran');
       $tipeDokumen = DB::table('document_type')->where('parent_id', 1)->get();
       //
     } elseif ($this->kategori === 'monografi') {
-      $title       = 'Monografi Hukum';
+      $title       = __('Monografi Hukum');
       $data        = DB::table('document')->where('tipe_dokumen', 2)
         ->leftJoin('data_lampiran', 'document.id', '=', 'data_lampiran.id_dokumen')
         ->select('document.*', 'data_lampiran.judul_lampiran', 'data_lampiran.dokumen_lampiran');
       $tipeDokumen = DB::table('document_type')->where('parent_id', 2)->get();
       //
     } elseif ($this->kategori === 'artikel') {
-      $title       = 'Artikel / Majalah Hukum';
+      $title       = __('Artikel / Majalah Hukum');
       $data        = DB::table('document')->where('tipe_dokumen', 3)
         ->leftJoin('data_lampiran', 'document.id', '=', 'data_lampiran.id_dokumen')
         ->select('document.*', 'data_lampiran.judul_lampiran', 'data_lampiran.dokumen_lampiran');
       $tipeDokumen = DB::table('document_type')->where('parent_id', 3)->get();
       //
     } elseif ($this->kategori === 'putusan') {
-      $title       = 'Putusan';
+      $title       = __('Putusan');
       $data        = DB::table('document')->where('tipe_dokumen', 4)
         ->leftJoin('data_lampiran', 'document.id', '=', 'data_lampiran.id_dokumen')
         ->select('document.*', 'data_lampiran.judul_lampiran', 'data_lampiran.dokumen_lampiran');

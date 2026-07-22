@@ -120,7 +120,7 @@ class MonografiController extends Controller
       $gambarSampul = uploadFile($this->imgDirectory, $request->file('gambar_sampul'));
 
     // Set data document
-    $data = $request->except('_token', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
+    $data = $request->except('_token', 'auto_translate', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
 
     $data['tipe_dokumen']  = 2;
     $data['abstrak']       = $abstrak ?? null;
@@ -132,6 +132,10 @@ class MonografiController extends Controller
 
     // Store to database
     $dataId = Document::create($data)->id;
+
+    if ($request->boolean('auto_translate')) {
+      app(\App\Services\AutoTranslateService::class)->apply(Document::find($dataId), ['judul']);
+    }
 
 
     // Process lampiran data
@@ -186,7 +190,7 @@ class MonografiController extends Controller
       $gambarSampul = uploadFile($this->imgDirectory, $request->file('gambar_sampul'));
 
     // Set data document
-    $data = $request->except('_token', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
+    $data = $request->except('_token', 'auto_translate', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
 
     $data['abstrak']       = $abstrak ?? $dataUpdate->abstrak;
     $data['gambar_sampul'] = $gambarSampul ?? $dataUpdate->gambar_sampul;
@@ -194,6 +198,10 @@ class MonografiController extends Controller
     $data['_updated_by']   = Auth::user()->id;
 
     $dataUpdate->update($data);
+
+    if ($request->boolean('auto_translate')) {
+      app(\App\Services\AutoTranslateService::class)->apply($dataUpdate, ['judul']);
+    }
 
 
     // Process lampiran data

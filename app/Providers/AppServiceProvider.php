@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Tidak perlu register Telescope jika tidak terinstall
-        
+
         // Bind repository atau service patterns jika diperlukan
         // $this->registerRepositories();
     }
@@ -33,11 +33,11 @@ class AppServiceProvider extends ServiceProvider
     {
         // Fix untuk MariaDB/MySQL lama
         Schema::defaultStringLength(191);
-        
+
         // Force HTTP scheme untuk local development
         if ($this->app->environment('local') || $this->app->environment('development')) {
             URL::forceScheme('http');
-            
+
             // Nonaktifkan secure cookie di local
             config([
                 'session.secure' => false,
@@ -49,19 +49,17 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        // Upgrade ke Bootstrap 5 jika menggunakan Bootstrap 5
-        // Jika masih Bootstrap 3/4, gunakan yang sesuai
-        Paginator::useBootstrapFive(); // atau useBootstrapThree() / useBootstrapFour()
-        
-        // Jika muncul error, ganti dengan:
-        // Paginator::useBootstrap();
+        // Backend memuat Bootstrap 3.4.1, jadi paginator harus pakai markup BS3.
+        // useBootstrapFive() bikin dua blok (mobile d-sm-none + desktop d-none d-sm-flex)
+        // yang class-nya tidak ada di BS3, sehingga kedua blok tampil (dobel pagination).
+        Paginator::useBootstrapThree();
 
         // Register model observers
         Pengumuman::observe(PengumumanObserver::class);
         Document::observe(DocumentObserver::class);
         DataLampiran::observe(DataLampiranObserver::class);
     }
-    
+
     /**
      * Register repository bindings (Repository Pattern)
      * HAPUS atau COMMENT jika belum implement Repository Pattern
@@ -73,12 +71,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\DocumentRepositoryInterface::class,
             \App\Repositories\DocumentRepository::class
         );
-        
+
         $this->app->bind(
             \App\Contracts\ApiRepositoryInterface::class,
             \App\Repositories\ApiRepository::class
         );
-        
+
         $this->app->singleton('jdih.api', function ($app) {
             return new \App\Services\JdihApiService();
         });

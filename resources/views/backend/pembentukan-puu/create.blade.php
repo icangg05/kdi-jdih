@@ -7,8 +7,54 @@
     :title="$title"
     :listNav="[['label' => 'Pembentukan PUU', 'route' => route('backend.pembentukan-puu.index')], ['label' => $title]]">
 
+@push('link')
+<style>
+    /* ── Scoped ke halaman form ini (selaras dengan .puu-index / .puu-show) ── */
+    .puu-form { --ink:#1f2328; --muted:#6b7075; --soft:#8b9096; --accent:#c0392b; --line:#e7e4df; max-width:960px; }
+
+    /* Box → seragam, buang solid warna yang ramai */
+    .puu-form .box.box-solid { border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:9px; box-shadow:0 1px 2px rgba(31,35,40,.05); background:#fff; margin-bottom:18px; }
+    .puu-form .box.box-solid > .box-header { background:#fff; color:var(--ink); border-bottom:1px solid var(--line); padding:15px 20px; display:flex; align-items:center; gap:11px; border-radius:9px 9px 0 0; }
+    .puu-form .box.box-solid > .box-header::before { content:''; width:4px; height:16px; background:var(--accent); border-radius:2px; flex:none; }
+    .puu-form .box.box-solid > .box-header b { font-size:14.5px; font-weight:600; letter-spacing:-.01em; color:var(--ink); }
+    .puu-form .box.box-solid > .box-body { padding:20px 22px 6px; }
+
+    /* Aksen per peran box, halus */
+    .puu-form .box.box-info    { border-top-color:#2f6fb0; }
+    .puu-form .box.box-info    > .box-header::before { background:#2f6fb0; }
+    .puu-form .box.box-success { border-top-color:#2b9348; }
+    .puu-form .box.box-success > .box-header::before { background:#2b9348; }
+    .puu-form .box.box-warning { border-top-color:#c77d0a; }
+    .puu-form .box.box-warning > .box-header::before { background:#c77d0a; }
+    .puu-form .box.box-danger,
+    .puu-form .box.box-primary { border-top-color:var(--accent); }
+
+    /* Label & input */
+    .puu-form .control-label { color:var(--muted); font-weight:600; font-size:13px; padding-top:8px; }
+    .puu-form .form-control { border-color:#dcd9d3; box-shadow:none; border-radius:6px; height:38px; transition:border-color .14s ease, box-shadow .14s ease; }
+    .puu-form textarea.form-control { height:auto; }
+    .puu-form .form-control:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(192,57,43,.10); }
+    .puu-form .form-group { margin-bottom:16px; }
+    .puu-form .help-block { font-size:12px; color:var(--soft); }
+    .puu-form .text-red { color:var(--accent); }
+    .puu-form .input-group-addon { background:#faf9f7; border-color:#dcd9d3; color:var(--muted); }
+
+    /* Select2 selaras */
+    .puu-form .select2-container--default .select2-selection--single { border-color:#dcd9d3 !important; border-radius:6px; }
+    .puu-form .select2-container--default.select2-container--focus .select2-selection--single { border-color:var(--accent); box-shadow:0 0 0 3px rgba(192,57,43,.10); }
+
+    /* Baris aksi */
+    .puu-form .btn-flat { border-radius:6px; padding:9px 20px; font-weight:600; }
+    .puu-form .btn-success.btn-flat { background:var(--accent); border-color:var(--accent); }
+    .puu-form .btn-success.btn-flat:hover, .puu-form .btn-success.btn-flat:focus { background:#a5271b; border-color:#a5271b; }
+    .puu-form .btn-danger.btn-flat { background:#fff; color:var(--muted); border:1px solid #dcd9d3; }
+    .puu-form .btn-danger.btn-flat:hover { background:#f6f4f1; color:var(--ink); }
+    .puu-form .btn-info { border-radius:5px; }
+</style>
+@endpush
+
     <div class="box-body no-padding">
-        <div class="section">
+        <div class="section puu-form">
             <form
                 class="form-horizontal"
                 action="{{ $isCreate ? route('backend.pembentukan-puu.store') : route('backend.pembentukan-puu.update', $puu->id) }}"
@@ -33,6 +79,7 @@
                             :value="$puu->jenis_dokumen ?? ''"
                             :data="[
                                 ['label' => 'Naskah Akademik', 'value' => 'naskah_akademik'],
+                                ['label' => 'Naskah Keterangan dan/atau Penjelasan', 'value' => 'naskah_keterangan_penjelasan'],
                                 ['label' => 'Rancangan PUU', 'value' => 'rancangan_puu'],
                                 ['label' => 'Penelitian Hukum', 'value' => 'penelitian_hukum'],
                                 ['label' => 'Pengkajian Hukum', 'value' => 'pengkajian_hukum'],
@@ -533,9 +580,9 @@
                                     <div class="input-group-addon">
                                         <i class="fa fa-calendar"></i>
                                     </div>
-                                    <input type="text" 
-                                           class="form-control datepicker" 
-                                           id="tanggal_unggah" 
+                                    <input type="text"
+                                           class="form-control datepicker"
+                                           id="tanggal_unggah"
                                            name="tanggal_unggah"
                                            placeholder="Pilih tanggal unggah"
                                            value="{{ old('tanggal_unggah', $puu->tanggal_unggah ?? date('d-m-Y')) }}"
@@ -565,48 +612,17 @@
         </div>
     </div>
 
-    @push('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-    <style>
-        .datepicker {
-            z-index: 9999 !important;
-        }
-        .datepicker-dropdown {
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .datepicker table {
-            width: 100%;
-        }
-        .datepicker table tr td,
-        .datepicker table tr th {
-            text-align: center;
-            padding: 5px;
-        }
-        .datepicker table tr td.day:hover {
-            background-color: #f0f0f0;
-            cursor: pointer;
-        }
-        .datepicker table tr td.active,
-        .datepicker table tr td.active:hover {
-            background-color: #337ab7;
-            color: white;
-        }
-    </style>
-    @endpush
-
-    @push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.id.min.js"></script>
+    @push('script')
+    {{-- Locale ID lokal; plugin datepicker sudah dimuat layout untuk halaman create/edit --}}
+    <script src="{{ asset('assets') }}/backend/85185e69/js/locales/bootstrap-datepicker.id.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Inisialisasi datepicker untuk tanggal unggah
-            $('.datepicker').datepicker({
+            // Inisialisasi datepicker untuk tanggal unggah.
+            // Krajee me-noConflict $.fn.datepicker menjadi $.fn.kvDatepicker.
+            $('.datepicker').kvDatepicker({
                 format: 'yyyy-mm-dd',
                 autoclose: true,
                 todayHighlight: true,
-                language: 'id',
                 weekStart: 1,
                 daysOfWeekHighlighted: "0,6",
                 todayBtn: "linked",
@@ -619,28 +635,28 @@
                 // Sembunyikan semua field group dan field-spesifik container
                 $('.field-group').hide();
                 $('#field-spesifik').hide();
-                
+
                 // Ambil jenis dokumen yang dipilih
                 const jenisDokumen = $('#jenis_dokumen').val();
-                
+
                 if (jenisDokumen) {
                     // Tampilkan container field-spesifik
                     $('#field-spesifik').show();
-                    
+
                     // Tampilkan field group sesuai jenis
                     $(`#field-${jenisDokumen}`).show();
-                    
+
                     // Beri judul dinamis pada bagian field spesifik
                     const jenisLabel = $('#jenis_dokumen option:selected').text();
                     $(`#field-${jenisDokumen} .box-header b`).text(`Informasi ${jenisLabel}`);
                 }
             }
-            
+
             // Event handler untuk perubahan jenis dokumen
             $('#jenis_dokumen').change(function() {
                 showFieldByType();
             });
-            
+
             // Inisialisasi saat halaman load (untuk edit mode)
             const initialJenis = @json($puu->jenis_dokumen ?? '');
             if (initialJenis) {
@@ -648,19 +664,19 @@
                     showFieldByType();
                 }, 100);
             }
-            
+
             // Validasi form
             $('form').submit(function(e) {
                 // Validasi required fields
                 let isValid = true;
-                
+
                 // Cek jenis dokumen
                 if (!$('#jenis_dokumen').val()) {
                     alert('Jenis Dokumen PUU harus dipilih');
                     $('#jenis_dokumen').focus();
                     isValid = false;
                 }
-                
+
                 // Cek dokumen utama untuk create
                 const isCreate = @json($isCreate);
                 if (isCreate && !$('#dokumen_utama').val()) {
@@ -668,21 +684,21 @@
                     $('#dokumen_utama').focus();
                     isValid = false;
                 }
-                
+
                 // Cek pengunggah
                 if (!$('#pengunggah').val()) {
                     alert('Nama pengunggah harus diisi');
                     $('#pengunggah').focus();
                     isValid = false;
                 }
-                
+
                 // Cek tanggal unggah
                 if (!$('#tanggal_unggah').val()) {
                     alert('Tanggal unggah harus dipilih');
                     $('#tanggal_unggah').focus();
                     isValid = false;
                 }
-                
+
                 // Validasi format tanggal
                 const tanggalUnggah = $('#tanggal_unggah').val();
                 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -691,15 +707,15 @@
                     $('#tanggal_unggah').focus();
                     isValid = false;
                 }
-                
+
                 if (!isValid) {
                     e.preventDefault();
                     return false;
                 }
-                
+
                 return true;
             });
-            
+
             // Format tahun otomatis
             $('#tahun').on('input', function() {
                 let year = $(this).val();
@@ -707,7 +723,7 @@
                     $(this).val(year.substring(0, 4));
                 }
             });
-            
+
             // Auto-generate kata kunci dari judul
             $('#judul').on('blur', function() {
                 if (!$('#kata_kunci').val()) {
@@ -719,12 +735,12 @@
                     }
                 }
             });
-            
+
             // Set nilai default untuk pengunggah jika kosong
             if (!$('#pengunggah').val()) {
                 $('#pengunggah').val('admin');
             }
-            
+
             // Tombol untuk set tanggal hari ini
             $('#set-today-btn').on('click', function() {
                 const today = new Date();
@@ -732,7 +748,7 @@
                 const mm = String(today.getMonth() + 1).padStart(2, '0');
                 const dd = String(today.getDate()).padStart(2, '0');
                 $('#tanggal_unggah').val(`${yyyy}-${mm}-${dd}`);
-                $('.datepicker').datepicker('update', today);
+                $('.datepicker').kvDatepicker('update', today);
             });
         });
     </script>

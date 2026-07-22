@@ -1,206 +1,224 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ app()->getLocale() }}" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terima Kasih - Survei JDIH Kota Kendari</title>
-    
-    <!-- Tailwind CSS CDN (jika tidak menggunakan Vite) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Atau jika menggunakan Vite, pastikan file CSS ada -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+    <title>{{ __('Terima Kasih') }} — Survei JDIH Kota Kendari</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
+
+    <!-- Font sama dengan situs: Source Sans 3 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" />
+
+    @vite('resources/css/app.css')
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Poppins', sans-serif;
+        .survey-bg {
+            position: fixed;
+            inset: 0;
+            background: url('{{ asset('assets/img/background.webp') }}') center/cover no-repeat;
         }
-        
-        .success-animation {
-            animation: success-bounce 1s ease;
+
+        .survey-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(2, 6, 23, .82) 0%, rgba(2, 6, 23, .9) 50%, rgba(2, 6, 23, .96) 100%);
         }
-        
-        @keyframes success-bounce {
-            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-            40% {transform: translateY(-10px);}
-            60% {transform: translateY(-5px);}
+
+        .survey-grid {
+            position: fixed;
+            inset: 0;
+            opacity: .12;
+            background-image: radial-gradient(rgba(255, 255, 255, .7) 1px, transparent 1px);
+            background-size: 32px 32px;
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 75%);
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 75%);
         }
-        
-        .stat-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+        .survey-glow {
+            position: fixed;
+            border-radius: 4px;
+            filter: blur(90px);
         }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+        /* Denyut halus di lingkaran centang */
+        @keyframes pulseRing {
+            0% { transform: scale(.92); opacity: .55 }
+            70% { transform: scale(1.25); opacity: 0 }
+            100% { transform: scale(1.25); opacity: 0 }
         }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .check-ring::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 4px;
+            background: var(--color-primary, #ff891e);
+            animation: pulseRing 2.4s cubic-bezier(.4, 0, .6, 1) infinite;
         }
-        
-        .pulse-animation {
-            animation: pulse 2s infinite;
+
+        /* Bar penilaian terisi dari nol */
+        @keyframes growBar {
+            from { transform: scaleX(0) }
+            to { transform: scaleX(1) }
         }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
-            70% { box-shadow: 0 0 0 20px rgba(102, 126, 234, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
+
+        .bar-fill {
+            transform-origin: left;
+            animation: growBar .9s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .check-ring::before, .bar-fill { animation: none }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-purple-50">
-    <div class="min-h-screen flex items-center justify-center py-12 px-4">
-        <div class="max-w-lg w-full">
-            <!-- Success Card -->
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-8 success-animation">
-                <div class="gradient-bg p-8 text-center text-white">
-                    <div class="mx-auto w-28 h-28 bg-white/20 rounded-full flex items-center justify-center mb-6 pulse-animation">
-                        <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+
+<body class="font-opensans antialiased bg-darkbg text-slate-700">
+
+    <!-- LATAR -->
+    <div aria-hidden="true" class="survey-bg"></div>
+    <div aria-hidden="true" class="survey-grid"></div>
+    <div aria-hidden="true" class="survey-glow -top-32 -left-24 h-96 w-96 bg-primary/25"></div>
+    <div aria-hidden="true" class="survey-glow bottom-0 -right-32 h-96 w-96 bg-accent/25"></div>
+
+    <div class="relative flex min-h-dvh items-center justify-center px-4 py-12">
+        <div class="w-full max-w-xl space-y-5">
+
+            <!-- KARTU SUKSES -->
+            <div class="animate-rise relative overflow-hidden rounded bg-white text-center shadow-2xl shadow-black/40 ring-1 ring-white/10">
+                <span aria-hidden="true" class="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-primary via-primary to-accent"></span>
+
+                <div class="p-8">
+                    <div class="relative mx-auto mb-6 h-20 w-20">
+                        <span aria-hidden="true" class="check-ring absolute inset-0 rounded"></span>
+                        <span class="relative flex h-20 w-20 items-center justify-center rounded bg-primary text-white shadow-lg shadow-primary/30">
+                            <i class="fas fa-check text-3xl"></i>
+                        </span>
                     </div>
-                    
-                    <h1 class="text-4xl font-bold mb-4">Terima Kasih! 🙏</h1>
-                    <p class="text-lg opacity-90 mb-2">
-                        Survei kepuasan Anda telah berhasil dikirim.
+
+                    <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+                        {{ __('Terima Kasih') }}
+                    </h1>
+                    <p class="mx-auto mt-3 max-w-md text-sm lg:text-base text-slate-600">
+                        {{ __('Survei Anda sudah kami terima. Masukan ini langsung masuk ke bahan evaluasi layanan JDIH Kota Kendari.') }}
                     </p>
-                    <p class="text-md opacity-80">
-                        Kontribusi Anda membantu kami meningkatkan layanan JDIH Kota Kendari.
-                    </p>
+
+                    @if (session('success'))
+                        <div class="mx-auto mt-5 inline-flex items-center gap-2 rounded bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+                            <i class="fas fa-check"></i>
+                            {{ session('success') }}
+                        </div>
+                    @endif
                 </div>
-                
-                <!-- Success Message -->
-                @if(session('success'))
-                <div class="p-6 bg-green-50 border-l-4 border-green-500">
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <p class="text-green-800 font-medium">{{ session('success') }}</p>
+
+                <!-- RINGKASAN ANGKA -->
+                <div class="grid grid-cols-2 divide-x divide-slate-200 border-t border-slate-200 bg-slate-50">
+                    <div class="p-5">
+                        <div class="text-3xl font-bold tabular-nums text-accent">{{ $total_survei ?? 0 }}</div>
+                        <p class="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500">{{ __('Total Responden') }}</p>
+                    </div>
+                    <div class="p-5">
+                        <div class="text-3xl font-bold tabular-nums text-primary">{{ $average_rating ?? 0 }}<span class="text-lg text-slate-400">/5</span></div>
+                        <div class="mt-1.5 flex justify-center gap-0.5">
+                            @for ($i = 1; $i <= 5; $i++)
+                                <i class="fas fa-star text-xs {{ $i <= floor($average_rating ?? 0) ? 'text-primary' : 'text-slate-300' }}"></i>
+                            @endfor
+                        </div>
                     </div>
                 </div>
-                @endif
             </div>
 
-            <!-- Stats Section -->
-            <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-                    <span class="inline-block mr-2">📊</span> 
-                    Kontribusi Anda
+            <!-- DETAIL PENILAIAN -->
+            <div class="animate-rise rounded bg-white p-6 shadow-2xl shadow-black/40 ring-1 ring-white/10" style="animation-delay: .08s">
+                <h2 class="mb-5 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
+                    <i class="fas fa-chart-simple text-primary"></i>
+                    {{ __('Penilaian Rata-rata Pengguna') }}
                 </h2>
-                
-                <div class="grid grid-cols-2 gap-6 mb-8">
-                    <div class="stat-card bg-blue-50 p-6 rounded-xl border border-blue-100 text-center">
-                        <div class="text-4xl font-bold text-blue-600 mb-2">{{ $total_survei ?? '0' }}</div>
-                        <p class="text-gray-600 font-medium">Total Survei</p>
-                        <div class="mt-2 text-sm text-blue-500">
-                            <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
-                            </svg>
-                            +1 dari Anda
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card bg-green-50 p-6 rounded-xl border border-green-100 text-center">
-                        <div class="text-4xl font-bold text-green-600 mb-2">{{ $average_rating ?? '0' }}/5</div>
-                        <p class="text-gray-600 font-medium">Rating Rata-rata</p>
-                        <div class="mt-2">
-                            <div class="flex justify-center">
-                                @for($i = 1; $i <= 5; $i++)
-                                    @if($i <= floor($average_rating ?? 0))
-                                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                        </svg>
-                                    @else
-                                        <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                        </svg>
-                                    @endif
-                                @endfor
+
+                <div class="space-y-3.5">
+                    @foreach ([
+                        ['label' => __('Kemudahan Akses'), 'icon' => 'fa-hand-pointer', 'value' => $average_kemudahan ?? 0],
+                        ['label' => __('Kelengkapan Info'), 'icon' => 'fa-folder-open', 'value' => $average_kelengkapan ?? 0],
+                        ['label' => __('Kecepatan Loading'), 'icon' => 'fa-gauge-high', 'value' => $average_kecepatan ?? 0],
+                        ['label' => __('Tampilan Website'), 'icon' => 'fa-palette', 'value' => $average_tampilan ?? 0],
+                        ['label' => __('Relevansi Hasil'), 'icon' => 'fa-magnifying-glass', 'value' => $average_relevansi ?? 0],
+                    ] as $i => $item)
+                        <div>
+                            <div class="mb-1.5 flex items-center justify-between text-sm">
+                                <span class="flex items-center gap-2 font-medium text-slate-600">
+                                    <i class="fas {{ $item['icon'] }} w-4 text-center text-xs text-slate-400"></i>
+                                    {{ $item['label'] }}
+                                </span>
+                                <span class="font-bold tabular-nums text-slate-800">{{ $item['value'] }}<span class="text-slate-400">/5</span></span>
+                            </div>
+                            <div class="h-1.5 overflow-hidden rounded bg-slate-200">
+                                <div class="bar-fill h-full rounded bg-linear-to-r from-primary to-accent"
+                                     style="width: {{ ($item['value'] / 5) * 100 }}%; animation-delay: {{ $i * 0.08 }}s"></div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Detail Ratings -->
-                <div class="space-y-4">
-                    <h3 class="font-semibold text-gray-700 mb-3">📈 Detail Penilaian</h3>
-                    
-                    @foreach([
-                        ['label' => 'Kemudahan Akses', 'value' => $average_kemudahan ?? 0, 'color' => 'blue'],
-                        ['label' => 'Kelengkapan Info', 'value' => $average_kelengkapan ?? 0, 'color' => 'green'],
-                        ['label' => 'Kecepatan Loading', 'value' => $average_kecepatan ?? 0, 'color' => 'purple'],
-                        ['label' => 'Tampilan Website', 'value' => $average_tampilan ?? 0, 'color' => 'pink'],
-                        ['label' => 'Relevansi Hasil', 'value' => $average_relevansi ?? 0, 'color' => 'orange'],
-                    ] as $item)
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-sm">
-                            <span class="font-medium text-gray-600">{{ $item['label'] }}</span>
-                            <span class="font-bold text-gray-800">{{ $item['value'] }}/5</span>
-                        </div>
-                        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-{{ $item['color'] }}-500 rounded-full" 
-                                 style="width: {{ ($item['value'] / 5) * 100 }}%"></div>
-                        </div>
-                    </div>
                     @endforeach
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="space-y-4">
-                <a href="{{ url('/') }}" 
-                   class="block w-full gradient-bg text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-center">
-                    <span class="inline-block mr-2">🏠</span> 
-                    Kembali ke Beranda JDIH
+            <!-- AKSI -->
+            <div class="animate-rise grid gap-3 sm:grid-cols-2" style="animation-delay: .16s">
+                <a href="{{ url('/') }}"
+                    class="flex items-center justify-center gap-2.5 rounded bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-hover active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-darkbg">
+                    <i class="fas fa-house"></i>
+                    {{ __('Kembali ke Beranda') }}
                 </a>
-                
-                <a href="{{ route('survey.create') }}" 
-                   class="block w-full bg-white text-gray-800 border-2 border-gray-300 py-4 px-6 rounded-xl font-semibold text-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 text-center">
-                    <span class="inline-block mr-2">📝</span> 
-                    Isi Survei Lagi
+
+                <a href="{{ route('survey.create') }}"
+                    class="flex items-center justify-center gap-2.5 rounded border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white/85 backdrop-blur-sm transition hover:bg-white/10 hover:text-white active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+                    <i class="fas fa-pen-to-square"></i>
+                    {{ __('Isi Survei Lagi') }}
                 </a>
             </div>
 
-            <!-- Footer -->
-            <div class="mt-10 text-center">
-                <div class="text-gray-500 text-sm mb-2">
-                    JDIH Kota Kendari - Sistem Dokumentasi dan Informasi Hukum
-                </div>
-                <div class="text-gray-400 text-xs">
-                    © {{ date('Y') }} Dinas Komunikasi dan Informatika Kota Kendari
-                </div>
+            <!-- COUNTDOWN + FOOTER -->
+            <div class="text-center">
+                <p class="inline-flex items-center gap-2 rounded border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-300 backdrop-blur-sm">
+                    <i class="fas fa-arrow-rotate-right text-primary"></i>
+                    {{ __('Kembali ke beranda otomatis dalam') }}
+                    <span id="countdown" class="font-bold tabular-nums text-primary">15</span>
+                    {{ __('detik') }}
+                    <button type="button" id="batalRedirect" class="ml-1 font-semibold text-white/70 underline underline-offset-2 transition hover:text-white">
+                        {{ __('Batalkan') }}
+                    </button>
+                </p>
+                <p class="mt-4 text-xs text-white/40">
+                    &copy; {{ date('Y') }} {{ __('Dinas Komunikasi dan Informatika Kota Kendari') }}
+                </p>
             </div>
         </div>
     </div>
 
-    <!-- Optional JavaScript for animations -->
     <script>
-        // Add some interactivity
-        document.addEventListener('DOMContentLoaded', function() {
-            // Animate stat cards on hover
-            const statCards = document.querySelectorAll('.stat-card');
-            statCards.forEach(card => {
-                card.addEventListener('mouseenter', () => {
-                    card.style.transform = 'translateY(-5px)';
-                });
-                card.addEventListener('mouseleave', () => {
-                    card.style.transform = 'translateY(0)';
-                });
-            });
-            
-            // Show success message with delay
-            setTimeout(() => {
-                const successMsg = document.querySelector('.success-animation');
-                if (successMsg) {
-                    successMsg.style.opacity = '1';
+        // Countdown & redirect otomatis ke beranda (bisa dibatalkan)
+        (function () {
+            var sisa = 15;
+            var el = document.getElementById('countdown');
+            var batal = document.getElementById('batalRedirect');
+
+            var timer = setInterval(function () {
+                sisa -= 1;
+                if (el) el.textContent = sisa;
+                if (sisa <= 0) {
+                    clearInterval(timer);
+                    window.location.href = @js(url('/'));
                 }
-            }, 100);
-        });
+            }, 1000);
+
+            batal?.addEventListener('click', function () {
+                clearInterval(timer);
+                batal.closest('p').remove();
+            });
+        })();
     </script>
 </body>
 </html>

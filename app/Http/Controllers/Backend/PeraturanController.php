@@ -155,7 +155,7 @@ class PeraturanController extends Controller
       'tanggal_pengundangan' => ['nullable', 'date'],
     ]);
 
-    $data           = $request->except('_token', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
+    $data           = $request->except('_token', 'auto_translate', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
     $jenisPeraturan = DB::table('document_type')->where('id', (int) $request->jenis_peraturan)->first();
 
     // Upload abstrak
@@ -175,6 +175,10 @@ class PeraturanController extends Controller
 
     // Store to database
     $peraturanId = Document::create($data)->id;
+
+    if ($request->boolean('auto_translate')) {
+      app(\App\Services\AutoTranslateService::class)->apply(Document::find($peraturanId), ['judul']);
+    }
 
 
     // Process lampiran data
@@ -259,7 +263,7 @@ class PeraturanController extends Controller
     // Get data peraturan
     $peraturan      = Document::findOrFail($id);
     // Data request convert and except another data
-    $data           = $request->except('_method', '_token', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
+    $data           = $request->except('_method', '_token', 'auto_translate', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
     $jenisPeraturan = DB::table('document_type')->where('id', (int) $request->jenis_peraturan)->first();
 
     // Upload abstrak
@@ -278,6 +282,10 @@ class PeraturanController extends Controller
 
     // Update data peraturan
     $peraturan->update($data);
+
+    if ($request->boolean('auto_translate')) {
+      app(\App\Services\AutoTranslateService::class)->apply($peraturan, ['judul']);
+    }
 
 
     if ($request->judul_lampiran) {

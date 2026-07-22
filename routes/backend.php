@@ -6,6 +6,7 @@ use App\Http\Controllers\Backend\InformasiHukumController;
 use App\Http\Controllers\Backend\PengumumanController;
 use App\Http\Controllers\Backend\PeraturanController;
 use App\Http\Controllers\Backend\VideoController;
+use App\Http\Controllers\Backend\SurveyController;
 use App\Http\Controllers\Backend\FormController;
 use App\Http\Controllers\Backend\FormPeraturanTerkaitController;
 use App\Http\Controllers\Backend\BeritaController;
@@ -42,6 +43,7 @@ Route::middleware('auth')->prefix('dashboard')->name('backend.')->group(function
   Route::resource('/pengumuman', PengumumanController::class);
   Route::resource('/berita', BeritaController::class);
   Route::resource('/video', VideoController::class);
+  Route::resource('/survei', SurveyController::class)->only(['index', 'show', 'destroy']);
   Route::resource('/user', UserController::class);
 
 

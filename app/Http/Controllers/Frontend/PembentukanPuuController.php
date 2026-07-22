@@ -14,6 +14,7 @@ class PembentukanPuuController extends Controller
     // Data kategori - DIPERBAIKI: Hanya untuk frontend
     private $categories = [
         ['value' => 'naskah-akademik', 'label' => 'Naskah Akademik'],
+        ['value' => 'naskah-keterangan-penjelasan', 'label' => 'Naskah Keterangan dan/atau Penjelasan'],
         ['value' => 'rancangan-puu', 'label' => 'Rancangan PUU'],
         ['value' => 'penelitian-hukum', 'label' => 'Penelitian Hukum'],
         ['value' => 'pengkajian-hukum', 'label' => 'Pengkajian Hukum'],
@@ -24,6 +25,7 @@ class PembentukanPuuController extends Controller
     // Mapping kategori frontend ke database
     private $categoryMapping = [
         'naskah-akademik' => 'naskah_akademik',
+        'naskah-keterangan-penjelasan' => 'naskah_keterangan_penjelasan',
         'rancangan-puu' => 'rancangan_puu',
         'penelitian-hukum' => 'penelitian_hukum',
         'pengkajian-hukum' => 'pengkajian_hukum',
@@ -34,6 +36,7 @@ class PembentukanPuuController extends Controller
     // Deskripsi kategori
     private $categoryDescriptions = [
         'naskah-akademik' => 'Dokumen akademis sebagai dasar penyusunan peraturan',
+        'naskah-keterangan-penjelasan' => 'Naskah keterangan dan/atau penjelasan atas peraturan',
         'rancangan-puu' => 'Rancangan peraturan yang sedang dalam proses pembahasan',
         'penelitian-hukum' => 'Hasil penelitian mendalam tentang aspek hukum',
         'pengkajian-hukum' => 'Kajian mendalam terhadap aspek hukum tertentu',
@@ -52,89 +55,6 @@ class PembentukanPuuController extends Controller
         return null;
     }
 
-    // Halaman utama Pembentukan PUU - DIPERBAIKI
-    public function index(Request $request)
-    {
-        // Kategori yang dipilih (default: naskah-akademik)
-        $selectedCategoryValue = 'naskah-akademik';
-        $searchQuery = $request->get('q', '');
-        
-        // Ambil data kategori lengkap
-        $selectedCategory = $this->getCategoryByValue($selectedCategoryValue);
-        
-        if (!$selectedCategory) {
-            abort(404, 'Kategori default tidak ditemukan');
-        }
-        
-        // Ambil semua dokumen untuk statistik
-        $allDocuments = $this->getAllDocumentsCount();
-        
-        // Ambil dokumen untuk kategori default
-        $documents = $this->getDocumentsByCategory($selectedCategoryValue, $request);
-        
-        // Log untuk debugging
-        \Log::info('Loading Pembentukan PUU index page', [
-            'category' => $selectedCategoryValue,
-            'search_query' => $searchQuery,
-            'documents_count' => count($documents['data'])
-        ]);
-        
-        return view('frontend.pembentukan-PUU.index', [
-            'categories' => $this->categories,
-            'categoryDescriptions' => $this->categoryDescriptions,
-            'selectedCategory' => $selectedCategory,
-            'allDocuments' => $allDocuments,
-            'documents' => $documents['data'],
-            'pagination' => $documents['pagination'],
-            'searchQuery' => $searchQuery,
-            'filter_tahun' => $request->get('filter_tahun', ''),
-            'filter_nomor' => $request->get('filter_nomor', ''),
-        ]);
-    }
-    
-    // Halaman berdasarkan kategori - DIPERBAIKI untuk route /pembentukan-puu/kategori/{kategori}
-    public function kategori($kategori, Request $request)
-    {
-        // Validasi kategori
-        if (!array_key_exists($kategori, $this->categoryMapping)) {
-            abort(404, 'Kategori tidak ditemukan');
-        }
-        
-        // Ambil data kategori lengkap
-        $selectedCategory = $this->getCategoryByValue($kategori);
-        if (!$selectedCategory) {
-            abort(404, 'Data kategori tidak ditemukan');
-        }
-        
-        $searchQuery = $request->get('q', '');
-        
-        // Ambil semua dokumen untuk statistik
-        $allDocuments = $this->getAllDocumentsCount();
-        
-        // Ambil dokumen untuk kategori yang dipilih
-        $documents = $this->getDocumentsByCategory($kategori, $request);
-        
-        // Debug: Log untuk troubleshooting
-        \Log::info('Loading category page', [
-            'category' => $kategori,
-            'selectedCategory' => $selectedCategory,
-            'documents_count' => count($documents['data']),
-            'search_query' => $searchQuery
-        ]);
-        
-        return view('frontend.pembentukan-PUU.index', [
-            'categories' => $this->categories,
-            'categoryDescriptions' => $this->categoryDescriptions,
-            'selectedCategory' => $selectedCategory,
-            'allDocuments' => $allDocuments,
-            'documents' => $documents['data'],
-            'pagination' => $documents['pagination'],
-            'searchQuery' => $searchQuery,
-            'filter_tahun' => $request->get('filter_tahun', ''),
-            'filter_nomor' => $request->get('filter_nomor', ''),
-        ]);
-    }
-    
     // Detail dokumen
     public function show($id)
     {
@@ -450,7 +370,7 @@ class PembentukanPuuController extends Controller
         $chartData = [
             'labels' => array_column($stats, 'label'),
             'counts' => array_column($stats, 'count'),
-            'colors' => ['#4f46e5', '#8b5cf6', '#6366f1', '#a855f7', '#d946ef', '#ec4899']
+            'colors' => ['#4f46e5', '#8b5cf6', '#6366f1', '#a855f7', '#d946ef', '#ec4899', '#14b8a6']
         ];
         
         return view('frontend.pembentukan-PUU.statistik', [

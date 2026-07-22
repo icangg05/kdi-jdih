@@ -1,102 +1,68 @@
 <div>
-	<x-frontend.breadcrumb title="Pengumumann" :listNav="[['label' => 'Pengumuman']]" />
+	<x-frontend.breadcrumb :title="__('Pengumuman')" :listNav="[['label' => __('Pengumuman')]]" />
 
+	<section class="bg-linear-to-b from-white to-gray-50 py-12 lg:py-16">
+		<div class="max-w-5xl mx-auto px-4 lg:px-0">
 
-	<section class="bg-linear-to-b from-white via-slate-50 to-slate-100  py-12 lg:py-14">
-		<div class="max-w-5xl mx-auto px-2 lg:px-0">
+			<x-frontend.form-search :placeholder="__('Cari pengumuman lainnya')" :live="true" />
 
-			<div class="mb-12">
-				<x-frontend.form-search placeholder="Cari pengumuman lainnya" />
+			<!-- Info jumlah hasil -->
+			<div class="mt-6 flex items-center justify-between gap-3"
+				wire:loading.remove
+				wire:target="search">
+				<p class="text-xs lg:text-sm text-gray-500">
+					<span class="font-semibold text-accent">{{ $data->total() }}</span> {{ __('pengumuman') }}
+					@if ($q)
+						<span class="text-gray-400">· {{ __('Kata kunci') }} "<span class="italic">{{ $q }}</span>"</span>
+					@endif
+				</p>
+				<span class="hidden sm:inline-block h-px w-24 bg-linear-to-r from-primary/60 to-transparent"></span>
 			</div>
 
-
-			<!-- LOADING SPINNER -->
-			<div wire:loading wire:target="search" class="py-3 w-full">
-				<div class="text-sm lg:text-base text-center text-gray-400">
-					<i class="fa-solid fa-spinner fa-spin text-[20.5px]"></i>
-				</div>
+			<!-- LOADING SKELETON -->
+			<div wire:loading wire:target="search" class="mt-8 space-y-8">
+				@for ($i = 0; $i < 4; $i++)
+					<div class="flex flex-col md:flex-row overflow-hidden rounded ring-1 ring-slate-200 bg-white animate-pulse">
+						<div class="md:w-72 shrink-0 h-48 bg-slate-100"></div>
+						<div class="flex-1 p-6 lg:p-8 space-y-3">
+							<div class="h-5 w-40 rounded bg-slate-100"></div>
+							<div class="h-4 w-3/4 rounded bg-slate-100"></div>
+							<div class="h-3 w-full rounded bg-slate-100"></div>
+							<div class="h-3 w-5/6 rounded bg-slate-100"></div>
+							<div class="h-3 w-1/3 rounded bg-slate-100 mt-6"></div>
+						</div>
+					</div>
+				@endfor
 			</div>
 
-			<div class="space-y-8"
+			<!-- CONTENT -->
+			<div class="mt-8 space-y-8"
 				wire:loading.remove
 				wire:target="search">
 				@forelse ($data as $v)
-					@php
-						$image = checkFilePath(config('app.img_directory'), $v->image)
-						    ? asset('storage/' . config('app.img_directory') . $v->image)
-						    : asset('assets/img/default-img.jpg');
-					@endphp
-
-					<article
-						class="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden
-					transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-
-						<div class="flex flex-col md:flex-row">
-
-							<!-- Image -->
-							<div class="relative md:w-72 shrink-0">
-								<img
-									src="{{ $image }}"
-									alt="Pengumuman JDIH"
-									class="h-48 md:h-full w-full object-cover" />
-
-								<!-- Gradient Overlay -->
-								<div
-									class="absolute inset-0 bg-linear-to-t from-black/40 via-black/10 to-transparent md:hidden">
-								</div>
-							</div>
-
-							<!-- Content -->
-							<div class="flex flex-col justify-between p-6 lg:p-8 flex-1">
-
-								<div>
-									<!-- Badge -->
-									<span
-										class="inline-flex items-center gap-1 mb-4 rounded-full
-									bg-orange-50 text-primary text-xs font-semibold px-3 py-1">
-										📌 Pemberitahuan Putusan
-									</span>
-
-									<h3
-										class="text-base lg:text-lg font-semibold text-slate-900 leading-snug
-									group-hover:text-primary transition">
-										{{ Str::limit($v->judul, 60) }}
-									</h3>
-
-									<p
-										class="mt-3 text-sm text-slate-600 leading-relaxed line-clamp-2">
-										{{ Str::limit(strip_tags($v->isi), 130) }}
-									</p>
-								</div>
-
-								<div class="mt-6 flex gap-3 items-center justify-between">
-									<span class="text-xs lg:text-sm text-slate-500 flex items-center gap-1">
-										📅 {{ Carbon\Carbon::parse($v->tanggal)->translatedFormat('d F Y') }}
-									</span>
-
-									<a wire:navigate.hover href="{{ route('frontend.pengumuman.show', Hashids::encode($v->id)) }}"
-										class="inline-flex items-center gap-1 text-xs lg:text-sm font-semibold text-primary
-									group-hover:gap-2 transition-all">
-										Baca Selengkapnya
-										<span>→</span>
-									</a>
-								</div>
-
-							</div>
-						</div>
-					</article>
+					<x-frontend.cards.pengumuman-card
+						:item="$v"
+						:index="$data->firstItem() + $loop->index"
+						:delay="$loop->index * 0.08" />
 				@empty
-					<div class="text-sm lg:text-base text-center text-gray-400">
-						Tidak ada data ditemukan.
-						@if ($q)
-							<span class="italic">Kata kunci : {{ $q }}</span>
-						@endif
+					<div class="col-span-full">
+						<div class="mx-auto max-w-md text-center py-16 px-6 rounded border border-dashed border-gray-200 bg-white">
+							<div class="mx-auto flex h-14 w-14 items-center justify-center rounded bg-accent/10 text-accent">
+								<svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.66V5a2 2 0 10-4 0v.34A6 6 0 006 11v3.2c0 .53-.21 1.04-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+								</svg>
+							</div>
+							<p class="mt-4 font-semibold text-gray-700">{{ __('Tidak ada data ditemukan.') }}</p>
+							@if ($q)
+								<p class="mt-1 text-sm text-gray-400">{{ __('Kata kunci') }} : <span class="italic">{{ $q }}</span></p>
+							@endif
+						</div>
 					</div>
 				@endforelse
-
 			</div>
 
-			<div class="mt-6"
+			<!-- Pagination -->
+			<div class="mt-10"
 				wire:loading.remove
 				wire:target="search">
 				{{ $data->links() }}

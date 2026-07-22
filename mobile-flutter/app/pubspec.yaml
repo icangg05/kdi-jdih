@@ -1,0 +1,46 @@
+name: jdih_kendari
+description: Aplikasi mobile JDIH Kota Kendari (frontend publik).
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.4.1
+  flutter_widget_from_html_core: ^0.16.0
+  url_launcher: ^6.3.1
+  shared_preferences: ^2.3.0
+  intl: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+  image_path: assets/icon/icon.png
+  adaptive_icon_background: "#015BA5"
+  adaptive_icon_foreground: assets/icon/icon_fg.png
+
+flutter_native_splash:
+  color: "#015BA5"
+  color_dark: "#0A1020"
+  image: assets/icon/splash.png
+  android_12:
+    color: "#015BA5"
+    color_dark: "#0A1020"
+    image: assets/icon/splash.png
+
+flutter:
+  uses-material-design: true

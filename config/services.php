@@ -16,6 +16,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Mobile API (Flutter)
+    |--------------------------------------------------------------------------
+    |
+    | Kunci opsional untuk gating API mobile read-only (/api/v1/*).
+    | Kosongkan untuk membuka akses publik; isi MOBILE_API_KEY untuk wajib key.
+    |
+    */
+    'mobile_api' => [
+        'key' => env('MOBILE_API_KEY'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | AI Search Services Configuration
     |--------------------------------------------------------------------------
     |
