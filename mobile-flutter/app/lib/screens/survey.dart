@@ -134,7 +134,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                           const BoxConstraints(minWidth: 36, minHeight: 36),
                       icon: Icon(
                         _rating[e.key]! >= i ? Icons.star : Icons.star_border,
-                        color: C.primary,
+                        color: C.primaryInk,
                       ),
                       onPressed: () => setState(() => _rating[e.key] = i),
                     ),
@@ -158,7 +158,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
+                          strokeWidth: 2, color: C.ink))
                   : const Text('Kirim Survei'),
             ),
             const SizedBox(height: 24),

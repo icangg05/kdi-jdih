@@ -15,7 +15,7 @@ flutter run --dart-define=BASE_URL=http://192.168.x.x:6992
 flutter run -d chrome --dart-define=BASE_URL=http://localhost:6992
 
 # Produksi:
-flutter build apk --release --dart-define=BASE_URL=https://domain-jdih --dart-define=MOBILE_API_KEY=xxx
+flutter build apk --release --dart-define=BASE_URL=https://jdih.kendarikota.go.id --dart-define=MOBILE_API_KEY=xxx
 ```
 
 ## Struktur

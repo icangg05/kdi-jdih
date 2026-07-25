@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
+import '../theme.dart';
 import '../widgets.dart';
+import 'doc_view.dart';
 
 class DisabilityListScreen extends StatefulWidget {
   const DisabilityListScreen({super.key});
@@ -32,7 +34,7 @@ class _DisabilityListScreenState extends State<DisabilityListScreen> {
               child: PagedListView(
                 key: ValueKey(_q),
                 fetch: (page) => api.disability(page: page, q: _q),
-                itemBuilder: (context, x) => Card(
+                itemBuilder: (context, x, _) => Card(
                   child: ListTile(
                     leading: const IconSquircle(Icons.accessible),
                     title: Text(x.s('judul'),
@@ -102,19 +104,14 @@ class DisabilityDetailScreen extends StatelessWidget {
                 Text(x.s('abstrak'), style: const TextStyle(height: 1.6)),
               ],
               const SizedBox(height: 16),
-              if (x.sn('dokumen_url') != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: FilledButton.icon(
-                      icon: const Icon(Icons.download),
-                      label: const Text('Unduh Dokumen Utama'),
-                      onPressed: () => openUrl(context, x.sn('dokumen_url'))),
-                ),
-              if (x.sn('lampiran_url') != null)
-                OutlinedButton.icon(
-                    icon: const Icon(Icons.attach_file),
-                    label: const Text('Unduh Lampiran'),
-                    onPressed: () => openUrl(context, x.sn('lampiran_url'))),
+              if (x.sn('dokumen_url') != null) ...[
+                const SectionHeader('Dokumen'),
+                DocFileTile(x.s('dokumen_url'), title: 'Dokumen Utama'),
+              ],
+              if (x.sn('lampiran_url') != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                DocFileTile(x.s('lampiran_url'), title: 'Lampiran'),
+              ],
               const SizedBox(height: 24),
             ],
           ),

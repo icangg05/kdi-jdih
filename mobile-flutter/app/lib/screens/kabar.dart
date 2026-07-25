@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../api.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'doc_view.dart';
 
 /// Kartu berita/pengumuman: gambar + judul + tanggal + ringkasan.
 class MediaCard extends StatelessWidget {
@@ -59,232 +61,209 @@ class MediaCard extends StatelessWidget {
   }
 }
 
-/// Tab "Kabar": hub Berita / Pengumuman / Informasi Hukum / Video.
+/// Tab "Kabar": indeks bertab — Berita, Pengumuman, Video, Informasi Hukum.
+/// Konten langsung terlihat, bukan hub yang menambah satu ketukan.
 class KabarHubScreen extends StatelessWidget {
-  const KabarHubScreen({super.key});
-
-  void _push(BuildContext context, Widget page) =>
-      Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  const KabarHubScreen({super.key, this.showBack = false});
+  final bool showBack;
 
   @override
-  Widget build(BuildContext context) {
-    final items = [
-      (Icons.campaign, 'Pengumuman', 'Pemberitahuan resmi', const PengumumanListScreen()),
-      (Icons.description, 'Informasi Hukum', 'Propemperda, Ranperda, dll.', const InfoHukumScreen()),
-      (Icons.play_circle, 'Video', 'Kanal YouTube JDIH', const VideoListScreen()),
-    ];
-    return Scaffold(
-      appBar: const BrandAppBar('Kabar'),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // tile utama: Berita sebagai color-block oranye
-          Rise(
-            child: Pressable(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Stack(children: [
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                            colors: [C.primary, C.primaryDeep],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight),
-                      ),
-                    ),
-                  ),
-                  const Positioned.fill(child: GeoPattern(opacity: .14)),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _push(context, const BeritaListScreen()),
-                      // teks gelap di atas oranye: kontras WCAG >= 4.5:1
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: C.lightInk.withValues(alpha: .1),
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            child: const Icon(Icons.newspaper,
-                                color: C.lightInk, size: 30),
-                          ),
-                          const SizedBox(width: 16),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Berita',
-                                    style: TextStyle(
-                                        color: C.lightInk,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w800)),
-                                SizedBox(height: 4),
-                                Text('Kabar terbaru JDIH Kota Kendari',
-                                    style: TextStyle(
-                                        color: C.lightInk, fontSize: 13)),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.arrow_forward, color: C.lightInk),
-                        ]),
-                      ),
-                    ),
-                  ),
-                ]),
-              ),
+  Widget build(BuildContext context) => DefaultTabController(
+        length: 4,
+        child: Scaffold(
+          appBar: BrandAppBar(
+            'Kabar & Informasi',
+            showBack: showBack,
+            tabs: const TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              tabs: [
+                Tab(text: 'Berita'),
+                Tab(text: 'Pengumuman'),
+                Tab(text: 'Video'),
+                Tab(text: 'Info Hukum'),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
-          for (final (i, item) in items.indexed) ...[
-            Rise(
-              delayMs: 80 + i * 60,
-              child: Pressable(
-                child: Card(
-                  child: ListTile(
-                    leading: IconSquircle(item.$1),
-                    title: Text(item.$2,
-                        style: const TextStyle(fontWeight: FontWeight.w700)),
-                    subtitle: Text(item.$3),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _push(context, item.$4),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------- BERITA ----------------
-
-class BeritaListScreen extends StatelessWidget {
-  const BeritaListScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: const BrandAppBar('Berita'),
-        body: PagedListView(
-          fetch: (page) => api.news(page: page),
-          itemBuilder: (context, b) => MediaCard(b,
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => BeritaDetailScreen(id: b.i('id'))))),
+          body: const TabBarView(children: [
+            _BeritaTab(),
+            _PengumumanTab(),
+            _VideoTab(),
+            InfoHukumTab(),
+          ]),
         ),
       );
 }
+
+/// Item pertama tampil sebagai kartu sorotan bergambar, sisanya baris ringkas.
+class _BeritaTab extends StatelessWidget {
+  const _BeritaTab();
+
+  @override
+  Widget build(BuildContext context) => PagedListView(
+        fetch: (page) => api.news(page: page),
+        empty: 'Belum ada berita yang dipublikasikan.',
+        itemBuilder: (context, b, i) {
+          void open() => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => BeritaDetailScreen(id: b.i('id'))));
+          return i == 0
+              ? NewsTile(b, featured: true, onTap: open)
+              : MediaCard(b, onTap: open);
+        },
+      );
+}
+
+class _PengumumanTab extends StatelessWidget {
+  const _PengumumanTab();
+
+  @override
+  Widget build(BuildContext context) => PagedListView(
+        fetch: (page) => api.announcements(page: page),
+        empty: 'Belum ada pengumuman.',
+        itemBuilder: (context, p, i) {
+          void open() => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => PengumumanDetailScreen(id: p.i('id'))));
+          return i == 0
+              ? NewsTile(p, featured: true, onTap: open)
+              : MediaCard(p, badge: p.sn('tag'), onTap: open);
+        },
+      );
+}
+
+class _VideoTab extends StatelessWidget {
+  const _VideoTab();
+
+  @override
+  Widget build(BuildContext context) => PagedListView(
+        fetch: (page) => api.videos(page: page),
+        empty: 'Belum ada video di kanal JDIH.',
+        itemBuilder: (context, v, __) => VideoCard(v),
+      );
+}
+
+// ---------------- BERITA ----------------
 
 class BeritaDetailScreen extends StatelessWidget {
   const BeritaDetailScreen({super.key, required this.id});
   final int id;
 
   @override
+  Widget build(BuildContext context) => ArticleDetail(
+        kicker: 'Berita',
+        load: () => api.newsDetail(id),
+      );
+}
+
+/// Detail artikel: hero gambar penuh + tombol bulat melayang, lalu isi.
+/// Dipakai berita dan pengumuman.
+class ArticleDetail extends StatelessWidget {
+  const ArticleDetail(
+      {super.key, required this.kicker, required this.load, this.footer});
+  final String kicker;
+  final Future<Json> Function() load;
+
+  /// Tambahan di bawah isi (mis. berkas lampiran pengumuman).
+  final List<Widget> Function(BuildContext, Json)? footer;
+
+  @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: const BrandAppBar('Berita'),
         body: LoadView(
-          load: () => api.newsDetail(id),
-          builder: (context, b) => ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (b.sn('image_url') != null)
-                AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: NetImage(b.sn('image_url'), radius: 12)),
-              const SizedBox(height: 16),
-              Text(b.s('judul'),
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
-              Text(fmtDate(b.sn('tanggal')),
-                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              const SizedBox(height: 16),
-              HtmlBody(b.s('isi')),
-              const SizedBox(height: 24),
-            ],
-          ),
+          load: load,
+          builder: (context, a) => CustomScrollView(slivers: [
+            SliverAppBar(
+              expandedHeight: a.sn('image_url') != null ? 240 : 96,
+              pinned: true,
+              backgroundColor: C.lightSurface,
+              surfaceTintColor: Colors.transparent,
+              leadingWidth: 64,
+              leading: Padding(
+                padding: const EdgeInsets.only(left: AppSpacing.lg),
+                child: RoundIconButton(Icons.arrow_back,
+                    tooltip: 'Kembali',
+                    onPressed: () => Navigator.pop(context)),
+              ),
+              flexibleSpace: FlexibleSpaceBar(
+                background: a.sn('image_url') != null
+                    ? Stack(fit: StackFit.expand, children: [
+                        NetImage(a.sn('image_url')),
+                        // gradasi tipis supaya tombol bulat tetap terbaca
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.center,
+                              colors: [
+                                C.ink.withValues(alpha: .35),
+                                C.ink.withValues(alpha: 0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ])
+                    : const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                              colors: [C.ink, C.inkSoft],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight),
+                        ),
+                      ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              sliver: SliverList.list(children: [
+                Row(children: [
+                  JenisChip(a.sn('tag') ?? kicker),
+                  const SizedBox(width: AppSpacing.sm),
+                  MetaPill(Icons.event_outlined, fmtDate(a.sn('tanggal'))),
+                ]),
+                const SizedBox(height: AppSpacing.md),
+                Text(a.s('judul'),
+                    style: const TextStyle(
+                        fontSize: 22, height: 1.3, fontWeight: FontWeight.w700)),
+                const SizedBox(height: AppSpacing.lg),
+                HtmlBody(a.s('isi')),
+                ...?footer?.call(context, a),
+                const SizedBox(height: AppSpacing.xl),
+              ]),
+            ),
+          ]),
         ),
       );
 }
 
 // ---------------- PENGUMUMAN ----------------
 
-class PengumumanListScreen extends StatelessWidget {
-  const PengumumanListScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: const BrandAppBar('Pengumuman'),
-        body: PagedListView(
-          fetch: (page) => api.announcements(page: page),
-          itemBuilder: (context, p) => MediaCard(p,
-              badge: p.sn('tag'),
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => PengumumanDetailScreen(id: p.i('id'))))),
-        ),
-      );
-}
-
 class PengumumanDetailScreen extends StatelessWidget {
   const PengumumanDetailScreen({super.key, required this.id});
   final int id;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: const BrandAppBar('Pengumuman'),
-        body: LoadView(
-          load: () => api.announcementDetail(id),
-          builder: (context, p) => ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (p.sn('image_url') != null)
-                AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: NetImage(p.sn('image_url'), radius: 12)),
-              const SizedBox(height: 16),
-              JenisChip(p.sn('tag')),
-              const SizedBox(height: 8),
-              Text(p.s('judul'),
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
-              Text(fmtDate(p.sn('tanggal')),
-                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              const SizedBox(height: 16),
-              HtmlBody(p.s('isi')),
-              if (p.sn('dokumen_url') != null) ...[
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  icon: const Icon(Icons.download),
-                  label: const Text('Unduh Lampiran'),
-                  onPressed: () => openUrl(context, p.sn('dokumen_url')),
-                ),
-              ],
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
+  Widget build(BuildContext context) => ArticleDetail(
+        kicker: 'Pengumuman',
+        load: () => api.announcementDetail(id),
+        footer: (context, p) => [
+          if (p.sn('dokumen_url') != null) ...[
+            const SectionHeader('Lampiran'),
+            DocFileTile(p.s('dokumen_url'), title: 'Lampiran Pengumuman'),
+          ],
+        ],
       );
 }
 
 // ---------------- INFORMASI HUKUM ----------------
 
-class InfoHukumScreen extends StatefulWidget {
-  const InfoHukumScreen({super.key});
+class InfoHukumTab extends StatefulWidget {
+  const InfoHukumTab({super.key});
 
   @override
-  State<InfoHukumScreen> createState() => _InfoHukumScreenState();
+  State<InfoHukumTab> createState() => _InfoHukumTabState();
 }
 
-class _InfoHukumScreenState extends State<InfoHukumScreen> {
+class _InfoHukumTabState extends State<InfoHukumTab> {
   List<Json> _types = [];
   String _type = '';
 
@@ -297,48 +276,44 @@ class _InfoHukumScreenState extends State<InfoHukumScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: const BrandAppBar('Informasi Hukum'),
-        body: Column(
-          children: [
-            if (_types.isNotEmpty)
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(children: [
-                  for (final t in _types)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text(t.s('singkatan')),
-                        selected: _type == t.s('id'),
-                        onSelected: (sel) =>
-                            setState(() => _type = sel ? t.s('id') : ''),
-                      ),
-                    ),
-                ]),
+  Widget build(BuildContext context) => Column(
+        children: [
+          if (_types.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
+              child: FilterPills(
+                labels: ['Semua', for (final t in _types) t.s('singkatan')],
+                selected: _type.isEmpty
+                    ? 0
+                    : _types.indexWhere((t) => t.s('id') == _type) + 1,
+                onSelected: (i) => setState(
+                    () => _type = i == 0 ? '' : _types[i - 1].s('id')),
               ),
-            Expanded(
-              child: PagedListView(
-                key: ValueKey(_type),
-                fetch: (page) => api.legalInfo(type: _type, page: page),
-                itemBuilder: (context, x) => Card(
-                  child: ListTile(
-                    title: Text(x.s('judul'),
-                        maxLines: 2, overflow: TextOverflow.ellipsis),
-                    subtitle: Text(
-                        '${x.s('jenis_singkatan')} · ${fmtDate(x.sn('tanggal'))}'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => InfoHukumDetailScreen(id: x.i('id')))),
-                  ),
+            ),
+          Expanded(
+            child: PagedListView(
+              key: ValueKey(_type),
+              empty: 'Belum ada informasi hukum pada kategori ini.',
+              fetch: (page) => api.legalInfo(type: _type, page: page),
+              itemBuilder: (context, x, __) => Card(
+                child: ListTile(
+                  leading: const IconSquircle(Icons.description_outlined,
+                      size: 40),
+                  title: Text(x.s('judul'),
+                      maxLines: 2, overflow: TextOverflow.ellipsis),
+                  subtitle: Text(
+                      '${x.s('jenis_singkatan')} · ${fmtDate(x.sn('tanggal'))}'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => InfoHukumDetailScreen(id: x.i('id')))),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       );
 }
 
@@ -362,12 +337,8 @@ class InfoHukumDetailScreen extends StatelessWidget {
               const SizedBox(height: 16),
               if (x.sn('isi') != null) HtmlBody(x.s('isi')),
               if (x.sn('dokumen_url') != null) ...[
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  icon: const Icon(Icons.download),
-                  label: const Text('Unduh Dokumen'),
-                  onPressed: () => openUrl(context, x.sn('dokumen_url')),
-                ),
+                const SectionHeader('Dokumen'),
+                DocFileTile(x.s('dokumen_url'), title: x.s('judul')),
               ],
               const SizedBox(height: 24),
             ],
@@ -394,7 +365,8 @@ class VideoCard extends StatelessWidget {
           child: Card(
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () => openUrl(context, v.sn('watch_url')),
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => VideoPlayerScreen(v))),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -405,7 +377,7 @@ class VideoCard extends StatelessWidget {
                   decoration: const BoxDecoration(
                       color: C.primary, shape: BoxShape.circle),
                   padding: const EdgeInsets.all(10),
-                  child: const Icon(Icons.play_arrow, color: Colors.white),
+                  child: const Icon(Icons.play_arrow, color: C.ink),
                 ),
               ]),
               Padding(
@@ -432,15 +404,65 @@ class VideoCard extends StatelessWidget {
   }
 }
 
-class VideoListScreen extends StatelessWidget {
-  const VideoListScreen({super.key});
+/// Pemutar YouTube di dalam aplikasi (iframe player, tanpa keluar app).
+class VideoPlayerScreen extends StatefulWidget {
+  const VideoPlayerScreen(this.v, {super.key});
+  final Json v;
+
+  @override
+  State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
+}
+
+class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
+  late final YoutubePlayerController _c = YoutubePlayerController.fromVideoId(
+    videoId: widget.v.s('youtube_id'),
+    autoPlay: true,
+    params: const YoutubePlayerParams(
+      showFullscreenButton: true,
+      strictRelatedVideos: true,
+    ),
+  );
+
+  @override
+  void dispose() {
+    _c.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: const BrandAppBar('Video'),
-        body: PagedListView(
-          fetch: (page) => api.videos(page: page),
-          itemBuilder: (context, v) => VideoCard(v),
+        body: ListView(
+          children: [
+            ColoredBox(
+              color: C.ink,
+              child: YoutubePlayer(controller: _c, aspectRatio: 16 / 9),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.v.s('judul'),
+                      style: const TextStyle(
+                          fontSize: 18,
+                          height: 1.3,
+                          fontWeight: FontWeight.w700)),
+                  const SizedBox(height: AppSpacing.sm),
+                  MetaPill(
+                      Icons.event_outlined, fmtDate(widget.v.sn('tanggal'))),
+                  const SizedBox(height: AppSpacing.lg),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.open_in_new, size: 18),
+                    label: const Text('Buka di YouTube'),
+                    onPressed: () =>
+                        openUrl(context, widget.v.sn('watch_url')),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       );
 }
+

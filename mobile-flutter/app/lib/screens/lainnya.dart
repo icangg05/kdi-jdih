@@ -5,6 +5,7 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'disability.dart';
 import 'puu.dart';
+import 'statistik.dart';
 import 'survey.dart';
 
 const _profilItems = [
@@ -15,55 +16,12 @@ const _profilItems = [
   (slug: 'sto', label: 'Struktur Organisasi'),
 ];
 
-const _langs = {'id': 'Indonesia', 'en': 'English', 'zh': '中文', 'ko': '한국어'};
-
 /// Tab "Lainnya": profil, layanan, pengaturan, tentang.
 class LainnyaScreen extends StatelessWidget {
   const LainnyaScreen({super.key});
 
   void _push(BuildContext context, Widget page) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-
-  Future<void> _pickLang(BuildContext context) => showDialog(
-        context: context,
-        builder: (c) => SimpleDialog(
-          title: const Text('Bahasa Konten'),
-          children: [
-            RadioGroup<String>(
-              groupValue: langNotifier.value,
-              onChanged: (v) {
-                langNotifier.value = v!;
-                Navigator.pop(c);
-              },
-              child: Column(children: [
-                for (final e in _langs.entries)
-                  RadioListTile<String>(title: Text(e.value), value: e.key),
-              ]),
-            ),
-          ],
-        ),
-      );
-
-  Future<void> _pickTheme(BuildContext context) => showDialog(
-        context: context,
-        builder: (c) => SimpleDialog(
-          title: const Text('Tema'),
-          children: [
-            RadioGroup<ThemeMode>(
-              groupValue: themeNotifier.value,
-              onChanged: (v) {
-                themeNotifier.value = v!;
-                Navigator.pop(c);
-              },
-              child: const Column(children: [
-                RadioListTile(title: Text('Ikuti Sistem'), value: ThemeMode.system),
-                RadioListTile(title: Text('Terang'), value: ThemeMode.light),
-                RadioListTile(title: Text('Gelap'), value: ThemeMode.dark),
-              ]),
-            ),
-          ],
-        ),
-      );
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -73,7 +31,7 @@ class LainnyaScreen extends StatelessWidget {
           children: [
             Card(
               child: ExpansionTile(
-                leading: const Icon(Icons.info_outline, color: C.accent),
+                leading: const Icon(Icons.info_outline, color: C.primaryInk),
                 title: const Text('Profil JDIH'),
                 shape: const Border(),
                 children: [
@@ -91,21 +49,28 @@ class LainnyaScreen extends StatelessWidget {
             Card(
               child: Column(children: [
                 ListTile(
-                  leading: const Icon(Icons.accessible, color: C.accent),
+                  leading: const Icon(Icons.accessible, color: C.primaryInk),
                   title: const Text('Layanan Disabilitas'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _push(context, const DisabilityListScreen()),
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.balance, color: C.accent),
+                  leading: const Icon(Icons.balance, color: C.primaryInk),
                   title: const Text('Pembentukan PUU'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _push(context, const PuuListScreen()),
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.star_outline, color: C.accent),
+                  leading: const Icon(Icons.bar_chart, color: C.primaryInk),
+                  title: const Text('Statistik Koleksi'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _push(context, const StatistikScreen()),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.star_outline, color: C.primaryInk),
                   title: const Text('Survei Kepuasan'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _push(context, const SurveyScreen()),
@@ -116,20 +81,14 @@ class LainnyaScreen extends StatelessWidget {
             Card(
               child: Column(children: [
                 ListTile(
-                  leading: const Icon(Icons.translate, color: C.accent),
+                  leading: const Icon(Icons.translate, color: C.primaryInk),
                   title: const Text('Bahasa Konten'),
-                  trailing: Text(_langs[langNotifier.value] ?? ''),
-                  onTap: () => _pickLang(context),
+                  trailing: Text(kLangs[langNotifier.value] ?? ''),
+                  onTap: () => pickLang(context),
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.dark_mode_outlined, color: C.accent),
-                  title: const Text('Tema'),
-                  onTap: () => _pickTheme(context),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.public, color: C.accent),
+                  leading: const Icon(Icons.public, color: C.primaryInk),
                   title: const Text('Tentang JDIH'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _push(context, const AboutScreen()),
@@ -193,7 +152,7 @@ class AboutScreen extends StatelessWidget {
                     for (final s in d.l('social'))
                       if (s.sn('url') != null)
                         ListTile(
-                          leading: const Icon(Icons.link, color: C.accent),
+                          leading: const Icon(Icons.link, color: C.primaryInk),
                           title: Text(s.s('label')),
                           onTap: () => openUrl(context, s.sn('url')),
                         ),

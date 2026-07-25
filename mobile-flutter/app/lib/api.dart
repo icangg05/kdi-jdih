@@ -9,6 +9,11 @@ const kBaseUrl =
     String.fromEnvironment('BASE_URL', defaultValue: 'http://10.0.2.2:6992');
 const kApiKey = String.fromEnvironment('MOBILE_API_KEY', defaultValue: '');
 
+/// Kunci untuk endpoint /api/jdih/* (integrasi JDIHN). Backend hanya
+/// memeriksa awalan "jdih_", bukan nilainya.
+const kJdihApiKey =
+    String.fromEnvironment('JDIH_API_KEY', defaultValue: 'jdih_mobile');
+
 /// Bahasa konten aktif (id/en/zh/ko); diubah dari tab Lainnya.
 final langNotifier = ValueNotifier<String>('id');
 
@@ -23,7 +28,12 @@ extension JsonX on Json {
     return (v == null || v.isEmpty || v == 'null') ? null : v;
   }
 
-  int i(String k) => (this[k] as num?)?.toInt() ?? 0;
+  /// Toleran: sebagian endpoint mengirim angka sebagai string.
+  int i(String k) {
+    final v = this[k];
+    if (v is num) return v.toInt();
+    return int.tryParse(v?.toString() ?? '') ?? 0;
+  }
 
   List<Json> l(String k) => ((this[k] as List?) ?? const [])
       .whereType<Map>()
@@ -122,6 +132,23 @@ class Api {
   // ---------- endpoints (kontrak: mobile-flutter/02-API-CONTRACT.md) ----------
 
   Future<Json> home() async => (await _get('/home')).m('data');
+
+  /// Statistik agregat dari API JDIHN (`/api/jdih/statistics`) — prefix dan
+  /// kunci berbeda dari /api/v1, jadi tidak lewat `_get`.
+  Future<Json> statistics() async {
+    final uri = Uri.parse('$kBaseUrl/api/jdih/statistics');
+    try {
+      final res = await http.get(uri, headers: {
+        'Accept': 'application/json',
+        'X-API-Key': kJdihApiKey,
+      }).timeout(const Duration(seconds: 30));
+      return _decode(res);
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      _fail(e);
+    }
+  }
   Future<Json> meta() async => (await _get('/meta')).m('data');
 
   Future<Paginated> documents(
