@@ -100,7 +100,7 @@ class InformasiHukumController extends Controller
 
     // Set data
     $data               = $request->except('_token', 'auto_translate');
-    $data['tanggal']    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
+    $data['tanggal']    = Carbon::parse($request->tanggal)->format('Y-m-d');
     $data['image']      = $image ?? '';
     $data['dokumen']    = $dokumen ?? '';
     $data['created_at'] = now();
@@ -149,7 +149,7 @@ class InformasiHukumController extends Controller
 
     // Set data
     $data               = $request->except('_token', 'auto_translate');
-    $data['tanggal']    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
+    $data['tanggal']    = Carbon::parse($request->tanggal)->format('Y-m-d');
     $data['image']      = $image ?? $dataUpdate->image;
     $data['dokumen']    = $dokumen ?? $dataUpdate->dokumen;
     $data['updated_at'] = now();

@@ -455,28 +455,11 @@
                                 ['label' => 'Internal Only', 'value' => 'internal'],
                             ]" />
 
-                        {{-- Tanggal Unggah --}}
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label" for="tanggal_unggah">
-                                Tanggal Unggah <span class="text-danger">*</span>
-                            </label>
-                            <div class="col-sm-10">
-                                <div class="input-group date">
-                                    <div class="input-group-addon">
-                                        <i class="fa fa-calendar"></i>
-                                    </div>
-                                    <input type="text"
-                                           class="form-control datepicker"
-                                           id="tanggal_unggah"
-                                           name="tanggal_unggah"
-                                           value="{{ old('tanggal_unggah', \Carbon\Carbon::now()->format('j/n/Y')) }}"
-                                           placeholder="Pilih tanggal unggah"
-                                           required
-                                           autocomplete="off">
-                                </div>
-                                <small class="text-muted">Pilih tanggal ketika dokumen diunggah</small>
-                            </div>
-                        </div>
+                        <x-backend.input.date
+                            label="Tanggal Unggah"
+                            key="tanggal_unggah"
+                            :required="true"
+                            :value="now()" />
 
                         {{-- Keterangan Tambahan --}}
                         <x-backend.input.textarea
@@ -523,24 +506,7 @@
             $(document).ready(function() {
                 console.log('Document ready - Inisialisasi form create');
                 
-                // Initialize datepicker untuk semua input dengan class datepicker.
-                // Krajee me-noConflict $.fn.datepicker menjadi $.fn.kvDatepicker,
-                // jadi harus pakai .kvDatepicker (bukan .datepicker yang sudah undefined).
-                $('.datepicker').kvDatepicker({
-                    format: 'dd/mm/yyyy',
-                    autoclose: true,
-                    todayHighlight: true,
-                    weekStart: 1,
-                    daysOfWeekHighlighted: "0,6",
-                    todayBtn: "linked",
-                    clearBtn: true,
-                    orientation: "auto"
-                });
-
-                // Pastikan icon kalender juga berfungsi
-                $('.input-group-addon').on('click', function() {
-                    $(this).closest('.input-group').find('input').kvDatepicker('show');
-                });
+                // Semua field tanggal ditangani komponen x-backend.input.date.
 
                 // Auto-fill tahun saat ini jika kosong
                 if (!$('#tahun').val()) {
@@ -589,21 +555,7 @@
                     }
                 });
 
-                // Konversi format tanggal sebelum submit (untuk semua datepicker)
                 $('form').submit(function(e) {
-                    // Konversi format tanggal dari dd/mm/yyyy ke yyyy-mm-dd untuk semua datepicker
-                    $('.datepicker').each(function() {
-                        const $input = $(this);
-                        if ($input.val()) {
-                            const parts = $input.val().split('/');
-                            if (parts.length === 3) {
-                                const formattedDate = parts[2] + '-' + parts[1] + '-' + parts[0];
-                                $input.val(formattedDate);
-                                console.log('Tanggal dikonversi:', $input.attr('id'), 'dari', $input.val(), 'ke', formattedDate);
-                            }
-                        }
-                    });
-
                     // Validasi form
                     let isValid = true;
                     let errorFields = [];
@@ -660,16 +612,6 @@
                         console.log('Form valid, submit akan diproses');
                     }
                 });
-
-                // Format tanggal untuk display
-                function formatDateForDisplay(dateString) {
-                    if (!dateString) return '';
-                    const date = new Date(dateString);
-                    const day = date.getDate().toString().padStart(2, '0');
-                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                    const year = date.getFullYear();
-                    return day + '/' + month + '/' + year;
-                }
 
                 // Handle URL Referensi validation
                 $('#url_referensi').on('blur', function() {

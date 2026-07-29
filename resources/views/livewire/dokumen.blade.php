@@ -108,6 +108,17 @@
 									{{ tt($v, 'judul') }}
 								</a>
 
+								<div class="mt-3 flex items-center gap-4 text-xs text-slate-500">
+									<span class="inline-flex items-center gap-1.5" title="{{ __('Dilihat') }}">
+										<i class="fa-regular fa-eye text-primary/70"></i>
+										{{ number_format($v->hit_see ?? 0, 0, ',', '.') }} {{ __('dilihat') }}
+									</span>
+									<span class="inline-flex items-center gap-1.5" title="{{ __('Diunduh') }}">
+										<i class="fa-solid fa-cloud-arrow-down text-accent/70"></i>
+										{{ number_format($v->hit_download ?? 0, 0, ',', '.') }} {{ __('diunduh') }}
+									</span>
+								</div>
+
 								<div class="mt-4 flex flex-wrap items-start gap-5">
 
 									{{-- QR Code --}}
@@ -131,8 +142,8 @@
 											@csrf
 											<input type="hidden" name="filePath"
 												value="{{ config('app.doc_directory') . $v->dokumen_lampiran }}">
+											<input type="hidden" name="docId" value="{{ $v->id }}">
 											<button @disabled(!checkFilePath(config('app.doc_directory'), $v->dokumen_lampiran))
-												onclick="window.location='{{ $v->dokumen_lampiran ? route('download_file', $v->dokumen_lampiran) : '#' }}'"
 												style="opacity: {{ !checkFilePath(config('app.doc_directory'), $v->dokumen_lampiran) ? '.4' : '1' }};"
 												class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded
 													bg-accent text-white text-xs font-semibold
@@ -147,8 +158,8 @@
 											@csrf
 											<input type="hidden" name="filePath"
 												value="{{ config('app.doc_directory') . $v->abstrak }}">
+											<input type="hidden" name="docId" value="{{ $v->id }}">
 											<button @disabled(!checkFilePath(config('app.doc_directory'), $v->abstrak))
-												onclick="window.location='{{ $v->abstrak ? route('download_file', $v->abstrak) : '#' }}'"
 												style="opacity: {{ !checkFilePath(config('app.doc_directory'), $v->abstrak) ? '.4' : '1' }};"
 												class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded
 													bg-primary text-white text-xs font-semibold

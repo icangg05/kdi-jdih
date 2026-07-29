@@ -244,9 +244,7 @@ class JdihKendariApiController extends Controller
             }
             
             // Update download counter
-            DB::table('document')
-                ->where('id', $id)
-                ->increment('hit_download', 1);
+            hitDocument($id, 'hit_download');
             
             // Cari file di tabel data_lampiran
             $fileInfo = $this->getDocumentFileInfo($id);

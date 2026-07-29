@@ -110,7 +110,7 @@ class ArtikelHukumController extends Controller
 		$data = $request->except('_token', 'auto_translate', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
 
 		$data['tipe_dokumen']      = 3;
-		$data['tanggal_penetapan'] = Carbon::createFromFormat('d-F-Y', $request->tanggal_penetapan)->format('Y-m-d');
+		$data['tanggal_penetapan'] = Carbon::parse($request->tanggal_penetapan)->format('Y-m-d');
 		$data['abstrak']           = $abstrak ?? null;
 		$data['created_at']        = Carbon::now();
 		$data['updated_at']        = Carbon::now();
@@ -172,7 +172,7 @@ class ArtikelHukumController extends Controller
 		$data = $request->except('_token', 'auto_translate', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
 
 		$data['abstrak']           = $abstrak ?? $dataUpdate->abstrak;
-		$data['tanggal_penetapan'] = Carbon::createFromFormat('d-F-Y', $request->tanggal_penetapan)->format('Y-m-d');
+		$data['tanggal_penetapan'] = Carbon::parse($request->tanggal_penetapan)->format('Y-m-d');
 		$data['gambar_sampul']     = $gambarSampul ?? $dataUpdate->gambar_sampul;
 		$data['updated_at']        = Carbon::now();
 

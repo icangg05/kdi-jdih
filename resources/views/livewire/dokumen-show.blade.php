@@ -113,6 +113,17 @@
 						<h1 class="mt-4 text-lg md:text-xl lg:text-2xl font-bold text-slate-900 leading-snug">
 							{{ tt($data, 'judul') }}
 						</h1>
+
+						<div class="mt-4 flex flex-wrap items-center gap-4 border-t border-slate-100 pt-4 text-xs text-slate-500">
+							<span class="inline-flex items-center gap-1.5">
+								<i class="fa-regular fa-eye text-primary/70"></i>
+								<span class="font-semibold text-slate-700">{{ number_format($data['hit_see'] ?? 0, 0, ',', '.') }}</span> {{ __('dilihat') }}
+							</span>
+							<span class="inline-flex items-center gap-1.5">
+								<i class="fa-solid fa-cloud-arrow-down text-accent/70"></i>
+								<span class="font-semibold text-slate-700">{{ number_format($data['hit_download'] ?? 0, 0, ',', '.') }}</span> {{ __('diunduh') }}
+							</span>
+						</div>
 					</div>
 
 					{{-- Detail Dokumen --}}
@@ -327,6 +338,7 @@
 									<form action="{{ route('download_file') }}" method="POST">
 										@csrf
 										<input type="hidden" name="filePath" value="{{ $lampiranPath }}">
+										<input type="hidden" name="docId" value="{{ $data['id'] }}">
 										<button type="submit"
 											class="flex w-full items-center justify-center gap-2 rounded bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40">
 											<i class="fa-solid fa-file-lines"></i> {{ __('Download') }}
@@ -342,6 +354,7 @@
 									<form action="{{ route('download_file') }}" method="POST">
 										@csrf
 										<input type="hidden" name="filePath" value="{{ $abstrakPath }}">
+										<input type="hidden" name="docId" value="{{ $data['id'] }}">
 										<button type="submit"
 											class="flex w-full items-center justify-center gap-2 rounded bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-primary/25 transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
 											<i class="fa-solid fa-file-lines"></i> {{ __('Abstrak') }}

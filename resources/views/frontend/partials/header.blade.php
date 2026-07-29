@@ -107,7 +107,7 @@
             </div>
 
             <!-- DESKTOP MENU - VERSI SIMPLE -->
-            <nav class="hidden min-[1360px]:flex items-center gap-5 min-[1500px]:gap-7 text-[12px] font-normal tracking-normal">
+            <nav class="hidden sm:flex items-center gap-5 min-[1500px]:gap-7 text-[12px] font-normal tracking-normal">
 
                 @foreach ($menus as $menu)
                     @php
@@ -196,7 +196,7 @@
             <button @click="mobileOpen = !mobileOpen"
                 aria-label="{{ __('Menu') }}"
                 :aria-expanded="mobileOpen.toString()"
-                class="min-[1360px]:hidden flex h-10 w-10 items-center justify-center rounded-lg text-white/90
+                class="sm:hidden flex h-10 w-10 items-center justify-center rounded-lg text-white/90
                     transition-colors duration-200 hover:bg-white/10
                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
                 <svg x-show="!mobileOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,7 +213,7 @@
 
     <!-- MOBILE MENU -->
     <div
-        class="min-[1360px]:hidden bg-darkbg/95 backdrop-blur-md border-t border-white/10"
+        class="sm:hidden bg-darkbg/95 backdrop-blur-md border-t border-white/10"
         x-show="mobileOpen"
         x-cloak
         x-transition>

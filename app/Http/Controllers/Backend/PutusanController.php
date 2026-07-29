@@ -124,7 +124,7 @@ class PutusanController extends Controller
 		$data = $request->except('_token', 'auto_translate', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
 
 		$data['tipe_dokumen']      = 4;
-		$data['tanggal_penetapan'] = Carbon::createFromFormat('d-F-Y', $request->tanggal_penetapan)->format('Y-m-d');
+		$data['tanggal_penetapan'] = Carbon::parse($request->tanggal_penetapan)->format('Y-m-d');
 		$data['abstrak']           = $abstrak ?? null;
 		$data['bentuk_peraturan']  = $request->jenis_peraturan;
 		$data['singkatan_jenis']   = $request->jenis_peraturan;
@@ -189,7 +189,7 @@ class PutusanController extends Controller
 		// Set data document
 		$data = $request->except('_token', 'auto_translate', 'judul_lampiran', 'deskripsi_lampiran', 'dokumen_lampiran');
 
-		$data['tanggal_penetapan'] = Carbon::createFromFormat('d-F-Y', $request->tanggal_penetapan)->format('Y-m-d');
+		$data['tanggal_penetapan'] = Carbon::parse($request->tanggal_penetapan)->format('Y-m-d');
 		$data['abstrak']           = $abstrak ?? $dataUpdate->abstrak;
 		$data['bentuk_peraturan']  = $request->jenis_peraturan;
 		$data['singkatan_jenis']   = $request->jenis_peraturan;

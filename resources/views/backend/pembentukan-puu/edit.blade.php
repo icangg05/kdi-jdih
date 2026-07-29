@@ -624,31 +624,11 @@
                             required
                             :value="$puu->pengunggah ?? ''" />
 
-                        {{-- Tanggal Unggah --}}
-                        <div class="form-group">
-                            <label for="tanggal_unggah" class="control-label col-md-3">
-                                Tanggal Unggah <span class="text-red">*</span>
-                            </label>
-                            <div class="col-md-9">
-                                <div class="input-group date">
-                                    <div class="input-group-addon">
-                                        <i class="fa fa-calendar"></i>
-                                    </div>
-                                    <input type="text"
-                                           class="form-control datepicker"
-                                           id="tanggal_unggah"
-                                           name="tanggal_unggah"
-                                           placeholder="Pilih tanggal unggah"
-                                           value="{{ old('tanggal_unggah', $puu->tanggal_unggah ?? date('d-m-Y')) }}"
-                                           required
-                                           autocomplete="off">
-                                </div>
-                                @error('tanggal_unggah')
-                                    <span class="help-block text-red">{{ $message }}</span>
-                                @enderror
-                                <small class="help-block">Klik ikon kalender untuk memilih tanggal</small>
-                            </div>
-                        </div>
+                        <x-backend.input.date
+                            label="Tanggal Unggah"
+                            key="tanggal_unggah"
+                            :required="true"
+                            :value="$puu->tanggal_unggah ?? now()" />
                     </div>
                 </div>
 
@@ -667,23 +647,8 @@
     </div>
 
     @push('script')
-    {{-- Locale ID lokal; plugin datepicker sudah dimuat layout untuk halaman create/edit --}}
-    <script src="{{ asset('assets') }}/backend/85185e69/js/locales/bootstrap-datepicker.id.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Inisialisasi datepicker untuk tanggal unggah.
-            // Krajee me-noConflict $.fn.datepicker menjadi $.fn.kvDatepicker.
-            $('.datepicker').kvDatepicker({
-                format: 'dd-mm-yyyy',
-                autoclose: true,
-                todayHighlight: true,
-                weekStart: 1,
-                daysOfWeekHighlighted: "0,6",
-                todayBtn: "linked",
-                clearBtn: true,
-                orientation: "auto"
-            });
-
             // Fungsi untuk menampilkan field sesuai jenis dokumen
             function showFieldByType() {
                 // Sembunyikan semua field group dan field-spesifik container
@@ -745,15 +710,6 @@
                 // Cek tanggal unggah
                 if (!$('#tanggal_unggah').val()) {
                     alert('Tanggal unggah harus dipilih');
-                    $('#tanggal_unggah').focus();
-                    isValid = false;
-                }
-
-                // Validasi format tanggal
-                const tanggalUnggah = $('#tanggal_unggah').val();
-                const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-                if (!dateRegex.test(tanggalUnggah)) {
-                    alert('Format tanggal unggah tidak valid. Gunakan format DD-MM-YYYY');
                     $('#tanggal_unggah').focus();
                     isValid = false;
                 }

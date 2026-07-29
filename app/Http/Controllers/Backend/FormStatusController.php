@@ -43,7 +43,7 @@ class FormStatusController extends Controller
 			'tanggal_perubahan' => ['required', 'date'],
 		]);
 
-		$tanggalPerubahan = Carbon::createFromFormat('d-F-Y', $request->tanggal_perubahan)->format('Y-m-d');
+		$tanggalPerubahan = Carbon::parse($request->tanggal_perubahan)->format('Y-m-d');
 		$createdBy = Auth::user()->id;
 
 		// Simpan status awal dokumen ini
@@ -152,7 +152,7 @@ class FormStatusController extends Controller
 			'tanggal_perubahan' => ['required', 'date'],
 		]);
 
-		$tanggalPerubahan = Carbon::createFromFormat('d-F-Y', $request->tanggal_perubahan)->format('Y-m-d');
+		$tanggalPerubahan = Carbon::parse($request->tanggal_perubahan)->format('Y-m-d');
 		$createdBy = Auth::user()->id;
 
 		// Query data status yang diupdate

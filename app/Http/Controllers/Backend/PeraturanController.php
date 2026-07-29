@@ -166,9 +166,9 @@ class PeraturanController extends Controller
     $data['tipe_dokumen']         = 1;
     $data['jenis_peraturan']      = $jenisPeraturan->name;
     $data['singkatan_jenis']      = $jenisPeraturan->singkatan;
-    $data['tanggal_penetapan']    = Carbon::createFromFormat('d-F-Y', $data['tanggal_penetapan'])->format('Y-m-d');
+    $data['tanggal_penetapan']    = Carbon::parse($data['tanggal_penetapan'])->format('Y-m-d');
     $data['tanggal_pengundangan'] = $data['tanggal_pengundangan']
-      ? Carbon::createFromFormat('d-F-Y', $data['tanggal_pengundangan'])->format('Y-m-d') : null;
+      ? Carbon::parse($data['tanggal_pengundangan'])->format('Y-m-d') : null;
     $data['abstrak']     = $abstrak ?? null;
     $data['created_at']  = now();
     $data['updated_at']  = now();
@@ -273,9 +273,9 @@ class PeraturanController extends Controller
     // Set data document
     $data['jenis_peraturan']      = $jenisPeraturan->name;
     $data['singkatan_jenis']      = $jenisPeraturan->singkatan;
-    $data['tanggal_penetapan']    = Carbon::createFromFormat('d-F-Y', $data['tanggal_penetapan'])->format('Y-m-d');
+    $data['tanggal_penetapan']    = Carbon::parse($data['tanggal_penetapan'])->format('Y-m-d');
     $data['tanggal_pengundangan'] = $data['tanggal_pengundangan']
-      ? Carbon::createFromFormat('d-F-Y', $data['tanggal_pengundangan'])->format('Y-m-d') : null;
+      ? Carbon::parse($data['tanggal_pengundangan'])->format('Y-m-d') : null;
     $data['abstrak']     = $abstrak ?? $peraturan->abstrak;
     $data['updated_at']  = Carbon::now();
     $data['_updated_by'] = Auth::user()->id;

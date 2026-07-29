@@ -152,6 +152,8 @@
 		<script src="{{ asset('assets') }}/backend/8fbf74d4/js/datecontrol.js"></script>
 		<script src="{{ asset('assets') }}/backend/85185e69/js/bootstrap-datepicker.js"></script>
 		<script src="{{ asset('assets') }}/backend/85185e69/js/datepicker-kv.js"></script>
+		{{-- Setelah datepicker-kv.js: file locale ini menulis ke $.fn.kvDatepicker.dates.id --}}
+		<script src="{{ asset('assets') }}/backend/85185e69/js/locales/bootstrap-datepicker.id.min.js"></script>
 		<script src="{{ asset('assets') }}/backend/6a009609/js/kv-summernote.js"></script>
 		<script src="//cdn.jsdelivr.net/npm/summernote@0.8.16/dist/summernote.js"></script>
 		<script src="{{ asset('assets') }}/backend/7fee4fda/js/fileinput.js"></script>

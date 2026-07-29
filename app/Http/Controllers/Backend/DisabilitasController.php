@@ -195,48 +195,9 @@ class DisabilitasController extends Controller
         $disabilitas = Disabilitas::findOrFail($id);
         $title = 'Edit Data Disabilitas';
         
-        \Log::info('=== EDIT METHOD ID: ' . $id . ' ===');
-        \Log::info('DB tanggal_unggah: ' . $disabilitas->tanggal_unggah);
-        \Log::info('DB tanggal_penetapan: ' . $disabilitas->tanggal_penetapan);
-        
-        // Format tanggal untuk tampilan di form edit - FIXED
-        if ($disabilitas->tanggal_unggah) {
-            try {
-                // Handle jika sudah Carbon object atau string
-                if ($disabilitas->tanggal_unggah instanceof \Carbon\Carbon) {
-                    $disabilitas->tanggal_unggah_formatted = $disabilitas->tanggal_unggah->format('j/n/Y');
-                } else {
-                    $date = Carbon::parse($disabilitas->tanggal_unggah);
-                    $disabilitas->tanggal_unggah_formatted = $date->format('j/n/Y');
-                }
-                \Log::info('Formatted tanggal_unggah: ' . $disabilitas->tanggal_unggah_formatted);
-            } catch (\Exception $e) {
-                $disabilitas->tanggal_unggah_formatted = Carbon::now()->format('j/n/Y');
-                \Log::error('Error formatting tanggal_unggah: ' . $e->getMessage());
-            }
-        } else {
-            $disabilitas->tanggal_unggah_formatted = Carbon::now()->format('j/n/Y');
-        }
-        
-        if ($disabilitas->tanggal_penetapan) {
-            try {
-                if ($disabilitas->tanggal_penetapan instanceof \Carbon\Carbon) {
-                    $disabilitas->tanggal_penetapan_formatted = $disabilitas->tanggal_penetapan->format('j/n/Y');
-                } else {
-                    $date = Carbon::parse($disabilitas->tanggal_penetapan);
-                    $disabilitas->tanggal_penetapan_formatted = $date->format('j/n/Y');
-                }
-                \Log::info('Formatted tanggal_penetapan: ' . $disabilitas->tanggal_penetapan_formatted);
-            } catch (\Exception $e) {
-                $disabilitas->tanggal_penetapan_formatted = null;
-                \Log::error('Error formatting tanggal_penetapan: ' . $e->getMessage());
-            }
-        }
-        
+        // Tanggal diformat oleh accessor *_formatted di model Disabilitas.
+
         // Decode JSON untuk checkbox
-        $disabilitas->jenis_disabilitas_array = json_decode($disabilitas->jenis_disabilitas, true) ?? [];
-        $disabilitas->sektor_kebijakan_array = json_decode($disabilitas->sektor_kebijakan, true) ?? [];
-        
         return view('backend.disabilitas.edit', compact('disabilitas', 'title'));
     }
 

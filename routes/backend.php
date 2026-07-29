@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Backend\ArtikelHukumController;
+use App\Http\Controllers\Backend\BackupDatabaseController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\InformasiHukumController;
 use App\Http\Controllers\Backend\PengumumanController;
@@ -45,6 +46,12 @@ Route::middleware('auth')->prefix('dashboard')->name('backend.')->group(function
   Route::resource('/video', VideoController::class);
   Route::resource('/survei', SurveyController::class)->only(['index', 'show', 'destroy']);
   Route::resource('/user', UserController::class);
+
+  // Backup database (Master Data)
+  Route::get('/backup-database', [BackupDatabaseController::class, 'index'])
+    ->name('backup-database');
+  Route::get('/backup-database/download', [BackupDatabaseController::class, 'download'])
+    ->name('backup-database.download');
 
 
   // Route form data teu

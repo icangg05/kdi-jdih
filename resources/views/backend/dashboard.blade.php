@@ -294,7 +294,7 @@
                         <thead><tr><th>Tahapan Pembentukan</th><th class="text-right">Jumlah</th></tr></thead>
                         <tbody>
                             @forelse($statistikPembentukan['by_tahapan'] ?? [] as $tahapan)
-                            <tr><td>{{ $tahapan->tahapan ?: 'Belum Ditentukan' }}</td><td class="text-right"><span class="pill">{{ $tahapan->total ?? 0 }}</span></td></tr>
+                            <tr><td style="text-transform:uppercase">{{ $tahapan->tahapan ?: 'Belum Ditentukan' }}</td><td class="text-right"><span class="pill">{{ $tahapan->total ?? 0 }}</span></td></tr>
                             @empty
                             <tr><td colspan="2" style="color:var(--soft)">Belum ada data.</td></tr>
                             @endforelse

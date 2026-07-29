@@ -50,6 +50,22 @@
 				<p class="text-xs lg:text-sm leading-relaxed text-white/55 max-w-[42ch]">
 					{{ __('JDIH Kota Kendari hadir untuk meningkatkan pelayanan kepada masyarakat atas kebutuhan dokumentasi dan informasi hukum secara lengkap, akurat, mudah, dan cepat.') }}
 				</p>
+
+				{{-- Aplikasi mobile: belum rilis, jadi kartu statis (bukan tautan) --}}
+				<div class="mt-6 flex items-center gap-3 rounded bg-white/5 ring-1 ring-white/10 px-4 py-3 max-w-[42ch]">
+					<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-primary/15 text-lg text-primary ring-1 ring-primary/25">
+						<i class="fa-brands fa-google-play"></i>
+					</span>
+					<div class="min-w-0">
+						<p class="text-xs text-white/50">{{ __('Aplikasi Mobile') }}</p>
+						<p class="text-sm font-semibold text-white">
+							{{ __('Segera Hadir') }}
+							<span class="ml-1.5 align-middle inline-flex items-center rounded bg-primary/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+								{{ __('Coming Soon') }}
+							</span>
+						</p>
+					</div>
+				</div>
 			</div>
 
 			<!-- Tautan -->
@@ -62,35 +78,23 @@
 					</span>
 				</h3>
 
-				<ul class="space-y-3 text-xs lg:text-sm">
-					<li>
-						<a target="_blank" href="https://www.kemenkumham.go.id/"
-							class="group inline-flex items-center gap-2 text-white/60 hover:text-primary transition-colors duration-200 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#292C36]">
-							<i class="fa-solid fa-arrow-right text-[9px] text-primary/70 -translate-x-1 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"></i>
-							<span>Portal Kemenkumham RI</span>
-						</a>
-					</li>
-					<li>
-						<a target="_blank" href="https://bphn.go.id/"
-							class="group inline-flex items-center gap-2 text-white/60 hover:text-primary transition-colors duration-200 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#292C36]">
-							<i class="fa-solid fa-arrow-right text-[9px] text-primary/70 -translate-x-1 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"></i>
-							<span>Portal BPHN</span>
-						</a>
-					</li>
-					<li>
-						<a target="_blank" href="https://jdihn.go.id/"
-							class="group inline-flex items-center gap-2 text-white/60 hover:text-primary transition-colors duration-200 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#292C36]">
-							<i class="fa-solid fa-arrow-right text-[9px] text-primary/70 -translate-x-1 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"></i>
-							<span>Portal JDIHN</span>
-						</a>
-					</li>
-					<li>
-						<a target="_blank" href="https://kendarikota.go.id/"
-							class="group inline-flex items-center gap-2 text-white/60 hover:text-primary transition-colors duration-200 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#292C36]">
-							<i class="fa-solid fa-arrow-right text-[9px] text-primary/70 -translate-x-1 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"></i>
-							<span>e-Government Kota Kendari</span>
-						</a>
-					</li>
+				<ul class="space-y-2 text-xs lg:text-sm">
+					@foreach ([
+					    ['Portal Kementerian Hukum RI', 'https://kemenkum.go.id/', 'fa-landmark'],
+					    ['Portal BPHN', 'https://bphn.go.id/', 'fa-scale-balanced'],
+					    ['Portal JDIHN', 'https://jdihn.go.id/', 'fa-sitemap'],
+					    ['e-Government Kota Kendari', 'https://kendarikota.go.id/', 'fa-city'],
+					] as [$label, $url, $icon])
+						<li>
+							<a target="_blank" href="{{ $url }}"
+								class="group flex items-center gap-3 rounded px-2 py-1.5 -mx-2 text-white/60 transition-all duration-200 hover:translate-x-1 hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
+								<span class="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-primary/10 text-[11px] text-primary ring-1 ring-primary/20 transition-colors duration-200 group-hover:bg-primary group-hover:text-white group-hover:ring-primary">
+									<i class="fa-solid {{ $icon }}"></i>
+								</span>
+								<span>{{ $label }}</span>
+							</a>
+						</li>
+					@endforeach
 				</ul>
 			</div>
 

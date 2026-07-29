@@ -92,7 +92,7 @@ class PengumumanController extends Controller
   {
     $request->validate($this->validate);
 
-    $tanggal = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
+    $tanggal = Carbon::parse($request->tanggal)->format('Y-m-d');
 
     // Upload image and document
     if ($request->file('image'))
@@ -142,7 +142,7 @@ class PengumumanController extends Controller
   {
     $request->validate($this->validate);
 
-    $tanggal    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
+    $tanggal    = Carbon::parse($request->tanggal)->format('Y-m-d');
     $pengumuman = Pengumuman::findOrFail((int) $id);
 
     // Upload image and document

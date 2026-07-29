@@ -12,48 +12,37 @@
                     <p class="ai-modal__subtitle">{{ __('Asisten dokumen hukum JDIH Kota Kendari') }}</p>
                 </div>
             </div>
-            <button type="button" id="closeAiModal" class="ai-modal__close" aria-label="{{ __('Tutup') }}">
-                <i class="fas fa-xmark"></i>
-            </button>
+            <div class="ai-modal__actions">
+                <button type="button" id="aiNewChat" class="ai-modal__close" title="{{ __('Percakapan baru') }}"
+                    aria-label="{{ __('Percakapan baru') }}">
+                    <i class="fas fa-rotate-left"></i>
+                </button>
+                <button type="button" id="closeAiModal" class="ai-modal__close" aria-label="{{ __('Tutup') }}">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
         </header>
 
-        <!-- ISI -->
+        <!-- PERCAKAPAN -->
         <div class="ai-modal__body">
-            <!-- pertanyaan pengguna -->
-            <div id="aiQueryText" class="ai-bubble"></div>
-
-            <!-- jawaban AI -->
-            <section id="aiExplanation" class="ai-answer">
-                <div class="ai-answer__head">
-                    <i class="fas fa-robot"></i>
-                    <span>{{ __('Jawaban AI') }}</span>
-                </div>
-                <div id="aiExplanationContent" class="ai-answer__body"></div>
-                <p class="ai-answer__note">
-                    <i class="fas fa-circle-info"></i>
-                    {{ __('Jawaban dibuat otomatis dari dokumen JDIH. Selalu periksa dokumen aslinya.') }}
-                </p>
-            </section>
-
-            <!-- dokumen -->
-            <div class="ai-docs__head">
-                <h3>{{ __('Dokumen Terkait') }}</h3>
-                <span id="aiResultsCount" class="ai-chip"></span>
-            </div>
-            <div id="aiResults" class="ai-docs"></div>
+            <div id="aiThread" class="ai-thread" role="log" aria-live="polite"></div>
         </div>
 
         <!-- INPUT LANJUTAN -->
         <footer class="ai-modal__footer">
             <div class="ai-ask">
-                <i class="fas fa-magnifying-glass ai-ask__icon"></i>
+                <i class="fas fa-comment-dots ai-ask__icon"></i>
                 <input type="text" id="aiModalInput" class="ai-ask__input" autocomplete="off"
-                    placeholder="{{ __('Tanyakan hal lain, mis. retribusi parkir...') }}">
+                    placeholder="{{ __('Tulis pertanyaan Anda...') }}">
                 <button type="button" id="aiModalSend" class="ai-ask__btn">
                     <i class="fas fa-paper-plane"></i>
-                    <span>{{ __('Tanya') }}</span>
+                    <span>{{ __('Kirim') }}</span>
                 </button>
             </div>
+            <p class="ai-modal__disclaimer">
+                <i class="fas fa-circle-info"></i>
+                {{ __('Jawaban dibuat otomatis oleh AI. Selalu periksa dokumen aslinya.') }}
+            </p>
         </footer>
     </div>
 </div>
@@ -160,6 +149,12 @@
         margin-top: 2px;
     }
 
+    .ai-modal__actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     .ai-modal__close {
         flex: none;
         width: 36px;
@@ -182,6 +177,45 @@
         background: #f8fafc;
         scrollbar-width: thin;
     }
+
+    /* THREAD PERCAKAPAN */
+    .ai-thread {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .ai-msg--ai .ai-answer {
+        margin-top: 0;
+    }
+
+    /* Titik-titik "sedang mengetik" */
+    .ai-typing {
+        display: inline-flex;
+        gap: 4px;
+        padding: 2px 0;
+    }
+
+    .ai-typing i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--color-primary, #ff891e);
+        animation: aiBlink 1.2s infinite ease-in-out;
+    }
+
+    .ai-typing i:nth-child(2) { animation-delay: .18s }
+    .ai-typing i:nth-child(3) { animation-delay: .36s }
+
+    @keyframes aiBlink {
+        0%, 80%, 100% { opacity: .25; transform: translateY(0) }
+        40% { opacity: 1; transform: translateY(-3px) }
+    }
+
+    /* Markdown ringan di jawaban AI */
+    .ai-answer__body strong { font-weight: 700; color: #0f172a }
+    .ai-answer__body ul { margin: 6px 0 0; padding-left: 18px; list-style: disc }
+    .ai-answer__body li { margin-top: 3px }
 
     .ai-bubble {
         display: inline-flex;
@@ -231,22 +265,11 @@
         white-space: pre-line;
     }
 
-    .ai-answer__note {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 12px;
-        padding-top: 10px;
-        border-top: 1px dashed #e2e8f0;
-        font-size: .7rem;
-        color: #94a3b8;
-    }
-
     .ai-docs__head {
         display: flex;
         align-items: center;
         gap: 10px;
-        margin: 22px 0 12px;
+        margin: 14px 0 10px;
     }
 
     .ai-docs__head h3 {
@@ -413,6 +436,15 @@
         border-top: 1px solid #e2e8f0;
     }
 
+    .ai-modal__disclaimer {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        font-size: .68rem;
+        color: #94a3b8;
+    }
+
     .ai-ask {
         display: flex;
         align-items: center;
@@ -478,7 +510,7 @@
     .dark .ai-state,
     .dark .ai-modal__footer { background: #111c33; border-color: #1e293b }
     .dark .ai-answer__body { color: #cbd5e1 }
-    .dark .ai-answer__note { border-color: #1e293b }
+    .dark .ai-answer__body strong { color: #f1f5f9 }
     .dark .ai-docs__head h3,
     .dark .ai-doc__title,
     .dark .ai-ask__input { color: #e2e8f0 }

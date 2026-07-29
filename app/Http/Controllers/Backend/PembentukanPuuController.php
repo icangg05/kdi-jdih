@@ -88,7 +88,6 @@ class PembentukanPuuController extends Controller
         
         // Set metadata
         $validated['pengunggah'] = $request->pengunggah ?? (auth()->user()->username ?? 'admin');
-        $validated['tanggal_unggah'] = $request->tanggal_unggah ?? Carbon::now()->format('Y-m-d');
         
         // Set default nilai untuk field spesifik berdasarkan jenis dokumen
         $validated = $this->setDefaultFieldValues($request, $validated);
@@ -152,15 +151,11 @@ class PembentukanPuuController extends Controller
         // Handle file uploads
         $validated = $this->handleFileUploads($request, $validated, $puu);
         
-        // Update pengunggah dan tanggal unggah dari form
+        // Update pengunggah dari form (tanggal_unggah sudah dinormalkan di validateRequest)
         if ($request->has('pengunggah')) {
             $validated['pengunggah'] = $request->pengunggah;
         }
-        
-        if ($request->has('tanggal_unggah')) {
-            $validated['tanggal_unggah'] = $request->tanggal_unggah;
-        }
-        
+
         // Set default nilai untuk field spesifik berdasarkan jenis dokumen
         $validated = $this->setDefaultFieldValues($request, $validated);
         

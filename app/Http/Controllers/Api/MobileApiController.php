@@ -302,7 +302,7 @@ class MobileApiController extends Controller
             return response()->json(['message' => 'Dokumen tidak ditemukan'], 404);
         }
 
-        DB::table('document')->where('id', $id)->increment('hit_see');
+        hitDocument($id, 'hit_see');
 
         $subjek = DB::table('data_subyek')->where('id_dokumen', $id)->pluck('subyek')->filter()->values();
 
@@ -371,7 +371,7 @@ class MobileApiController extends Controller
             return response()->json(['message' => 'Dokumen tidak ditemukan'], 404);
         }
 
-        DB::table('document')->where('id', $id)->increment('hit_download');
+        hitDocument($id, 'hit_download');
 
         $files = DB::table('data_lampiran')->where('id_dokumen', $id)->orderBy('urutan')->get()
             ->map(fn ($l) => ['judul' => $l->judul_lampiran ?: 'Dokumen', 'url' => $this->docUrl($l->dokumen_lampiran)])

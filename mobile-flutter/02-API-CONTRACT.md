@@ -243,7 +243,15 @@ Untuk mengisi dropdown filter.
 ```
 
 ### 2.7 `POST /api/v1/ai-search`
-**Body:** `{ "query": "retribusi sampah", "lang": "id" }` (min 3 char). Sejajar dengan `AiSearchController` web.
+**Body:** `{ "query": "retribusi sampah", "lang": "id" }` (1–500 char). Sejajar dengan `AiSearchController` web.
+
+Mode percakapan (opsional): kirim `history` agar pertanyaan susulan nyambung — server tidak menyimpan state.
+```json
+{ "query": "kalau tarifnya berapa?",
+  "history": [{ "role": "user", "text": "retribusi sampah" }, { "role": "ai", "text": "..." }] }
+```
+Maks 20 item (server memakai 8 terakhir), `role` = `user` | `ai`. Query < 3 huruf tidak memicu pencarian
+dokumen — `documents` akan kosong dan AI menjawab dari konteks percakapan.
 ```json
 {
   "query": "retribusi sampah",
@@ -579,7 +587,7 @@ class MobileApiController extends Controller
         $d = DB::table('document')->where('id', $id)->first();
         if (!$d) return response()->json(['message' => 'Dokumen tidak ditemukan'], 404);
 
-        DB::table('document')->where('id', $id)->increment('hit_see');
+        hitDocument($id, 'hit_see'); // COALESCE — kolomnya nullable, increment() gagal di NULL
 
         $subjek = DB::table('data_subyek')->where('id_dokumen', $id)->pluck('subyek');
         $pengarang = DB::table('data_pengarang')->where('data_pengarang.id_dokumen', $id)
@@ -638,7 +646,7 @@ class MobileApiController extends Controller
     {
         $d = DB::table('document')->where('id', $id)->first();
         if (!$d) return response()->json(['message' => 'Dokumen tidak ditemukan'], 404);
-        DB::table('document')->where('id', $id)->increment('hit_download');
+        hitDocument($id, 'hit_download'); // COALESCE — lihat catatan di documentShow
         $files = DB::table('data_lampiran')->where('id_dokumen', $id)->get()
             ->map(fn($l) => ['judul' => $l->judul_lampiran ?: 'Dokumen', 'url' => $this->docUrl($l->dokumen_lampiran)])
             ->filter(fn($l) => $l['url'])->values();

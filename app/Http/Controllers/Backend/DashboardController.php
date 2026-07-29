@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Disabilitas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -149,10 +150,7 @@ class DashboardController extends Controller
             // H. Statistik Disabilitas
             $statistikDisabilitas = [
                 'total' => $countDisabilitas,
-                'by_jenis_disabilitas' => safeSelect('disabilitas',
-                    [DB::raw('jenis_disabilitas as jenis'), DB::raw('COUNT(*) as total')],
-                    'jenis_disabilitas'
-                ),
+                'by_jenis_disabilitas' => $this->hitungJenisDisabilitas(),
                 'by_status' => safeSelect('disabilitas',
                     [DB::raw('status_dokumen as status'), DB::raw('COUNT(*) as total')],
                     'status_dokumen'
@@ -301,6 +299,31 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             // Fallback minimal
             return view('backend.dashboard', $this->getFallbackData());
+        }
+    }
+
+    /**
+     * Hitung dokumen per jenis disabilitas.
+     *
+     * Kolom jenis_disabilitas menyimpan array JSON, jadi GROUP BY kolomnya menghasilkan
+     * satu baris per kombinasi (dan menampilkan JSON mentah). Yang dimaksud tabel ini
+     * adalah jumlah per jenis, jadi dihitung setelah di-decode: satu dokumen dengan tiga
+     * jenis masuk ke tiga hitungan.
+     */
+    private function hitungJenisDisabilitas()
+    {
+        try {
+            return Disabilitas::select('jenis_disabilitas')->get()
+                ->flatMap->jenis_disabilitas_array
+                ->countBy()
+                ->map(fn($total, $jenis) => (object) [
+                    'jenis' => Disabilitas::JENIS_LABEL[$jenis] ?? ucfirst($jenis),
+                    'total' => $total,
+                ])
+                ->sortByDesc('total')
+                ->values();
+        } catch (\Throwable $e) {
+            return collect();
         }
     }
 
@@ -558,7 +581,14 @@ class DashboardController extends Controller
     public function downloadFile(Request $request)
     {
         try {
-            return Storage::download($request->filePath);
+            $file = Storage::download($request->filePath);
+
+            // docId dikirim dari halaman dokumen publik; hitung unduhan hanya bila filenya ada
+            if ($request->docId) {
+                hitDocument($request->docId, 'hit_download');
+            }
+
+            return $file;
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'File tidak ditemukan: ' . $e->getMessage()

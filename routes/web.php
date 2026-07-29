@@ -37,7 +37,9 @@ Route::post('/survei-kepuasan', [SurveyController::class, 'store'])->name('surve
 Route::get('/survei-terimakasih', [SurveyController::class, 'thankyou'])->name('survey.thankyou');
 
 // Route untuk AI Search
-Route::post('/ai-search', [AiSearchController::class, 'search'])->name('ai.search');
+Route::post('/ai-search', [AiSearchController::class, 'search'])
+    ->middleware('throttle:20,1') // tiap giliran chat memanggil Gemini — batasi per IP
+    ->name('ai.search');
 
 // ========== FRONTEND ROUTES ==========
 // Root tanpa prefix -> arahkan ke locale aktif (session) / default

@@ -670,7 +670,6 @@
             if (action === 'reset') {
                 html.style.removeProperty('font-size');
                 localStorage.removeItem('fontSize');
-                this.showToast('Ukuran teks dikembalikan ke normal', 'info');
                 return;
             }
 
@@ -682,15 +681,12 @@
 
             html.style.fontSize = `${currentSize}px`;
             localStorage.setItem('fontSize', `${currentSize}px`);
-
-            this.showToast(`Ukuran font diubah menjadi ${currentSize}px`, 'info');
         },
         
         toggleHighContrast: function() {
             const aktif = !document.body.classList.contains('high-contrast');
             this.applyHighContrast(aktif);
             localStorage.setItem('highContrast', aktif ? 'true' : 'false');
-            this.showToast(aktif ? 'Mode kontras tinggi diaktifkan' : 'Mode kontras tinggi dimatikan');
         },
 
         applyHighContrast: function(aktif) {
@@ -702,7 +698,6 @@
             const gelap = !document.documentElement.classList.contains('dark');
             this.applyDarkMode(gelap);
             localStorage.setItem('theme', gelap ? 'dark' : 'light');
-            this.showToast(gelap ? 'Mode gelap diaktifkan' : 'Mode terang diaktifkan');
         },
 
         applyDarkMode: function(gelap) {
@@ -722,56 +717,6 @@
                     el.style.display = mql.matches ? 'none' : '';
                 });
             });
-        },
-        
-        // ========== UTILITY FUNCTIONS ==========
-        // Container toast dibuat sekali; posisi bawah-tengah agar tidak menabrak
-        // tombol back-to-top (kanan bawah) & panel aksesibilitas (kiri bawah).
-        getToastContainer: function() {
-            let box = document.getElementById('toast-container');
-            if (!box) {
-                box = document.createElement('div');
-                box.id = 'toast-container';
-                box.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-60 flex w-[calc(100vw-2rem)] max-w-sm flex-col-reverse items-center gap-2 no-print pointer-events-none';
-                box.setAttribute('role', 'status');
-                box.setAttribute('aria-live', 'polite');
-                document.body.appendChild(box);
-            }
-            return box;
-        },
-
-        showToast: function(message, type = 'success') {
-            const gaya = {
-                success: { ikon: 'fa-check',                chip: 'bg-primary/15 text-primary' },
-                info:    { ikon: 'fa-circle-info',          chip: 'bg-accent/20 text-white' },
-                error:   { ikon: 'fa-triangle-exclamation', chip: 'bg-red-500/20 text-red-300' },
-            }[type] ?? { ikon: 'fa-circle-info', chip: 'bg-white/10 text-white/80' };
-
-            const toast = document.createElement('div');
-            toast.className = 'pointer-events-auto flex w-full items-center gap-3 rounded bg-darkbg/90 py-2.5 pl-2.5 pr-3 text-sm text-white shadow-xl ring-1 ring-white/10 backdrop-blur-lg transition-all duration-300 ease-out translate-y-2 opacity-0';
-            toast.innerHTML = `
-                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded ${gaya.chip}">
-                    <i class="fas ${gaya.ikon} text-xs"></i>
-                </span>
-                <span class="flex-1 leading-snug"></span>
-                <button type="button" aria-label="Tutup notifikasi"
-                    class="-mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded text-white/50 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
-                    <i class="fas fa-times text-xs"></i>
-                </button>`;
-            // textContent, bukan innerHTML — pesan bisa berisi karakter dari input
-            toast.querySelector('span.flex-1').textContent = message;
-
-            const tutup = () => {
-                if (!toast.isConnected) return;
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            };
-
-            toast.querySelector('button').addEventListener('click', tutup);
-            this.getToastContainer().appendChild(toast);
-
-            requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
-            setTimeout(tutup, 3000);
         },
         
         // ========== GLOBAL EXPOSE FUNCTIONS ==========

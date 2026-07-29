@@ -15,6 +15,8 @@ class DokumenShow extends Component
   {
     $this->kategori = $kategori;
     $this->id       = Hashids::decode($id)[0] ?? abort(404);
+
+    hitDocument($this->id, 'hit_see');
   }
 
 

@@ -142,30 +142,10 @@
                             placeholder="Contoh: Jakarta"
                             :value="old('tempat_penetapan', $disabilitas->tempat_penetapan ?? '')" />
 
-                        {{-- TANGGAL PENETAPAN - PERBAIKAN: Ganti dengan datepicker --}}
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label" for="tanggal_penetapan">
-                                Tanggal Penetapan
-                            </label>
-                            <div class="col-sm-10">
-                                <div class="input-group date">
-                                    <div class="input-group-addon">
-                                        <i class="fa fa-calendar"></i>
-                                    </div>
-                                    <input type="text"
-                                           class="form-control datepicker"
-                                           id="tanggal_penetapan"
-                                           name="tanggal_penetapan"
-                                           value="{{ old('tanggal_penetapan', $disabilitas->tanggal_penetapan_formatted ?? '') }}"
-                                           placeholder="Tanggal ditetapkan (d/m/yyyy)"
-                                           autocomplete="off">
-                                </div>
-                                <small class="text-muted">Format: d/m/yyyy (contoh: 13/2/2020)</small>
-                                @error('tanggal_penetapan')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+                        <x-backend.input.date
+                            label="Tanggal Penetapan"
+                            key="tanggal_penetapan"
+                            :value="$disabilitas->tanggal_penetapan ?? ''" />
 
                         {{-- Lembaga Penetap --}}
                         <x-backend.input.text
@@ -212,10 +192,7 @@
                             <div class="col-sm-10">
                                 <div class="checkbox">
                                     @php
-                                        $jenisDisabilitas = old('jenis_disabilitas', 
-                                            isset($disabilitas->jenis_disabilitas) ? 
-                                                json_decode($disabilitas->jenis_disabilitas, true) : []
-                                        );
+                                        $jenisDisabilitas = old('jenis_disabilitas', $disabilitas->jenis_disabilitas_array);
                                     @endphp
                                     <label>
                                         <input type="checkbox" name="jenis_disabilitas[]" value="fisik" 
@@ -488,32 +465,11 @@
                                 ['label' => 'Internal Only', 'value' => 'internal'],
                             ]" />
 
-                        {{-- TANGGAL UNGGAH - TAMBAH DEBUGGING --}}
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label" for="tanggal_unggah">
-                                Tanggal Unggah <span class="text-danger">*</span>
-                            </label>
-                            <div class="col-sm-10">
-                                <div class="input-group date">
-                                    <div class="input-group-addon">
-                                        <i class="fa fa-calendar"></i>
-                                    </div>
-                                    <input type="text"
-                                           class="form-control datepicker"
-                                           id="tanggal_unggah"
-                                           name="tanggal_unggah"
-                                           value="{{ old('tanggal_unggah', $disabilitas->tanggal_unggah_formatted ?? \Carbon\Carbon::now()->format('j/n/Y')) }}"
-                                           placeholder="Pilih tanggal unggah"
-                                           required
-                                           autocomplete="off">
-                                </div>
-                                
-                                
-                                @error('tanggal_unggah')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+                        <x-backend.input.date
+                            label="Tanggal Unggah"
+                            key="tanggal_unggah"
+                            :required="true"
+                            :value="$disabilitas->tanggal_unggah ?? now()" />
 
                         {{-- Keterangan Tambahan --}}
                         <x-backend.input.textarea
@@ -564,23 +520,7 @@
             $(document).ready(function() {
                 console.log('Document ready - Inisialisasi form edit');
                 
-                // Initialize datepicker dengan format d/m/Y.
-                // Krajee me-noConflict $.fn.datepicker menjadi $.fn.kvDatepicker.
-                $('.datepicker').kvDatepicker({
-                    format: 'd/m/yyyy', // format: 13/2/2020
-                    autoclose: true,
-                    todayHighlight: true,
-                    todayBtn: "linked",
-                    clearBtn: true,
-                    orientation: "auto",
-                    weekStart: 1,
-                    daysOfWeekHighlighted: "0,6"
-                });
-
-                // Pastikan icon kalender juga berfungsi
-                $('.input-group-addon').on('click', function() {
-                    $(this).closest('.input-group').find('input').kvDatepicker('show');
-                });
+                // Semua field tanggal ditangani komponen x-backend.input.date.
 
                 // Format kata kunci
                 $('#kata_kunci').on('blur', function() {
@@ -607,46 +547,8 @@
                     }
                 });
                 
-                // Validasi form sebelum submit
-                $('form').submit(function(e) {
-                    console.log('Form edit disubmit');
-                    
-                    // Debug: log nilai tanggal
-                    console.log('Tanggal unggah:', $('#tanggal_unggah').val());
-                    console.log('Tanggal penetapan:', $('#tanggal_penetapan').val());
-                    
-                    // Validasi format tanggal
-                    const tanggalUnggah = $('#tanggal_unggah').val();
-                    const tanggalPenetapan = $('#tanggal_penetapan').val();
-                    
-                    // Validasi format tanggal unggah (d/m/Y)
-                    if (tanggalUnggah) {
-                        const dateRegex = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
-                        if (!dateRegex.test(tanggalUnggah)) {
-                            e.preventDefault();
-                            alert('Format tanggal unggah harus d/m/yyyy (contoh: 13/2/2020)!');
-                            $('#tanggal_unggah').focus();
-                            return false;
-                        }
-                    }
-                    
-                    // Validasi format tanggal penetapan jika ada
-                    if (tanggalPenetapan) {
-                        const dateRegex = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
-                        if (!dateRegex.test(tanggalPenetapan)) {
-                            e.preventDefault();
-                            alert('Format tanggal penetapan harus d/m/yyyy (contoh: 13/2/2020)!');
-                            $('#tanggal_penetapan').focus();
-                            return false;
-                        }
-                    }
-                    
-                    return true;
-                });
-                
-                // Debug: log nilai awal
-                console.log('Tanggal unggah awal:', $('#tanggal_unggah').val());
-                console.log('Tanggal penetapan awal:', $('#tanggal_penetapan').val());
+                // Validasi format tanggal tidak perlu lagi: komponen x-backend.input.date
+                // selalu mengirim Y-m-d, dan controller memvalidasinya.
             });
         </script>
     @endpush

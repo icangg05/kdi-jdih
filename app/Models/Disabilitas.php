@@ -57,30 +57,43 @@ class Disabilitas extends Model
         'deleted_at' => 'datetime',
     ];
 
+    public const JENIS_LABEL = [
+        'fisik' => 'Disabilitas Fisik',
+        'intelektual' => 'Disabilitas Intelektual',
+        'mental' => 'Disabilitas Mental',
+        'sensorik' => 'Disabilitas Sensorik',
+        'ganda' => 'Disabilitas Ganda',
+        'lainnya' => 'Lainnya',
+    ];
+
+    /**
+     * Nilai jenis_disabilitas sebagai array biasa.
+     *
+     * Sebagian baris lama tersimpan ter-encode ganda (controller json_encode() padahal
+     * model sudah cast 'array'), jadi hasil cast bisa berupa string JSON, bukan array.
+     */
+    public function getJenisDisabilitasArrayAttribute(): array
+    {
+        $value = $this->jenis_disabilitas;
+
+        if (is_string($value)) {
+            $value = json_decode($value, true);
+        }
+
+        return is_array($value) ? $value : [];
+    }
+
     // Accessor untuk format tampilan
     public function getJenisDisabilitasFormattedAttribute()
     {
-        if (!$this->jenis_disabilitas) return '-';
-        
-        $labels = [
-            'fisik' => 'Disabilitas Fisik',
-            'intelektual' => 'Disabilitas Intelektual',
-            'mental' => 'Disabilitas Mental',
-            'sensorik' => 'Disabilitas Sensorik',
-            'ganda' => 'Disabilitas Ganda',
-            'lainnya' => 'Lainnya',
-        ];
-        
-        $jenisArray = is_array($this->jenis_disabilitas) ? $this->jenis_disabilitas : json_decode($this->jenis_disabilitas, true);
-        
-        if (!is_array($jenisArray) || empty($jenisArray)) {
+        $jenisArray = $this->jenis_disabilitas_array;
+
+        if (empty($jenisArray)) {
             return '-';
         }
-        
+
         return collect($jenisArray)
-            ->map(function($item) use ($labels) {
-                return $labels[$item] ?? ucfirst($item);
-            })
+            ->map(fn($item) => self::JENIS_LABEL[$item] ?? ucfirst($item))
             ->implode(', ');
     }
 

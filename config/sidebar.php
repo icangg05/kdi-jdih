@@ -120,6 +120,12 @@ return [
     'route'    => 'backend.dashboard',
     'isActive' => 'backend/*',
     'subMenu'  => [
+      [
+        'icon'     => 'fa fa-download',
+        'label'    => 'Backup Database',
+        'route'    => 'backend.backup-database',
+        'isActive' => 'dashboard/backup-database*',
+      ],
       // [
       //   'icon'     => 'fa fa-circle-o',
       //   'label'    => 'GMD',

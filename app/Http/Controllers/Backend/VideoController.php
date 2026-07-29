@@ -91,7 +91,7 @@ class VideoController extends Controller
 
     // Set data
     $data               = $request->except('_token');
-    $data['tanggal']    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
+    $data['tanggal']    = Carbon::parse($request->tanggal)->format('Y-m-d');
     $data['created_at'] = now();
     $data['created_by'] = Auth::user()->id;
     $data['updated_at'] = now();
@@ -128,7 +128,7 @@ class VideoController extends Controller
 
     // Set data
     $data               = $request->except('_token');
-    $data['tanggal']    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
+    $data['tanggal']    = Carbon::parse($request->tanggal)->format('Y-m-d');
     $data['updated_at'] = now();
     $data['updated_by'] = Auth::user()->id;
 

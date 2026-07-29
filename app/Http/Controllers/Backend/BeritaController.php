@@ -98,7 +98,7 @@ class BeritaController extends Controller
 
     // Set data
     $data               = $request->except('_token', 'auto_translate');
-    $data['tanggal']    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
+    $data['tanggal']    = Carbon::parse($request->tanggal)->format('Y-m-d');
     $data['image']      = $image ?? null;
     $data['created_at'] = now();
     $data['created_by'] = Auth::user()->id;
@@ -143,7 +143,7 @@ class BeritaController extends Controller
 
     // Set data
     $data               = $request->except('_token', 'auto_translate');
-    $data['tanggal']    = Carbon::createFromFormat('d-F-Y', $request->tanggal)->format('Y-m-d');
+    $data['tanggal']    = Carbon::parse($request->tanggal)->format('Y-m-d');
     $data['image']      = $image ?? $dataUpdate->image;
     $data['updated_at'] = now();
     $data['updated_by'] = Auth::user()->id;

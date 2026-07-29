@@ -16,15 +16,23 @@ class AiSearchController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->validate([
-            'query' => 'required|string|min:3|max:255',
-        ])['query'];
+        $data = $request->validate([
+            'query'          => 'required|string|min:1|max:500',
+            // Riwayat percakapan dikirim ulang oleh klien tiap giliran (tanpa state di server)
+            'history'        => 'sometimes|array|max:20',
+            'history.*.role' => 'required_with:history|in:user,ai',
+            'history.*.text' => 'required_with:history|string|max:4000',
+        ]);
 
-        $documents = $this->searchDocuments($query);
+        $query = $data['query'];
+
+        // Pertanyaan susulan yang sangat pendek ("kenapa?") tidak layak dijadikan
+        // kata kunci pencarian — LIKE-nya akan mencocokkan hampir semua dokumen.
+        $documents = mb_strlen($query) >= 3 ? $this->searchDocuments($query) : collect();
 
         return response()->json([
             'query'       => $query,
-            'explanation' => $this->explain($query, $documents),
+            'explanation' => $this->explain($query, $documents, $data['history'] ?? []),
             'documents'   => $documents,
             'total'       => $documents->count(),
         ]);
@@ -83,9 +91,10 @@ class AiSearchController extends Controller
     }
 
     /**
-     * Jawaban AI. Gagal / tidak dikonfigurasi -> ringkasan buatan sendiri.
+     * Jawaban AI, dengan riwayat percakapan agar pertanyaan susulan nyambung.
+     * Gagal / tidak dikonfigurasi -> ringkasan buatan sendiri.
      */
-    private function explain(string $query, $documents): string
+    private function explain(string $query, $documents, array $history = []): string
     {
         $apiKey = config('services.google_gemini.api_key');
 
@@ -97,19 +106,38 @@ class AiSearchController extends Controller
             ->map(fn ($d) => "- {$d['title']} (" . trim("{$d['type']} {$d['year']}") . ", status: " . ($d['status'] ?: 'tidak tercatat') . ')')
             ->implode("\n") ?: '(tidak ada dokumen yang cocok di database)';
 
-        $prompt = "Anda asisten JDIH (Jaringan Dokumentasi dan Informasi Hukum) Kota Kendari.\n"
-            . "Pertanyaan pengguna: \"{$query}\"\n\n"
-            . "Dokumen dari database JDIH Kota Kendari:\n{$konteks}\n\n"
-            . "Jawab dalam Bahasa Indonesia yang jelas untuk masyarakat umum, maksimal 4 kalimat. "
-            . "Rujuk dokumen di atas bila relevan. Jangan mengarang nomor atau isi peraturan yang tidak tercantum. "
-            . "Bila tidak ada dokumen yang cocok, katakan demikian dan sarankan kata kunci lain. Tulis teks biasa tanpa markdown.";
+        $aturan = "Anda asisten AI JDIH (Jaringan Dokumentasi dan Informasi Hukum) Kota Kendari. "
+            . "Anda mengobrol dengan pengguna, jadi jawab dengan ramah dan mengalir, "
+            . "serta ingat isi percakapan sebelumnya.\n"
+            . "Aturan:\n"
+            . "- Jawab memakai bahasa yang dipakai pengguna bertanya.\n"
+            . "- Bila pertanyaannya soal peraturan Kota Kendari, rujuk dokumen di bawah dan sebut judulnya.\n"
+            . "- Pertanyaan umum (konsep hukum, tata cara, atau obrolan biasa) tetap dijawab dari pengetahuan Anda, "
+            . "namun beri tahu bahwa itu penjelasan umum, bukan kutipan dokumen JDIH.\n"
+            . "- Jangan pernah mengarang nomor, tahun, atau isi peraturan.\n"
+            . "- Panjang secukupnya (2-6 kalimat). Boleh memakai daftar '- ' dan **tebal** bila membantu.\n"
+            . "- Untuk hal yang butuh kepastian hukum, sarankan memeriksa dokumen aslinya.";
+
+        // Giliran lama dikirim apa adanya; aturan + konteks dokumen ditempel di
+        // giliran terbaru supaya tetap jalan di model yang belum punya systemInstruction.
+        $contents = [];
+        foreach (array_slice($history, -8) as $h) {
+            $contents[] = [
+                'role'  => $h['role'] === 'ai' ? 'model' : 'user',
+                'parts' => [['text' => $h['text']]],
+            ];
+        }
+        $contents[] = [
+            'role'  => 'user',
+            'parts' => [['text' => "{$aturan}\n\nDokumen JDIH Kota Kendari yang cocok dengan pertanyaan ini:\n{$konteks}\n\nPertanyaan pengguna: \"{$query}\""]],
+        ];
 
         try {
             $model = config('services.google_gemini.model', 'gemini-flash-lite-latest');
 
             $res = Http::timeout((int) config('services.google_gemini.timeout', 15))
                 ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
-                    'contents'         => [['parts' => [['text' => $prompt]]]],
+                    'contents'         => $contents,
                     'generationConfig' => [
                         'temperature'     => (float) config('services.google_gemini.temperature', 0.4),
                         'maxOutputTokens' => (int) config('services.google_gemini.max_tokens', 512),

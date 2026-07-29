@@ -71,6 +71,22 @@ if (!function_exists('textLog')) {
 }
 
 
+if (!function_exists('hitDocument')) {
+
+  // hit_see & hit_download nullable dan banyak yang masih NULL — increment()
+  // biasa (kolom = kolom + 1) menghasilkan NULL, jadi counter tidak pernah naik.
+  function hitDocument($id, $column)
+  {
+    // $column masuk ke raw SQL — batasi ke kolom yang memang ada
+    abort_unless(in_array($column, ['hit_see', 'hit_download'], true), 500);
+
+    return \Illuminate\Support\Facades\DB::table('document')
+      ->where('id', (int) $id)
+      ->update([$column => \Illuminate\Support\Facades\DB::raw("COALESCE($column, 0) + 1")]);
+  }
+}
+
+
 if (!function_exists('checkPrefixRoute')) {
 
   function checkPrefixRoute($tipeDokumen)
