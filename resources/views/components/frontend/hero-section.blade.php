@@ -1,4 +1,4 @@
-<section class="relative min-h-dvh flex items-center justify-center text-white overflow-hidden">
+<section class="relative min-h-svh flex items-center justify-center text-white overflow-hidden">
 
     <!-- BACKGROUND IMAGE -->
     <div class="absolute inset-0">
@@ -123,9 +123,9 @@
                 <span class="text-sm md:text-base">{{ __('ISI SURVEI KEPUASAN') }}</span>
                 <i class="fas fa-chevron-right text-xs"></i>
             </button>
-            <p class="text-slate-300 text-xs md:text-sm mt-2 flex items-center justify-center gap-0.5 md:gap-2">
-                <i class="fas fa-info-circle"></i>
-                {{ __('Bantu kami meningkatkan kualitas layanan JDIH dengan mengisi survei singkat') }}
+            {{-- Ikon dibuat inline (bukan flex item) agar tetap menempel di teks saat teks membungkus di mobile --}}
+            <p class="mt-2 text-center text-xs text-slate-300 md:text-sm">
+                <i class="fas fa-info-circle mr-1.5"></i>{{ __('Bantu kami meningkatkan kualitas layanan JDIH dengan mengisi survei singkat') }}
             </p>
         </div>
     </div>

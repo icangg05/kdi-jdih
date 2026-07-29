@@ -447,20 +447,8 @@
                     });
                 }
                 
-                // Close modal when clicking outside
-                aiSearchModal.addEventListener('click', (e) => {
-                    if (e.target === aiSearchModal) {
-                        this.closeAiSearchModal();
-                    }
-                });
-                
-                // Close modal with Escape key
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && aiSearchModal.classList.contains('show')) {
-                        this.closeAiSearchModal();
-                    }
-                });
-                
+                // Sengaja tanpa klik-luar & Escape: percakapan mudah tertutup
+                // tidak sengaja, dan isinya hilang.
             }
         },
         

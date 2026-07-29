@@ -181,7 +181,8 @@
 
 	<!-- Bottom -->
 	<div class="relative border-t border-white/10 bg-[#292C36]">
-		<div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+		{{-- pb ekstra di mobile: panel aksesibilitas mendatar (fixed bottom-left) menutupi baris ini --}}
+		<div class="max-w-7xl mx-auto px-6 py-4 pb-20 sm:pb-4 flex flex-col md:flex-row items-center justify-between gap-4">
 
 			<p class="text-xs lg:text-sm text-white/55">
 				&copy; {{ date('Y') }} All Rights Reserved by <a target="_blank" href="https://bphn.go.id/"

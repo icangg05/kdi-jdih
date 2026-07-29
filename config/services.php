@@ -39,28 +39,28 @@ return [
     'ai_search' => [
         // Provider utama untuk AI Search (google_gemini, openai, azure, fallback)
         'provider' => env('AI_SEARCH_PROVIDER', 'fallback'),
-        
+
         // Enable/disable fitur AI Search
         'enabled' => env('AI_SEARCH_ENABLED', true),
-        
+
         // Konfigurasi hasil pencarian
         'max_results' => env('AI_SEARCH_MAX_RESULTS', 10),
         'min_accuracy' => env('AI_SEARCH_MIN_ACCURACY', 30),
         'timeout' => env('AI_SEARCH_TIMEOUT', 15),
-        
+
         // Cache untuk meningkatkan performa
         'cache' => [
             'enabled' => env('AI_SEARCH_CACHE_ENABLED', true),
             'ttl' => env('AI_SEARCH_CACHE_TTL', 300), // 5 menit
             'prefix' => 'ai_search_',
         ],
-        
+
         // Fallback jika API error
         'fallback' => [
             'enabled' => env('AI_SEARCH_FALLBACK_ENABLED', true),
             'message' => 'Sistem sedang menggunakan penjelasan otomatis berdasarkan data dokumen.',
         ],
-        
+
         // Logging untuk debugging
         'logging' => [
             'queries' => env('LOG_SEARCH_QUERIES', false),
@@ -86,6 +86,10 @@ return [
         'top_p' => env('GEMINI_TOP_P', 0.9),
         'top_k' => env('GEMINI_TOP_K', 40),
         'timeout' => env('GEMINI_TIMEOUT', 10),
+        // Relay Cloudflare Worker (gemini-relay/) — jalur cadangan saat ISP
+        // men-drop respons dari generativelanguage.googleapis.com.
+        'relay_url' => env('GEMINI_RELAY_URL'),
+        'relay_token' => env('GEMINI_RELAY_TOKEN'),
         'base_url' => 'https://generativelanguage.googleapis.com/v1beta/models/',
     ],
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +14,13 @@ class AiSearchController extends Controller
 {
     /** tipe_dokumen -> segmen kategori pada route frontend.dokumen.show */
     private const KATEGORI = [1 => 'peraturan', 2 => 'monografi', 3 => 'artikel', 4 => 'putusan'];
+
+    /** Penanda "Gemini sedang tak bisa dihubungi, jangan buang waktu dulu". */
+    private const JEDA_KEY = 'gemini:jeda';
+    private const GAGAL_KEY = 'gemini:gagal';
+    private const JEDA_MENIT = 2;
+    /** Satu kegagalan masih wajar (jalurnya ~7 dari 10 berhasil); dua berturut-turut baru berarti padam. */
+    private const BATAS_GAGAL = 2;
 
     public function search(Request $request)
     {
@@ -98,7 +106,18 @@ class AiSearchController extends Controller
     {
         $apiKey = config('services.google_gemini.api_key');
 
-        if (!config('services.ai_search.enabled', true) || empty($apiKey) || !str_starts_with((string) $apiKey, 'AI')) {
+        // Jangan cek format kunci di sini — Google memakai lebih dari satu format
+        // (AIza… dan AQ.…), dan kunci yang ditolak akan ketahuan dari respons API.
+        if (!config('services.ai_search.enabled', true) || empty($apiKey)) {
+            return $this->fallbackExplanation($query, $documents);
+        }
+
+        // Jaringan ke Google mati-hidup dalam periode panjang (teramati belasan
+        // menit berturut-turut, bukan gagal acak per koneksi). Selama periode
+        // buruk, setiap pertanyaan membayar timeout penuh untuk hasil yang sama,
+        // jadi setelah satu kegagalan Gemini dilewati dulu — pertanyaan pertama
+        // setelah jeda itu yang jadi penjajak apakah jaringan sudah pulih.
+        if (Cache::get(self::JEDA_KEY)) {
             return $this->fallbackExplanation($query, $documents);
         }
 
@@ -110,6 +129,11 @@ class AiSearchController extends Controller
             . "Anda mengobrol dengan pengguna, jadi jawab dengan ramah dan mengalir, "
             . "serta ingat isi percakapan sebelumnya.\n"
             . "Aturan:\n"
+            . "- Langsung ke isi jawaban. Jangan membuka dengan sapaan atau seruan "
+            . "(\"Halo\", \"Wah\", \"Tentu\", \"Baik\", \"Pertanyaan bagus\") — sapaan di tiap "
+            . "giliran membuat percakapan terasa kaku, bukan ramah.\n"
+            . "- Ramah itu dari pilihan kata yang wajar dan penjelasan yang jelas, "
+            . "bukan dari basa-basi. Hindari juga penutup berbunga-bunga.\n"
             . "- Jawab memakai bahasa yang dipakai pengguna bertanya.\n"
             . "- Bila pertanyaannya soal peraturan Kota Kendari, rujuk dokumen di bawah dan sebut judulnya.\n"
             . "- Pertanyaan umum (konsep hukum, tata cara, atau obrolan biasa) tetap dijawab dari pengetahuan Anda, "
@@ -132,42 +156,115 @@ class AiSearchController extends Controller
             'parts' => [['text' => "{$aturan}\n\nDokumen JDIH Kota Kendari yang cocok dengan pertanyaan ini:\n{$konteks}\n\nPertanyaan pengguna: \"{$query}\""]],
         ];
 
-        try {
-            $model = config('services.google_gemini.model', 'gemini-flash-lite-latest');
+        $model = config('services.google_gemini.model', 'gemini-flash-lite-latest');
+        $path  = "/v1beta/models/{$model}:generateContent";
+        $body  = [
+            'contents'         => $contents,
+            'generationConfig' => [
+                'temperature'     => (float) config('services.google_gemini.temperature', 0.4),
+                'maxOutputTokens' => (int) config('services.google_gemini.max_tokens', 512),
+            ],
+        ];
 
-            $res = Http::timeout((int) config('services.google_gemini.timeout', 15))
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
-                    'contents'         => $contents,
-                    'generationConfig' => [
-                        'temperature'     => (float) config('services.google_gemini.temperature', 0.4),
-                        'maxOutputTokens' => (int) config('services.google_gemini.max_tokens', 512),
-                    ],
-                ]);
+        // Jaringan ke Google (dan sebagian edge Cloudflare) men-drop respons POST:
+        // TCP+TLS beres, request terkirim, respons tidak pernah datang. Dicoba
+        // lewat jalur langsung DAN relay Cloudflare Worker (bila dikonfigurasi).
+        // Kunci lewat header, bukan query string: URL ikut tertulis ke log saat
+        // error (kunci lama sempat dicabut Google karena "reported as leaked").
+        $timeout = (int) config('services.google_gemini.timeout', 15);
+        $relay   = rtrim((string) config('services.google_gemini.relay_url'), '/');
 
-            $text = trim((string) data_get($res->json(), 'candidates.0.content.parts.0.text'));
+        // Relay lebih dulu, bukan berbarengan: terukur ~7 dari 10 berhasil
+        // melawan ~1 dari 10 lewat jalur langsung, dan menjalankan keduanya
+        // sekaligus (Http::pool) memaksa menunggu yang paling lambat — jawaban
+        // relay yang tiba di detik ke-2 jadi tertahan sampai jalur langsung
+        // habis waktunya. Jalur langsung tetap dicoba kalau relay gagal.
+        $targets = [];
+        if ($relay) {
+            $targets[] = [$relay . $path, [
+                'x-goog-api-key' => $apiKey,
+                'x-relay-token'  => (string) config('services.google_gemini.relay_token'),
+            ]];
+        }
+        $targets[] = ['https://generativelanguage.googleapis.com' . $path, ['x-goog-api-key' => $apiKey]];
 
-            if ($res->successful() && $text !== '') {
-                return $text;
+        // Percobaan harus selesai sebelum PHP membunuh request-nya
+        // (max_execution_time, umumnya 30 detik) — kalau kelewat, yang sampai ke
+        // pengguna bukan fallback yang rapi tapi HTTP 500. Sisakan 5 detik untuk
+        // merangkai jawaban + mengirim respons.
+        $mulai = microtime(true);
+        $batas = (int) ini_get('max_execution_time') ?: 30;
+        $sisa  = fn () => $batas - 5 - (microtime(true) - $mulai);
+
+        foreach ($targets as [$url, $headers]) {
+            // Percobaan yang tidak muat lagi hanya membakar sisa waktu.
+            if ($sisa() < 3) {
+                break;
             }
 
-            Log::warning('Gemini gagal', ['status' => $res->status(), 'body' => Str::limit($res->body(), 300)]);
-        } catch (\Throwable $e) {
-            Log::warning('Gemini error', ['error' => $e->getMessage()]);
+            try {
+                $res = Http::timeout((int) min($timeout, $sisa()))->withHeaders($headers)->post($url, $body);
+
+                $text = trim((string) data_get($res->json(), 'candidates.0.content.parts.0.text'));
+                if ($res->successful() && $text !== '') {
+                    Cache::forget(self::GAGAL_KEY);
+
+                    return $text;
+                }
+
+                Log::warning('Gemini gagal', ['status' => $res->status(), 'body' => Str::limit($res->body(), 300)]);
+            } catch (\Throwable $e) {
+                Log::warning('Gemini error', ['url' => parse_url($url, PHP_URL_HOST), 'error' => $e->getMessage()]);
+            }
+        }
+
+        // Semua jalur gagal. Kegagalan sesekali wajar, jadi jangan langsung
+        // mematikan AI — tapi begitu dua permintaan beruntun gagal, jaringannya
+        // memang sedang padam dan penanya berikutnya tidak perlu ikut menunggu
+        // timeout yang sama. Pertanyaan pertama setelah jeda jadi penjajaknya.
+        // add() dulu: increment() pada kunci yang belum ada mengembalikan false
+        // di driver database. TTL-nya sekalian membuat kegagalan lama kedaluwarsa.
+        Cache::add(self::GAGAL_KEY, 0, now()->addMinutes(5));
+
+        if ((int) Cache::increment(self::GAGAL_KEY) >= self::BATAS_GAGAL) {
+            Cache::put(self::JEDA_KEY, true, now()->addMinutes(self::JEDA_MENIT));
+            Cache::forget(self::GAGAL_KEY);
         }
 
         return $this->fallbackExplanation($query, $documents);
     }
 
+    /**
+     * Dipakai saat layanan AI mati. Bukan jawaban model, tapi tetap menjelaskan
+     * dulu — dirangkai dari abstrak dokumen teratas, bukan sekadar mencacah hasil.
+     */
     private function fallbackExplanation(string $query, $documents): string
     {
+        $catatan = "\nCatatan: layanan AI sedang tidak dapat dihubungi, jadi penjelasan ini disusun otomatis dari data dokumen.";
+
         if ($documents->isEmpty()) {
-            return "Tidak ditemukan dokumen yang cocok dengan \"{$query}\" pada database JDIH Kota Kendari. Coba kata kunci yang lebih umum, misalnya nama bidang atau nomor peraturannya.";
+            return "Saya belum menemukan dokumen yang cocok dengan \"{$query}\" di JDIH Kota Kendari. "
+                . "Coba kata kunci yang lebih umum, misalnya nama bidangnya (\"retribusi\", \"izin\", \"pajak\") "
+                . "atau langsung nomor peraturannya."
+                . $catatan;
         }
 
-        $jenis = $documents->pluck('type')->unique()->filter()->take(3)->implode(', ');
+        $utama = $documents->first();
+        $lain  = $documents->count() - 1;
 
-        return "Ditemukan {$documents->count()} dokumen terkait \"{$query}\" di JDIH Kota Kendari"
-            . ($jenis ? ", antara lain berupa {$jenis}" : '')
-            . '. Daftar di bawah diurutkan berdasarkan kemiripan dengan pertanyaan Anda.';
+        $teks = "Untuk \"{$query}\", dokumen yang paling mendekati di JDIH Kota Kendari adalah **{$utama['title']}**"
+            . ($utama['status'] ? " dengan status {$utama['status']}" : '') . ".\n";
+
+        if ($utama['description']) {
+            $teks .= "\nRingkasan dokumen tersebut: {$utama['description']}\n";
+        }
+
+        if ($lain > 0) {
+            $jenis = $documents->pluck('type')->unique()->filter()->take(3)->implode(', ');
+            $teks .= "\nAda {$lain} dokumen lain yang juga terkait" . ($jenis ? ", berupa {$jenis}" : '')
+                . ". Semuanya tercantum di bawah, diurutkan dari yang paling mirip dengan pertanyaan Anda.\n";
+        }
+
+        return $teks . $catatan;
     }
 }

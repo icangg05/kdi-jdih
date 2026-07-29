@@ -774,14 +774,24 @@
         }
 
         loadPosition() {
+            // Di layar kecil posisinya ditentukan CSS (kanan bawah, di atas tombol
+            // back-to-top). Posisi simpanan dari layar lebar bisa mendarat tepat di
+            // atas panel aksesibilitas, jadi diabaikan saja.
+            if (!window.matchMedia('(min-width: 640px)').matches) return;
+
             const saved = localStorage.getItem('voicePanelPosition');
             if (saved) {
                 try {
                     const pos = JSON.parse(saved);
-                    this.panel.style.left = pos.x + 'px';
-                    this.panel.style.top = pos.y + 'px';
-                    this.currentX = pos.x;
-                    this.currentY = pos.y;
+
+                    // Layar bisa mengecil sejak terakhir disimpan — jaga agar tetap terlihat
+                    const maxX = Math.max(0, window.innerWidth - this.panel.offsetWidth);
+                    const maxY = Math.max(0, window.innerHeight - this.panel.offsetHeight);
+                    this.currentX = Math.min(Math.max(0, pos.x), maxX);
+                    this.currentY = Math.min(Math.max(0, pos.y), maxY);
+
+                    this.panel.style.left = this.currentX + 'px';
+                    this.panel.style.top = this.currentY + 'px';
                 } catch (error) {
                     console.error('Error loading panel position:', error);
                 }

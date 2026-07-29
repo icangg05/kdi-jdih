@@ -1,6 +1,6 @@
 <!-- MODAL TANYA AI -->
 <div id="aiSearchModal" class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle">
-    <div class="ai-modal__backdrop" data-ai-close></div>
+    <div class="ai-modal__backdrop"></div>
 
     <div class="ai-modal__panel">
         <!-- HEADER -->
@@ -189,6 +189,43 @@
         margin-top: 0;
     }
 
+    /* Pemberitahuan batas percakapan */
+    .ai-limit {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 12px 14px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 4px;
+        background: #fff;
+        font-size: .8rem;
+        color: #64748b;
+    }
+
+    .ai-limit i {
+        color: var(--color-primary, #ff891e);
+    }
+
+    .ai-limit span {
+        flex: 1;
+        min-width: 180px;
+    }
+
+    .ai-limit__btn {
+        padding: 7px 14px;
+        border-radius: 4px;
+        background: var(--color-primary, #ff891e);
+        color: #fff;
+        font-size: .75rem;
+        font-weight: 600;
+        transition: background .2s;
+    }
+
+    .ai-limit__btn:hover {
+        background: var(--color-primary-hover, #ea8221);
+    }
+
     /* Titik-titik "sedang mengetik" */
     .ai-typing {
         display: inline-flex;
@@ -214,7 +251,10 @@
 
     /* Markdown ringan di jawaban AI */
     .ai-answer__body strong { font-weight: 700; color: #0f172a }
-    .ai-answer__body ul { margin: 6px 0 0; padding-left: 18px; list-style: disc }
+    .ai-answer__body p + p,
+    .ai-answer__body ul,
+    .ai-answer__body ul + p { margin-top: 10px }
+    .ai-answer__body ul { padding-left: 18px; list-style: disc }
     .ai-answer__body li { margin-top: 3px }
 
     .ai-bubble {
@@ -265,11 +305,48 @@
         white-space: pre-line;
     }
 
+    /* Daftar dokumen yang bisa dilipat (<details> bawaan browser).
+       Disisipkan lewat JS setelah jawaban selesai "diketik", jadi animasinya
+       jalan sendiri begitu elemennya masuk — tidak perlu kelas pemicu. */
+    .ai-docs-box {
+        margin-top: 14px;
+        animation: aiSlide .35s cubic-bezier(.16, 1, .3, 1) both;
+    }
+
     .ai-docs__head {
         display: flex;
         align-items: center;
         gap: 10px;
-        margin: 14px 0 10px;
+        padding: 8px 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        background: #fff;
+        cursor: pointer;
+        list-style: none;
+        user-select: none;
+    }
+
+    .ai-docs__head::-webkit-details-marker {
+        display: none;
+    }
+
+    .ai-docs__head:hover {
+        border-color: var(--color-accent, #015BA5);
+    }
+
+    .ai-docs__caret {
+        font-size: .7rem;
+        color: #94a3b8;
+        transition: transform .2s;
+    }
+
+    .ai-docs-box[open] .ai-docs__caret {
+        transform: rotate(90deg);
+    }
+
+    /* padding, bukan margin — supaya jaraknya ikut terhitung saat tinggi dianimasikan */
+    .ai-docs-box .ai-docs {
+        padding-top: 10px;
     }
 
     .ai-docs__head h3 {
@@ -337,14 +414,29 @@
         color: #475569;
     }
 
+    /* Status peraturan hanya dua: "Berlaku" dan "Tidak Berlaku". Bedanya jangan
+       hanya warna — buta warna merah-hijau tidak bisa membedakannya, padahal
+       ini justru info yang paling menentukan dokumennya masih dipakai atau tidak. */
+    .ai-tag--ok,
+    .ai-tag--off {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid transparent;
+    }
+
     .ai-tag--ok {
         background: #ecfdf5;
         color: #047857;
+        border-color: #a7f3d0;
     }
 
     .ai-tag--off {
         background: #fef2f2;
         color: #b91c1c;
+        border-color: #fecaca;
+        text-decoration: line-through;
+        text-decoration-color: rgba(185, 28, 28, .45);
     }
 
     .ai-doc__desc {
@@ -385,6 +477,22 @@
         border-radius: 4px;
         background: var(--color-accent, #015BA5);
     }
+
+    /* Warna relevansi: makin cocok makin tegas */
+    .ai-relevance__bar[data-level="tinggi"] span { background: #16a34a }
+    .ai-relevance__bar[data-level="sedang"] span { background: var(--color-primary, #ff891e) }
+    .ai-relevance__bar[data-level="rendah"] span { background: #94a3b8 }
+
+    .ai-relevance__val {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: .68rem;
+    }
+
+    .ai-relevance__val[data-level="tinggi"] { background: #dcfce7; color: #15803d }
+    .ai-relevance__val[data-level="sedang"] { background: #ffedd5; color: #c2410c }
+    .ai-relevance__val[data-level="rendah"] { background: #f1f5f9; color: #64748b }
 
     .ai-doc__cta {
         display: inline-flex;
@@ -515,13 +623,18 @@
     .dark .ai-doc__title,
     .dark .ai-ask__input { color: #e2e8f0 }
     .dark .ai-chip { background: #1e293b; color: #cbd5e1 }
+    .dark .ai-docs__head { background: #111c33; border-color: #1e293b }
+    .dark .ai-limit { background: #111c33; border-color: #334155 }
+    .dark .ai-relevance__val[data-level="tinggi"] { background: #052e16; color: #4ade80 }
+    .dark .ai-relevance__val[data-level="sedang"] { background: #3b1d06; color: #fdba74 }
+    .dark .ai-relevance__val[data-level="rendah"] { background: #1e293b; color: #94a3b8 }
     .dark .ai-tag--year { background: #1e293b; color: #cbd5e1 }
     .dark .ai-relevance__bar { background: #1e293b }
     .dark .ai-ask { border-color: #334155 }
     .dark .ai-skeleton { background: linear-gradient(90deg, #111c33 25%, #1e293b 37%, #111c33 63%); background-size: 400% 100% }
 
     @media (prefers-reduced-motion: reduce) {
-        .ai-modal__panel, .ai-modal__backdrop, .ai-skeleton { animation: none }
+        .ai-modal__panel, .ai-modal__backdrop, .ai-skeleton, .ai-docs-box { animation: none }
         a.ai-doc:hover { transform: none }
     }
 </style>
