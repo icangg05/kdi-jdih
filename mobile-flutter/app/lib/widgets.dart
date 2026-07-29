@@ -19,6 +19,28 @@ String fmtDateShort(String? s) {
   return d == null ? (s ?? '') : DateFormat('d MMM y', 'id').format(d);
 }
 
+/// "pemberitahuan pelaksanaan" -> "Pemberitahuan pelaksanaan".
+/// Judul & isi di basis data banyak yang diketik huruf kecil semua.
+String ucFirst(String s) =>
+    s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
+/// Estimasi waktu baca isi HTML, ~200 kata/menit. Minimal 1 menit.
+String readTime(String html) {
+  final kata = html
+      .replaceAll(RegExp(r'<[^>]*>'), ' ')
+      .split(RegExp(r'\s+'))
+      .where((w) => w.isNotEmpty)
+      .length;
+  return '${(kata / 200).ceil().clamp(1, 99)} menit baca';
+}
+
+/// "PERATURAN WALI KOTA" -> "Peraturan Wali Kota".
+String titleCase(String s) => s
+    .toLowerCase()
+    .split(RegExp(r'\s+'))
+    .map((w) => w.isEmpty ? w : w[0].toUpperCase() + w.substring(1))
+    .join(' ');
+
 Future<void> openUrl(BuildContext context, String? url) async {
   if (url == null || url.isEmpty) return;
   final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -26,6 +48,20 @@ Future<void> openUrl(BuildContext context, String? url) async {
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Tidak dapat membuka tautan.')));
   }
+}
+
+/// Tab shell utama yang sedang aktif (0 Beranda, 1 Dokumen, 2 Cari, 3 Kabar,
+/// 4 Menu). Halaman detail memakai ini untuk pulang ke tab tertentu.
+final rootTab = ValueNotifier<int>(0);
+
+const kTabKabar = 3;
+
+/// Pulang ke shell utama pada [tab]. Semua route yang ditumpuk ditutup, jadi
+/// navigasi bawah tetap ada — mem-push halaman indeks sebagai Scaffold baru
+/// justru menyembunyikannya karena nav bar hanya milik shell.
+void kembaliKeTab(BuildContext context, int tab) {
+  rootTab.value = tab;
+  Navigator.popUntil(context, (r) => r.isFirst);
 }
 
 // ============================================================
@@ -136,29 +172,254 @@ class _PulseState extends State<Pulse> with SingleTickerProviderStateMixin {
   }
 }
 
-/// Skeleton daftar: kotak-kotak pulse seukuran kartu (bukan spinner).
+/// Skeleton daftar: kartu pulse berbentuk seperti isi aslinya (thumbnail +
+/// baris teks), bukan spinner dan bukan kotak polos — kotak polos berwarna
+/// samar terbaca sebagai halaman kosong, bukan sebagai "sedang memuat".
 class SkeletonList extends StatelessWidget {
-  const SkeletonList({super.key, this.count = 5, this.height = 104});
+  const SkeletonList(
+      {super.key,
+      this.count = 5,
+      this.height = 104,
+      this.padding = const EdgeInsets.all(16)});
   final int count;
   final double height;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final block = dark ? C.darkSubtle : C.lightLine;
+    final line = dark ? C.darkLine : C.lightSubtle;
+
+    Widget bar(double w, [double h = 12]) => Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            color: line,
+            borderRadius: BorderRadius.circular(AppRadius.chip),
+          ),
+        );
+
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: padding,
       physics: const NeverScrollableScrollPhysics(),
+      // sering dipakai sebagai anak ListView lain (mis. skeleton jawaban AI):
+      // tanpa shrinkWrap tingginya tak terbatas dan layout meledak
+      shrinkWrap: true,
       itemCount: count,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (_, __) => Pulse(
         child: Container(
           height: height,
           decoration: BoxDecoration(
-            color: dark ? C.darkSubtle : C.lightSubtle,
+            color: dark ? C.darkSurface : C.lightSurface,
+            border: Border.all(color: dark ? C.darkLine : C.lightLine),
             borderRadius: BorderRadius.circular(AppRadius.card),
           ),
+          child: Row(children: [
+            Container(
+              width: height * .9,
+              decoration: BoxDecoration(color: block, borderRadius: BorderRadius.circular(AppRadius.card)),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    bar(double.infinity, 14),
+                    const SizedBox(height: 8),
+                    bar(70, 10),
+                    const SizedBox(height: 8),
+                    bar(double.infinity, 10),
+                  ],
+                ),
+              ),
+            ),
+          ]),
         ),
       ),
+    );
+  }
+}
+
+/// Kerangka muat halaman detail artikel: blok hero, pil meta, judul, lalu
+/// baris paragraf — mengikuti tata letak ArticleDetail, bukan daftar kartu.
+class ArticleSkeleton extends StatelessWidget {
+  const ArticleSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final block = dark ? C.darkSubtle : C.lightLine;
+    final line = dark ? C.darkLine : C.lightSubtle;
+    final surface = dark ? C.darkSurface : C.lightSurface;
+
+    Widget bar(double w, [double h = 12]) => Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            color: line,
+            borderRadius: BorderRadius.circular(AppRadius.chip),
+          ),
+        );
+
+    return Pulse(
+      child: ListView(padding: EdgeInsets.zero, children: [
+        Container(height: 320, color: block),
+        Transform.translate(
+          offset: const Offset(0, -24),
+          child: Container(
+            decoration: BoxDecoration(
+              color: surface,
+              borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.sheet)),
+            ),
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, 48, AppSpacing.lg, AppSpacing.xxl),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                bar(64, 22),
+                const SizedBox(width: AppSpacing.sm),
+                bar(104, 22),
+                const SizedBox(width: AppSpacing.sm),
+                bar(88, 22),
+              ]),
+              const SizedBox(height: AppSpacing.md),
+              bar(double.infinity, 26),
+              const SizedBox(height: AppSpacing.sm),
+              bar(200, 26),
+              const SizedBox(height: AppSpacing.lg),
+              bar(56, 3),
+              const SizedBox(height: AppSpacing.lg),
+              for (var i = 0; i < 6; i++) ...[
+                bar(i == 5 ? 180 : double.infinity),
+                const SizedBox(height: AppSpacing.md),
+              ],
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Kerangka muat halaman detail dokumen: hero gelap, chip status, judul,
+/// baris metadata, lalu bilah aksi — mengikuti tata letak detail peraturan.
+class DocDetailSkeleton extends StatelessWidget {
+  const DocDetailSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final line = dark ? C.darkLine : C.lightSubtle;
+    final surface = dark ? C.darkSurface : C.lightSurface;
+
+    Widget bar(double w, [double h = 12]) => Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            color: line,
+            borderRadius: BorderRadius.circular(AppRadius.chip),
+          ),
+        );
+
+    return Pulse(
+      child: Column(children: [
+        Expanded(
+          child: ListView(padding: EdgeInsets.zero, children: [
+            const SizedBox(
+              height: 200,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      colors: [C.ink, C.inkSoft],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight),
+                ),
+              ),
+            ),
+            // lembar isi menimpa hero, sama seperti halaman aslinya
+            Transform.translate(
+              offset: const Offset(0, -24),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: surface,
+                  borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppRadius.sheet)),
+                ),
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg, 40, AppSpacing.lg, AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      bar(88, 22),
+                      const SizedBox(width: AppSpacing.sm),
+                      bar(72, 22),
+                    ]),
+                    const SizedBox(height: AppSpacing.md),
+                    bar(double.infinity, 24),
+                    const SizedBox(height: AppSpacing.sm),
+                    bar(220, 24),
+                    const SizedBox(height: AppSpacing.md),
+                    Row(children: [
+                      bar(96, 20),
+                      const SizedBox(width: AppSpacing.sm),
+                      bar(88, 20),
+                    ]),
+                    const SizedBox(height: AppSpacing.lg),
+                    bar(56, 3),
+                    const SizedBox(height: AppSpacing.lg),
+                    // pil tab
+                    Row(children: [
+                      bar(84, 32),
+                      const SizedBox(width: AppSpacing.sm),
+                      bar(96, 32),
+                      const SizedBox(width: AppSpacing.sm),
+                      bar(80, 32),
+                    ]),
+                    const SizedBox(height: AppSpacing.lg),
+                    // kartu spesifikasi 2 kolom
+                    Row(children: [
+                      Expanded(child: bar(double.infinity, 100)),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(child: bar(double.infinity, 100)),
+                    ]),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(children: [
+                      Expanded(child: bar(double.infinity, 100)),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(child: bar(double.infinity, 100)),
+                    ]),
+                    const SizedBox(height: AppSpacing.xl),
+                    // tabel metadata: label pendek + nilai panjang
+                    for (var i = 0; i < 5; i++) ...[
+                      Row(children: [
+                        bar(96),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(child: bar(double.infinity)),
+                      ]),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ]),
+        ),
+        // bilah aksi tetap di bawah, sama seperti halaman aslinya
+        Container(
+          color: surface,
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Row(children: [
+            bar(72, 40),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(child: bar(double.infinity, 40)),
+          ]),
+        ),
+      ]),
     );
   }
 }
@@ -262,26 +523,101 @@ class NetImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Kotak abu untuk denyut saat memuat — alignment (bukan width/height)
+    // supaya kotak isi mengikuti kotak pembungkus.
     final ph = Container(
-      width: width,
-      height: height,
+      alignment: Alignment.center,
       color: Theme.of(context).brightness == Brightness.dark ? C.darkSubtle : C.lightSubtle,
       child: const Icon(Icons.image_outlined, color: Colors.grey),
     );
+    // Sampul cadangan saat berita/pengumuman tidak punya gambar atau gagal
+    // dimuat. Aset lokal, jadi tetap tampil tanpa jaringan.
+    const fallback = Image(
+      image: AssetImage('assets/img/default-cover.webp'),
+      fit: BoxFit.cover,
+    );
+    // Ukuran dipasang di SizedBox, bukan di gambarnya. Bila width diteruskan ke
+    // CachedNetworkImage, intrinsic height-nya jadi width/rasio gambar — dan
+    // IntrinsicHeight pada kartu daftar ikut memakainya, sehingga kartu
+    // meregang setinggi foto potret alih-alih setinggi kolom teks.
     final img = (url == null || url!.isEmpty)
-        ? ph
+        ? fallback
         : CachedNetworkImage(
             imageUrl: url!,
-            width: width,
-            height: height,
             fit: BoxFit.cover,
             placeholder: (_, __) => Pulse(child: ph),
-            errorWidget: (_, __, ___) => ph,
+            errorWidget: (_, __, ___) => fallback,
           );
-    return radius > 0
-        ? ClipRRect(borderRadius: BorderRadius.circular(radius), child: img)
-        : img;
+    return SizedBox(
+      width: width,
+      height: height,
+      child: radius > 0
+          ? ClipRRect(borderRadius: BorderRadius.circular(radius), child: img)
+          : img,
+    );
   }
+}
+
+/// Buka gambar layar penuh: cubit untuk memperbesar, ketuk untuk menutup.
+/// [tag] harus sama dengan Hero pada gambar asal agar transisinya menyatu.
+void openImage(BuildContext context, String? url, {required String tag}) {
+  if (url == null || url.isEmpty) return;
+  Navigator.push(
+    context,
+    PageRouteBuilder(
+      opaque: false,
+      barrierColor: C.ink.withValues(alpha: .94),
+      pageBuilder: (_, __, ___) => _ImageViewer(url, tag: tag),
+    ),
+  );
+}
+
+class _ImageViewer extends StatelessWidget {
+  const _ImageViewer(this.url, {required this.tag});
+  final String url;
+  final String tag;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: InteractiveViewer(
+              minScale: 1,
+              maxScale: 5,
+              child: Center(
+                child: Hero(
+                  tag: tag,
+                  child: CachedNetworkImage(
+                    imageUrl: url,
+                    fit: BoxFit.contain,
+                    placeholder: (_, __) => const Center(
+                        child: CircularProgressIndicator(color: C.primary)),
+                    errorWidget: (_, __, ___) => const Icon(
+                        Icons.broken_image_outlined,
+                        color: Colors.white54,
+                        size: 48),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  tooltip: 'Tutup gambar',
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+            ),
+          ),
+        ]),
+      );
 }
 
 /// Tiga makna status hukum yang dipakai seragam oleh badge maupun grafik.
@@ -302,6 +638,15 @@ StatusKind statusKindOf(String? status) {
   return StatusKind.lain;
 }
 
+/// Pasangan warna (teks, latar) status hukum. Palette semantik sendiri, bukan
+/// warna brand; satu pemetaan dipakai badge maupun rail kartu dokumen.
+(Color, Color) statusColors(String? status) => switch (statusKindOf(status)) {
+      StatusKind.dicabut => (C.statusRevoked, C.statusRevokedBg),
+      StatusKind.diubah => (C.statusChanged, C.statusChangedBg),
+      StatusKind.berlaku => (C.statusActive, C.statusActiveBg),
+      StatusKind.lain => (C.lightInkMuted, C.lightSubtle),
+    };
+
 class StatusBadge extends StatelessWidget {
   const StatusBadge(this.status, {super.key});
   final String? status;
@@ -309,13 +654,7 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (status == null || status!.isEmpty) return const SizedBox.shrink();
-    // status hukum pakai palette semantik sendiri, bukan warna brand
-    final (fg, bg) = switch (statusKindOf(status)) {
-      StatusKind.dicabut => (C.statusRevoked, C.statusRevokedBg),
-      StatusKind.diubah => (C.statusChanged, C.statusChangedBg),
-      StatusKind.berlaku => (C.statusActive, C.statusActiveBg),
-      StatusKind.lain => (C.lightInkMuted, C.lightSubtle),
-    };
+    final (fg, bg) = statusColors(status);
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -338,7 +677,8 @@ class JenisChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (label == null || label!.isEmpty) return const SizedBox.shrink();
+    final l = label?.trim() ?? '';
+    final text = (l.isEmpty || l == '-') ? 'Dokumen Peraturan' : titleCase(l);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -346,9 +686,13 @@ class JenisChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.chip),
         border: Border.all(color: C.primary.withValues(alpha: .35)),
       ),
-      child: Text(label!,
+      child: Text(text,
+          // tag panjang ("Bagian Hukum Sekretariat Daerah Kota Kendari")
+          // tidak boleh melipat jadi dua baris dan mendominasi kartu
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
               color: Theme.of(context).brightness == Brightness.dark
                   ? C.primarySoft
@@ -415,6 +759,41 @@ class IconSquircle extends StatelessWidget {
 const kLangs = {'id': 'Indonesia', 'en': 'English', 'zh': '中文', 'ko': '한국어'};
 
 /// Dialog bahasa konten; dipakai dari beranda maupun tab Lainnya.
+/// Pil bahasa di header: bendera huruf + kode aktif + caret pemicu dialog.
+class LangPill extends StatelessWidget {
+  const LangPill({super.key, required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Pressable(
+        child: Material(
+          color: C.primary.withValues(alpha: .12),
+          shape: StadiumBorder(
+              side: BorderSide(color: C.primary.withValues(alpha: .4))),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: SizedBox(
+              height: 36,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.language, size: 16, color: C.primaryInk),
+                  const SizedBox(width: 6),
+                  Text(langNotifier.value.toUpperCase(),
+                      style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: C.primaryInk)),
+                  const Icon(Icons.expand_more, size: 16, color: C.primaryInk),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      );
+}
+
 Future<void> pickLang(BuildContext context) => showDialog(
       context: context,
       builder: (c) => SimpleDialog(
@@ -692,30 +1071,55 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconSquircle(icon, size: 60),
-              const SizedBox(height: AppSpacing.lg),
-              Text(title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w700)),
-              const SizedBox(height: AppSpacing.sm),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 320),
-                child: Text(message,
+        // Rise: keadaan kosong sering muncul setelah jeda muat, jadi kalau
+        // ditampilkan mendadak terbaca seperti error yang menyalak
+        child: Rise(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // dua lingkaran konsentris di belakang ikon: memberi kedalaman
+                // tanpa aset gambar, memakai warna merek yang sudah ada
+                Stack(alignment: Alignment.center, children: [
+                  Container(
+                    width: 132,
+                    height: 132,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: C.primary.withValues(alpha: .06),
+                    ),
+                  ),
+                  Container(
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border:
+                          Border.all(color: C.primary.withValues(alpha: .18)),
+                    ),
+                  ),
+                  IconSquircle(icon, size: 64),
+                ]),
+                const SizedBox(height: AppSpacing.lg),
+                Text(title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                        fontSize: 13, height: 1.6, color: C.lightInkMuted)),
-              ),
-              if (action != null) ...[
-                const SizedBox(height: AppSpacing.lg),
-                action!,
+                        fontSize: 19, fontWeight: FontWeight.w700)),
+                const SizedBox(height: AppSpacing.sm),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 320),
+                  child: Text(message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 13, height: 1.6, color: C.lightInkMuted)),
+                ),
+                if (action != null) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  action!,
+                ],
               ],
-            ],
+            ),
           ),
         ),
       );
@@ -723,6 +1127,35 @@ class EmptyState extends StatelessWidget {
 
 /// Ajakan ke Asisten AI. Satu-satunya permukaan di app yang "drenched" —
 /// warna penuh dipakai sekali untuk menandai aksi paling menonjol.
+/// Hasil pencarian/filter yang kosong. Beda dari "belum ada isinya": yang
+/// dibutuhkan pengguna adalah jalan keluar dari kata kuncinya, bukan tombol
+/// muat ulang yang tidak akan mengubah apa pun.
+class NoResults extends StatelessWidget {
+  const NoResults(this.query, {super.key, this.saran, this.actions = const []});
+  final String query;
+
+  /// Kalimat saran pengganti; default menyarankan kata kunci lebih pendek.
+  final String? saran;
+  final List<Widget> actions;
+
+  @override
+  Widget build(BuildContext context) => EmptyState(
+        icon: Icons.search_off,
+        title: 'Tidak ditemukan',
+        message: 'Tidak ada yang cocok dengan "$query". '
+            '${saran ?? 'Coba kata kunci yang lebih pendek, periksa ejaannya, '
+                'atau ganti kategori.'}',
+        action: actions.isEmpty
+            ? null
+            : Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                alignment: WrapAlignment.center,
+                children: actions,
+              ),
+      );
+}
+
 class AiPromoCard extends StatelessWidget {
   const AiPromoCard({super.key, required this.onTap});
   final VoidCallback onTap;
@@ -757,7 +1190,7 @@ class AiPromoCard extends StatelessWidget {
                   Row(children: [
                     const Icon(Icons.auto_awesome, size: 18, color: C.gold),
                     const SizedBox(width: 6),
-                    Text('Asisten AI Hukum',
+                    Text('Pencarian AI',
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
@@ -765,8 +1198,8 @@ class AiPromoCard extends StatelessWidget {
                   ]),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                      'Pahami dokumen hukum yang rumit lewat ringkasan otomatis '
-                      'dan rujukan peraturan yang relevan.',
+                      'Tulis pertanyaan dengan bahasa sehari-hari, AI akan '
+                      'mencarikan dokumen hukum Kota Kendari yang paling cocok.',
                       style: TextStyle(
                           fontSize: 13,
                           height: 1.55,
@@ -776,7 +1209,7 @@ class AiPromoCard extends StatelessWidget {
                     onPressed: onTap,
                     icon: const Icon(Icons.arrow_forward, size: 18),
                     iconAlignment: IconAlignment.end,
-                    label: const Text('Tanya AI Sekarang'),
+                    label: const Text('Cari dengan AI'),
                     style: FilledButton.styleFrom(
                       backgroundColor: C.gold,
                       foregroundColor: C.ink,
@@ -858,7 +1291,7 @@ class NewsTile extends StatelessWidget {
                                     .toUpperCase()),
                             if (item.sn('tag') != null)
                               TextSpan(
-                                  text: ' · ${item.s('tag').toUpperCase()}',
+                                  text: ' · ${titleCase(item.s('tag'))}',
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w700,
                                       color: C.primaryInk)),
@@ -871,7 +1304,7 @@ class NewsTile extends StatelessWidget {
                               color: C.lightInkMuted),
                         ),
                         const SizedBox(height: AppSpacing.xs),
-                        Text(item.s('judul'),
+                        Text(ucFirst(item.s('judul')),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -880,7 +1313,7 @@ class NewsTile extends StatelessWidget {
                                 fontWeight: FontWeight.w700)),
                         if (featured && item.sn('ringkasan') != null) ...[
                           const SizedBox(height: 6),
-                          Text(item.s('ringkasan'),
+                          Text(ucFirst(item.s('ringkasan')),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -913,18 +1346,20 @@ class SpecCard extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md, vertical: AppSpacing.md),
+                horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(icon, size: 20, color: C.primaryInk),
                 const SizedBox(height: AppSpacing.sm),
+                // dua baris, bukan satu: "Peraturan Walikota" dan "Tidak
+                // Berlaku" tidak muat di satu baris kartu selebar ini
                 Text(value,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w700)),
+                        fontSize: 13, height: 1.25, fontWeight: FontWeight.w700)),
                 Text(label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1124,9 +1559,13 @@ class ErrorRetry extends StatelessWidget {
 
 /// FutureBuilder + retry + pull-to-refresh. `builder` harus mengembalikan scrollable.
 class LoadView extends StatefulWidget {
-  const LoadView({super.key, required this.load, required this.builder});
+  const LoadView(
+      {super.key, required this.load, required this.builder, this.skeleton});
   final Future<Json> Function() load;
   final Widget Function(BuildContext, Json) builder;
+
+  /// Kerangka muat khusus halaman ini; default daftar kartu.
+  final Widget? skeleton;
 
   @override
   State<LoadView> createState() => _LoadViewState();
@@ -1150,7 +1589,7 @@ class _LoadViewState extends State<LoadView> {
             return ErrorRetry('${snap.error}', onRetry: _reload);
           }
           if (!snap.hasData) {
-            return const SkeletonList(count: 4, height: 120);
+            return widget.skeleton ?? const SkeletonList(count: 4, height: 120);
           }
           return RefreshIndicator(
             onRefresh: () async => _reload(),
@@ -1168,10 +1607,19 @@ class PagedListView extends StatefulWidget {
       required this.fetch,
       required this.itemBuilder,
       this.empty = 'Tidak ada data.',
+      this.emptyView,
+      this.onTotal,
       this.padding = const EdgeInsets.all(16)});
   final Future<Paginated> Function(int page) fetch;
   final Widget Function(BuildContext, Json, int index) itemBuilder;
   final String empty;
+
+  /// Jumlah total hasil, dilaporkan sekali setelah halaman pertama termuat.
+  final ValueChanged<int>? onTotal;
+
+  /// Ganti seluruh keadaan kosong; "belum ada isinya + muat ulang" salah
+  /// pesan untuk hasil pencarian yang kosong.
+  final Widget? emptyView;
   final EdgeInsets padding;
 
   @override
@@ -1191,8 +1639,13 @@ class _PagedListViewState extends State<PagedListView> {
       _error = null;
     });
     try {
-      final p = await widget.fetch(_page);
+      // jeda minimum: di jaringan cepat indikator "memuat" berkedip sekejap
+      // dan terbaca sebagai glitch, bukan sebagai proses
+      final r = await Future.wait(
+          [widget.fetch(_page), Future.delayed(const Duration(milliseconds: 800))]);
+      final p = r.first as Paginated;
       if (!mounted) return;
+      if (_page == 1) widget.onTotal?.call(p.total);
       setState(() {
         _items.addAll(p.items);
         _hasMore = p.hasMore;
@@ -1226,16 +1679,17 @@ class _PagedListViewState extends State<PagedListView> {
     if (_items.isEmpty) {
       if (_loading) return const SkeletonList();
       if (_error != null) return ErrorRetry(_error!, onRetry: _load);
-      return EmptyState(
-        icon: Icons.inbox_outlined,
-        title: 'Belum ada isinya',
-        message: widget.empty,
-        action: OutlinedButton.icon(
-          onPressed: _refresh,
-          icon: const Icon(Icons.refresh, size: 18),
-          label: const Text('Muat ulang'),
-        ),
-      );
+      return widget.emptyView ??
+          EmptyState(
+            icon: Icons.inbox_outlined,
+            title: 'Belum ada isinya',
+            message: widget.empty,
+            action: OutlinedButton.icon(
+              onPressed: _refresh,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Muat ulang'),
+            ),
+          );
     }
     return RefreshIndicator(
       onRefresh: _refresh,

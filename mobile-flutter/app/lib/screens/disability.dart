@@ -75,7 +75,7 @@ class DisabilityDetailScreen extends StatelessWidget {
                     aspectRatio: 16 / 9, child: NetImage(x.sn('cover_url'), radius: 12)),
               const SizedBox(height: 16),
               Row(children: [
-                JenisChip(x.sn('jenis_dokumen')?.toUpperCase()),
+                JenisChip(x.sn('jenis_dokumen')),
                 const SizedBox(width: 8),
                 StatusBadge(x.sn('status_dokumen')),
               ]),

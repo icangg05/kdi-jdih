@@ -29,74 +29,122 @@ class DocumentCard extends StatelessWidget {
         : C.lightInkMuted;
     final nomor = d.sn('nomor_peraturan');
     final tahun = d.sn('tahun_terbit');
+    final status = d.sn('status') ?? d.sn('status_terakhir');
+    // rail kiri mewarisi warna status: satu lirikan sudah tahu masih berlaku
+    // atau tidak, tanpa harus membaca badge di ujung kanan
+    final (aksen, _) = statusColors(status);
     return Pressable(
       child: Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) => DocumentDetailScreen(id: d.i('id')))),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(children: [
-                JenisChip(d.sn('singkatan_jenis') ?? d.sn('jenis_peraturan')),
-                if (tahun != null) ...[
-                  const SizedBox(width: 8),
-                  Text(tahun, style: TextStyle(fontSize: 12, color: muted)),
-                ],
-                const Spacer(),
-                StatusBadge(d.sn('status') ?? d.sn('status_terakhir')),
-              ]),
-              const SizedBox(height: 8),
-              Text(d.s('judul'),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 6),
-              Text(
-                [
-                  if (nomor != null) 'No. $nomor',
-                  if (d.sn('bidang_hukum') != null) d.s('bidang_hukum'),
-                ].join(' · '),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: muted),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => DocumentDetailScreen(id: d.i('id')))),
+          child: IntrinsicHeight(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(width: 4, color: aksen),
+              // blok nomor: penanda khas dokumen hukum, sekaligus jangkar visual
+              if (nomor != null)
+                Container(
+                  width: 56,
+                  color: aksen.withValues(alpha: .08),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('No.',
+                          style: TextStyle(fontSize: 10, color: muted)),
+                      Text(nomor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              height: 1.1,
+                              fontFeatures: [FontFeature.tabularFigures()])),
+                      if (tahun != null)
+                        Text(tahun,
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: muted)),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Flexible(
+                            child: JenisChip(d.sn('singkatan_jenis') ??
+                                d.sn('jenis_peraturan'))),
+                        const Spacer(),
+                        StatusBadge(status),
+                      ]),
+                      const SizedBox(height: AppSpacing.sm),
+                      // titleCase: judul di basis data KAPITAL SEMUA dan
+                      // terbaca seperti diteriakkan
+                      Text(titleCase(d.s('judul')),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 15,
+                              height: 1.35,
+                              fontWeight: FontWeight.w700)),
+                      if (d.sn('bidang_hukum') != null) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        MetaPill(Icons.folder_outlined, d.s('bidang_hukum')),
+                      ],
+                      const SizedBox(height: AppSpacing.sm),
+                      if (accuracy != null)
+                        Row(children: [
+                          Expanded(
+                              child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                      value: accuracy! / 100,
+                                      minHeight: 6,
+                                      backgroundColor:
+                                          C.primary.withValues(alpha: .12)))),
+                          const SizedBox(width: 8),
+                          Text('$accuracy%',
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: C.primaryInk)),
+                        ])
+                      else
+                        Row(children: [
+                          Icon(Icons.visibility_outlined, size: 14, color: muted),
+                          const SizedBox(width: 4),
+                          Text('${d.i('hit_see')}',
+                              style: TextStyle(fontSize: 12, color: muted)),
+                          const SizedBox(width: 12),
+                          Icon(Icons.download_outlined, size: 14, color: muted),
+                          const SizedBox(width: 4),
+                          Text('${d.i('hit_download')}',
+                              style: TextStyle(fontSize: 12, color: muted)),
+                          const Spacer(),
+                          const Text('Detail',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: C.primaryInk)),
+                          const Icon(Icons.chevron_right,
+                              size: 16, color: C.primaryInk),
+                        ]),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 6),
-              if (accuracy != null)
-                Row(children: [
-                  Expanded(
-                      child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                              value: accuracy! / 100,
-                              minHeight: 6,
-                              backgroundColor: C.primary.withValues(alpha: .12)))),
-                  const SizedBox(width: 8),
-                  Text('$accuracy%',
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w700, color: C.primaryInk)),
-                ])
-              else
-                Row(children: [
-                  Icon(Icons.visibility_outlined, size: 14, color: muted),
-                  const SizedBox(width: 4),
-                  Text('${d.i('hit_see')}', style: TextStyle(fontSize: 12, color: muted)),
-                  const SizedBox(width: 12),
-                  Icon(Icons.download_outlined, size: 14, color: muted),
-                  const SizedBox(width: 4),
-                  Text('${d.i('hit_download')}',
-                      style: TextStyle(fontSize: 12, color: muted)),
-                ]),
-            ],
+            ]),
           ),
         ),
       ),
-    ),
     );
   }
 }
@@ -286,18 +334,10 @@ class _LatestDocumentsState extends State<_LatestDocuments> {
             );
           }
           if (!snap.hasData) {
-            return SliverList.separated(
-              itemCount: 3,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-              itemBuilder: (_, __) => Pulse(
-                child: Container(
-                  height: 132,
-                  decoration: BoxDecoration(
-                    color: C.lightSubtle,
-                    borderRadius: BorderRadius.circular(AppRadius.card),
-                  ),
-                ),
-              ),
+            // kotak polos terbaca sebagai halaman kosong; pakai kerangka
+            // berbentuk kartu yang sama dengan daftar lain di aplikasi
+            return const SliverToBoxAdapter(
+              child: SkeletonList(count: 3, height: 132, padding: EdgeInsets.zero),
             );
           }
           final items = snap.data!.items.take(5).toList();
@@ -323,6 +363,9 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
   String _q = '', _jenis = '', _tahun = '', _status = '';
   Json _filters = {};
 
+  /// Jumlah hasil dari halaman pertama; null selagi dimuat.
+  int? _total;
+
   @override
   void initState() {
     super.initState();
@@ -331,58 +374,114 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
     }).catchError((_) {}); // filter gagal -> daftar tetap jalan
   }
 
+  /// Pil filter: dropdown tanpa garis bawah di dalam kapsul. Menyala oranye
+  /// saat aktif supaya terlihat filter mana yang sedang membatasi daftar.
   Widget _dropdown(String hint, String value, String key, void Function(String) set) {
     final opts = _filters.ls(key);
     if (opts.isEmpty) return const SizedBox.shrink();
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final on = value.isNotEmpty;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: DropdownButton<String>(
-        hint: Text(hint),
-        value: value.isEmpty ? null : value,
-        underline: const SizedBox.shrink(),
-        borderRadius: BorderRadius.circular(12),
-        items: opts
-            .map((o) => DropdownMenuItem(
-                value: o, child: Text(o, overflow: TextOverflow.ellipsis)))
-            .toList(),
-        onChanged: (v) => setState(() => set(v ?? '')),
+      padding: const EdgeInsets.only(right: AppSpacing.sm),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: on
+              ? C.primary.withValues(alpha: .14)
+              : (dark ? C.darkSurface : C.lightSurface),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+              color: on ? C.primary : (dark ? C.darkLine : C.lightLine)),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            hint: Text(hint,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: dark ? C.darkInkMuted : C.lightInkMuted)),
+            value: on ? value : null,
+            isDense: true,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            icon: Icon(Icons.expand_more,
+                size: 18, color: on ? C.primaryInk : C.lightInkMuted),
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: dark ? C.darkInk : C.lightInk),
+            items: [
+              // satu filter bisa dilepas tanpa mereset filter yang lain
+              DropdownMenuItem(value: '', child: Text('Semua $hint')),
+              // nilai tetap apa adanya untuk API; yang di-titleCase hanya
+              // tampilannya — "TIDAK BERLAKU" terbaca seperti diteriakkan
+              for (final o in opts)
+                DropdownMenuItem(
+                    value: o,
+                    child:
+                        Text(titleCase(o), overflow: TextOverflow.ellipsis)),
+            ],
+            onChanged: (v) => setState(() => set(v ?? '')),
+          ),
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final muted = dark ? C.darkInkMuted : C.lightInkMuted;
     final hasFilter =
         _q.isNotEmpty || _jenis.isNotEmpty || _tahun.isNotEmpty || _status.isNotEmpty;
     return Scaffold(
       appBar: BrandAppBar(docCategoryLabel(widget.category)),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: TextField(
-              decoration: const InputDecoration(
-                  hintText: 'Cari judul...', prefixIcon: Icon(Icons.search)),
-              textInputAction: TextInputAction.search,
-              onSubmitted: (v) => setState(() => _q = v),
-            ),
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(children: [
-              _dropdown('Jenis', _jenis, 'jenis', (v) => _jenis = v),
-              _dropdown('Tahun', _tahun, 'tahun', (v) => _tahun = v),
-              _dropdown('Status', _status, 'status', (v) => _status = v),
-              if (hasFilter)
-                TextButton(
-                    onPressed: () => setState(() {
-                          _q = '';
-                          _jenis = '';
-                          _tahun = '';
-                          _status = '';
-                        }),
-                    child: const Text('Reset')),
+          // bilah alat berlatar surface: pencarian + filter jadi satu blok yang
+          // jelas terpisah dari daftar di bawahnya
+          Container(
+            color: dark ? C.darkSurface : C.lightSurface,
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.sm),
+            child: Column(children: [
+              TextField(
+                decoration: const InputDecoration(
+                    hintText: 'Cari judul...', prefixIcon: Icon(Icons.search)),
+                textInputAction: TextInputAction.search,
+                onSubmitted: (v) => setState(() => _q = v),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: [
+                  _dropdown('Jenis', _jenis, 'jenis', (v) => _jenis = v),
+                  _dropdown('Tahun', _tahun, 'tahun', (v) => _tahun = v),
+                  _dropdown('Status', _status, 'status', (v) => _status = v),
+                  if (hasFilter)
+                    TextButton.icon(
+                        onPressed: () => setState(() {
+                              _q = '';
+                              _jenis = '';
+                              _tahun = '';
+                              _status = '';
+                            }),
+                        icon: const Icon(Icons.close, size: 16),
+                        label: const Text('Reset')),
+                ]),
+              ),
+              if (_total != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                        '$_total dokumen${hasFilter ? ' sesuai filter' : ''}',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: muted)),
+                  ),
+                ),
             ]),
           ),
           Expanded(
@@ -395,7 +494,33 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                   tahun: _tahun,
                   status: _status,
                   page: page),
-              empty: 'Tidak ada dokumen sesuai filter.',
+              onTotal: (t) => setState(() => _total = t),
+              empty: 'Belum ada dokumen pada kategori ini.',
+              // kosong karena filter != kosong karena belum ada isinya:
+              // "muat ulang" tidak akan mengubah apa pun
+              emptyView: !hasFilter
+                  ? null
+                  : NoResults(
+                      // semua filter aktif ditulis apa adanya, jadi jelas
+                      // kombinasi mana yang tidak menghasilkan apa-apa
+                      [_q, _jenis, _tahun, _status]
+                          .where((f) => f.isNotEmpty)
+                          .join(' · '),
+                      saran: 'Longgarkan filternya atau periksa ejaan kata '
+                          'kuncinya.',
+                      actions: [
+                        FilledButton.icon(
+                          onPressed: () => setState(() {
+                            _q = '';
+                            _jenis = '';
+                            _tahun = '';
+                            _status = '';
+                          }),
+                          icon: const Icon(Icons.close, size: 18),
+                          label: const Text('Reset filter'),
+                        ),
+                      ],
+                    ),
               itemBuilder: (_, d, __) => DocumentCard(d),
             ),
           ),
@@ -422,17 +547,33 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
   Widget build(BuildContext context) => Scaffold(
         body: LoadView(
           load: () => api.documentDetail(widget.id),
+          skeleton: const DocDetailSkeleton(),
           builder: (context, d) {
             final lampiran = d.l('lampiran');
             final utama = lampiran.firstOrNull;
+            final dark = Theme.of(context).brightness == Brightness.dark;
             return Column(children: [
               Expanded(
                 child: CustomScrollView(slivers: [
                   _heroBar(context, d),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.lg,
-                        AppSpacing.lg, AppSpacing.lg, AppSpacing.lg),
-                    sliver: SliverList.list(children: _body(context, d)),
+                  SliverToBoxAdapter(
+                    // lembar isi menimpa hero 24dp, sama seperti detail berita
+                    child: Transform.translate(
+                      offset: const Offset(0, -24),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: dark ? C.darkSurface : C.lightSurface,
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(AppRadius.sheet)),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 40,
+                            AppSpacing.lg, AppSpacing.xl),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _body(context, d),
+                        ),
+                      ),
+                    ),
                   ),
                 ]),
               ),
@@ -443,9 +584,13 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       );
 
   Widget _heroBar(BuildContext context, Json d) => SliverAppBar(
-        expandedHeight: 176,
+        expandedHeight: 200,
         pinned: true,
-        backgroundColor: C.lightSurface,
+        stretch: true,
+        backgroundColor:
+            Theme.of(context).brightness == Brightness.dark
+                ? C.darkSurface
+                : C.lightSurface,
         surfaceTintColor: Colors.transparent,
         leadingWidth: 64,
         leading: Padding(
@@ -454,6 +599,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
               tooltip: 'Kembali', onPressed: () => Navigator.pop(context)),
         ),
         flexibleSpace: FlexibleSpaceBar(
+          stretchModes: const [StretchMode.zoomBackground],
           background: Stack(fit: StackFit.expand, children: [
             const DecoratedBox(
               decoration: BoxDecoration(
@@ -463,20 +609,37 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                     end: Alignment.bottomRight),
               ),
             ),
-            const GeoPattern(opacity: .14),
+            const GeoPattern(color: C.primary, opacity: .18),
+            // cap air: lambang + tahun terbit, penanda dokumen resmi
+            Positioned(
+              right: -12,
+              bottom: 4,
+              child: Icon(Icons.account_balance,
+                  size: 150, color: C.primary.withValues(alpha: .22)),
+            ),
             Positioned(
               left: AppSpacing.lg,
-              bottom: AppSpacing.lg,
+              bottom: 44,
               right: AppSpacing.lg,
               child: Row(children: [
-                Icon(Icons.account_balance,
-                    size: 42, color: C.cream.withValues(alpha: .5)),
+                Text(
+                    titleCase(d.sn('jenis_peraturan') ??
+                            d.sn('singkatan_jenis') ??
+                            'Dokumen Hukum')
+                        .toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2,
+                        color: C.goldSoft)),
                 const Spacer(),
                 Text(d.sn('tahun_terbit') ?? '',
                     style: TextStyle(
-                        fontSize: 32,
+                        fontSize: 34,
                         fontWeight: FontWeight.w800,
-                        color: C.cream.withValues(alpha: .28))),
+                        color: C.cream.withValues(alpha: .32))),
               ]),
             ),
           ]),
@@ -489,45 +652,40 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     final lampiran = d.l('lampiran');
     final terkait = d.l('peraturan_terkait');
     return [
-      Row(children: [
-        JenisChip(d.sn('singkatan_jenis') ?? d.sn('jenis_peraturan')),
-        const SizedBox(width: AppSpacing.sm),
-        StatusBadge(d.sn('status') ?? d.sn('status_terakhir')),
-      ]),
+      Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          JenisChip(d.sn('singkatan_jenis') ?? d.sn('jenis_peraturan')),
+          StatusBadge(d.sn('status') ?? d.sn('status_terakhir')),
+        ],
+      ),
       const SizedBox(height: AppSpacing.md),
-      Text(d.s('judul'),
+      // titleCase: judul peraturan di basis data KAPITAL SEMUA
+      Text(titleCase(d.s('judul')),
           style: const TextStyle(
-              fontSize: 20, height: 1.3, fontWeight: FontWeight.w700)),
-      if (nomor != null || tahun != null) ...[
-        const SizedBox(height: AppSpacing.sm),
-        Row(children: [
-          const Icon(Icons.tag, size: 15, color: C.lightInkMuted),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-                [
-                  if (nomor != null) 'Nomor $nomor',
-                  if (tahun != null) 'Tahun $tahun',
-                ].join(' · '),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, color: C.lightInkMuted)),
-          ),
-        ]),
-      ],
-      if (d.sn('bidang_hukum') != null) ...[
-        const SizedBox(height: AppSpacing.xs),
-        Row(children: [
-          const Icon(Icons.gavel, size: 15, color: C.lightInkMuted),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(d.s('bidang_hukum'),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, color: C.lightInkMuted)),
-          ),
-        ]),
-      ],
+              fontSize: 22,
+              height: 1.3,
+              letterSpacing: -.3,
+              fontWeight: FontWeight.w700)),
+      const SizedBox(height: AppSpacing.md),
+      Wrap(spacing: AppSpacing.sm, runSpacing: 6, children: [
+        if (nomor != null) MetaPill(Icons.tag, 'Nomor $nomor'),
+        if (tahun != null) MetaPill(Icons.event_outlined, 'Tahun $tahun'),
+        if (d.sn('bidang_hukum') != null)
+          MetaPill(Icons.gavel, titleCase(d.s('bidang_hukum'))),
+      ]),
+      const SizedBox(height: AppSpacing.lg),
+      // pemisah gradient, signature yang sama dengan detail berita
+      Container(
+        height: 3,
+        width: 56,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(2),
+          gradient: const LinearGradient(colors: [C.primary, C.gold]),
+        ),
+      ),
       const SizedBox(height: AppSpacing.lg),
       FilterPills(
         labels: ['Tentang', 'Berkas (${lampiran.length})', 'Terkait'],
@@ -549,30 +707,38 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     final subjek = d.ls('subjek');
     final pengarang = d.l('pengarang');
     final specs = <(IconData, String, String)>[
-      (Icons.category_outlined,
-          d.sn('singkatan_jenis') ?? d.sn('jenis_peraturan') ?? '-', 'Jenis'),
+      (
+        Icons.category_outlined,
+        titleCase(d.sn('singkatan_jenis') ?? d.sn('jenis_peraturan') ?? '-'),
+        'Jenis'
+      ),
       (Icons.event_outlined, d.sn('tahun_terbit') ?? '-', 'Tahun'),
       (
         Icons.verified_outlined,
-        d.sn('status') ?? d.sn('status_terakhir') ?? '-',
+        titleCase(d.sn('status') ?? d.sn('status_terakhir') ?? '-'),
         'Status'
       ),
-      (Icons.translate, d.sn('bahasa') ?? '-', 'Bahasa'),
+      (Icons.translate, titleCase(d.sn('bahasa') ?? '-'), 'Bahasa'),
     ];
     return [
       const Text('Tentang Dokumen',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
       const SizedBox(height: AppSpacing.md),
-      SizedBox(
-        height: 88,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: specs.length,
-          separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-          itemBuilder: (_, i) => SizedBox(
-              width: 124,
-              child: SpecCard(specs[i].$1, specs[i].$2, specs[i].$3)),
-        ),
+      // dua kolom, bukan deret mendatar: empat kartu terbaca sekaligus dan
+      // nilai panjang punya ruang dua baris alih-alih dipotong
+      LayoutBuilder(
+        builder: (context, c) {
+          final w = (c.maxWidth - AppSpacing.sm) / 2;
+          return Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              for (final s in specs)
+                SizedBox(
+                    width: w, height: 100, child: SpecCard(s.$1, s.$2, s.$3)),
+            ],
+          );
+        },
       ),
       if (abstrak != null) ...[
         const SizedBox(height: AppSpacing.lg),
@@ -673,7 +839,9 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     final url = utama?.sn('url');
     final st = d.m('statistik');
     return Material(
-      color: C.lightSurface,
+      color: Theme.of(context).brightness == Brightness.dark
+          ? C.darkSurface
+          : C.lightSurface,
       elevation: 8,
       shadowColor: C.ink.withValues(alpha: .12),
       child: SafeArea(
@@ -717,7 +885,8 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                                       url: url,
                                       title: utama!.sn('judul') ?? 'Dokumen')));
                         } else {
-                          downloadDoc(context, url);
+                          downloadDoc(context, url,
+                              title: utama!.sn('judul'));
                         }
                       },
               ),

@@ -119,12 +119,19 @@ class MobileApiController extends Controller
             'status'            => $d->status,
             'status_terakhir'   => $d->status_terakhir,
             'bidang_hukum'      => $d->bidang_hukum,
-            'abstrak_singkat'   => Str::limit(trim(strip_tags((string) tt($d, 'abstrak'))), 180),
+            'abstrak_singkat'   => $this->excerpt(tt($d, 'abstrak')),
             'gambar_sampul_url' => $this->imgUrl($d->gambar_sampul),
             'hit_see'           => (int) ($d->hit_see ?? 0),
             'hit_download'      => (int) ($d->hit_download ?? 0),
             'has_file'          => DB::table('data_lampiran')->where('id_dokumen', $d->id)->exists(),
         ];
+    }
+
+    /// Ringkasan teks dari HTML. Tag diganti spasi lebih dulu supaya
+    /// "</p><p>" tidak membuat akhir & awal paragraf menempel jadi satu kata.
+    private function excerpt($html): string
+    {
+        return Str::limit(Str::squish(strip_tags(str_replace('<', ' <', (string) $html))), 180);
     }
 
     private function newsListItem($b): array
@@ -134,7 +141,7 @@ class MobileApiController extends Controller
             'tanggal'   => $b->tanggal,
             'judul'     => tt($b, 'judul'),
             'image_url' => $this->imgUrl($b->image),
-            'ringkasan' => Str::limit(trim(strip_tags((string) tt($b, 'isi'))), 180),
+            'ringkasan' => $this->excerpt(tt($b, 'isi')),
         ];
     }
 
@@ -146,7 +153,7 @@ class MobileApiController extends Controller
             'judul'     => tt($p, 'judul'),
             'tag'       => $p->tag,
             'image_url' => $this->imgUrl($p->image),
-            'ringkasan' => Str::limit(trim(strip_tags((string) tt($p, 'isi'))), 180),
+            'ringkasan' => $this->excerpt(tt($p, 'isi')),
         ];
     }
 
@@ -193,27 +200,49 @@ class MobileApiController extends Controller
         ]]);
     }
 
+    /**
+     * Urutan "paling baru" yang tahan data hasil impor: banyak baris lama
+     * punya created_at kosong atau kembar, dan ORDER BY satu kolom seperti itu
+     * mengembalikan urutan yang tidak tentu. Tanggal terbit dipakai lebih dulu
+     * bila ada, lalu created_at, dan id sebagai pemutus supaya urutannya sama
+     * di setiap permintaan (halaman 2 tidak mengulang isi halaman 1).
+     *
+     * @param  string|null  $tanggal  kolom tanggal terbit; 'tanggal_penetapan'
+     *                                untuk dokumen, 'tanggal' untuk kabar
+     * @param  string       $prefix   awalan tabel bila kueri memakai join
+     */
+    private function terbaru($q, ?string $tanggal = null, string $prefix = '')
+    {
+        $created = $prefix . 'created_at';
+        // COALESCE saja, tanpa NULLIF: membandingkan kolom DATE dengan '' ditolak
+        // MySQL strict mode (SQLSTATE[HY000] 1525 Incorrect DATE value). Baris
+        // tanpa tanggal tetap turun ke bawah karena NULL selalu terakhir di DESC.
+        $q->orderByRaw($tanggal ? "COALESCE($tanggal, $created) DESC" : "$created DESC");
+
+        return $q->orderByDesc($prefix . 'id');
+    }
+
     public function home(Request $r)
     {
         $this->setLang($r);
 
         $narasi = DB::table('narasi')->first();
 
-        $peraturan = DB::table('document')->where('tipe_dokumen', 1)
-            ->orderByDesc('created_at')->limit(4)->get()
+        $peraturan = $this->terbaru(DB::table('document')->where('tipe_dokumen', 1), 'tanggal_penetapan')
+            ->limit(4)->get()
             ->map(fn ($d) => $this->docListItem($d));
 
-        $mono = DB::table('document')->where('tipe_dokumen', 2)->orderByDesc('created_at')->first();
+        $mono = $this->terbaru(DB::table('document')->where('tipe_dokumen', 2), 'tanggal_penetapan')->first();
 
-        $pengumuman = DB::table('pengumuman')->where('status', 1)
-            ->orderByDesc('created_at')->limit(3)->get()
+        $pengumuman = $this->terbaru(DB::table('pengumuman')->where('status', 1), 'tanggal')
+            ->limit(3)->get()
             ->map(fn ($p) => $this->annListItem($p));
 
-        $berita = DB::table('berita')->where('status', 1)
-            ->orderByDesc('created_at')->limit(3)->get()
+        $berita = $this->terbaru(DB::table('berita')->where('status', 1), 'tanggal')
+            ->limit(3)->get()
             ->map(fn ($b) => $this->newsListItem($b));
 
-        $video = DB::table('video')->orderByDesc('created_at')->limit(3)->get()
+        $video = $this->terbaru(DB::table('video'))->limit(3)->get()
             ->map(fn ($v) => $this->videoItem($v));
 
         $count = fn ($t) => DB::table('document')->where('tipe_dokumen', $t)->count();
@@ -260,7 +289,7 @@ class MobileApiController extends Controller
         if ($r->filled('tahun'))  $q->where('tahun_terbit', $r->tahun);
         if ($r->filled('status')) $q->where('status_terakhir', $r->status);
         if ($r->filled('nomor'))  $q->where('nomor_peraturan', $r->nomor);
-        $q->orderByDesc('created_at');
+        $this->terbaru($q, 'tanggal_penetapan');
 
         return response()->json($this->paginated($q, $r, fn ($d) => $this->docListItem($d)));
     }
@@ -389,7 +418,7 @@ class MobileApiController extends Controller
         $this->setLang($r);
         $q = DB::table('berita')->where('status', 1);
         if ($r->filled('q')) $q->where('judul', 'like', '%' . $r->q . '%');
-        $q->orderByDesc('created_at');
+        $this->terbaru($q, 'tanggal');
 
         return response()->json($this->paginated($q, $r, fn ($b) => $this->newsListItem($b)));
     }
@@ -420,7 +449,7 @@ class MobileApiController extends Controller
         $this->setLang($r);
         $q = DB::table('pengumuman')->where('status', 1);
         if ($r->filled('q')) $q->where('judul', 'like', '%' . $r->q . '%');
-        $q->orderByDesc('created_at');
+        $this->terbaru($q, 'tanggal');
 
         return response()->json($this->paginated($q, $r, fn ($p) => $this->annListItem($p)));
     }
@@ -463,7 +492,7 @@ class MobileApiController extends Controller
             ->select('informasi_hukum.*', 'jenis_informasi_hukum.singkatan as jenis_singkatan');
         if ($r->filled('type')) $q->where('informasi_hukum.jenis', $r->type);
         if ($r->filled('q'))    $q->where('informasi_hukum.judul', 'like', '%' . $r->q . '%');
-        $q->orderByDesc('informasi_hukum.created_at');
+        $this->terbaru($q, 'informasi_hukum.tanggal', 'informasi_hukum.');
 
         return response()->json($this->paginated($q, $r, fn ($x) => [
             'id'              => (int) $x->id,
@@ -499,7 +528,7 @@ class MobileApiController extends Controller
 
     public function videos(Request $r)
     {
-        $q = DB::table('video')->orderByDesc('created_at');
+        $q = $this->terbaru(DB::table('video'));
 
         return response()->json($this->paginated($q, $r, fn ($v) => $this->videoItem($v)));
     }

@@ -86,8 +86,14 @@ class Api {
         ? body.cast<String, dynamic>()
         : <String, dynamic>{'data': body};
     if (res.statusCode >= 400) {
+      // 5xx: pesan dari server bisa berisi jejak teknis (query SQL, path file)
+      // yang tidak berarti bagi pengguna dan membocorkan isi dalam aplikasi.
+      // 4xx tetap dipakai karena itu pesan fungsional ("Berita tidak ditemukan").
       throw ApiException(
-          json.sn('message') ?? 'Gagal memuat data (${res.statusCode}).',
+          res.statusCode >= 500
+              ? 'Server sedang bermasalah. Coba lagi sebentar lagi.'
+              : json.sn('message') ??
+                  'Gagal memuat data (${res.statusCode}).',
           res.statusCode);
     }
     return json;
@@ -184,8 +190,8 @@ class Api {
 
   Future<Json> newsDetail(int id) async => (await _get('/news/$id')).m('data');
 
-  Future<Paginated> announcements({int page = 1}) async =>
-      Paginated.of(await _get('/announcements', {'page': '$page'}));
+  Future<Paginated> announcements({int page = 1, String? q}) async =>
+      Paginated.of(await _get('/announcements', {'page': '$page', 'q': q}));
 
   Future<Json> announcementDetail(int id) async =>
       (await _get('/announcements/$id')).m('data');

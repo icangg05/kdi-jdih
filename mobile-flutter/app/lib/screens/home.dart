@@ -27,13 +27,8 @@ class HomeScreen extends StatelessWidget {
             ListenableBuilder(
               listenable: langNotifier,
               builder: (context, _) => Padding(
-                padding: const EdgeInsets.only(right: AppSpacing.sm),
-                child: TextButton.icon(
-                  onPressed: () => pickLang(context),
-                  icon: const Icon(Icons.translate, size: 18),
-                  label: Text(langNotifier.value.toUpperCase(),
-                      style: const TextStyle(fontSize: 12)),
-                ),
+                padding: const EdgeInsets.only(right: AppSpacing.lg),
+                child: Center(child: LangPill(onTap: () => pickLang(context))),
               ),
             ),
           ],
@@ -121,23 +116,44 @@ class HomeScreen extends StatelessWidget {
 }
 
 /// Satu kolom cari yang mengantar ke dua mode: teks dan Tanya AI.
-class _HomeSearchBar extends StatelessWidget {
+class _HomeSearchBar extends StatefulWidget {
   const _HomeSearchBar();
+
+  @override
+  State<_HomeSearchBar> createState() => _HomeSearchBarState();
+}
+
+class _HomeSearchBarState extends State<_HomeSearchBar> {
+  final _ctrl = TextEditingController();
+
+  void _go({bool ai = false}) {
+    FocusScope.of(context).unfocus();
+    _push(
+        context,
+        SearchScreen(
+            showBack: true, initialAi: ai, initialQuery: _ctrl.text.trim()));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: TextField(
-          readOnly: true,
-          onTap: () => _push(context, const SearchScreen(showBack: true)),
+          controller: _ctrl,
+          textInputAction: TextInputAction.search,
+          onSubmitted: (_) => _go(),
           decoration: InputDecoration(
             hintText: 'Cari produk hukum atau tanya AI...',
             prefixIcon: const Icon(Icons.search),
             suffixIcon: IconButton(
               tooltip: 'Tanya AI',
               icon: const Icon(Icons.auto_awesome, color: C.primaryInk),
-              onPressed: () => _push(context,
-                  const SearchScreen(showBack: true, initialAi: true)),
+              onPressed: () => _go(ai: true),
             ),
             fillColor: C.lightSurface,
             border: const OutlineInputBorder(

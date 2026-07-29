@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:jdih_kendari/api.dart';
 import 'package:jdih_kendari/screens/doc_view.dart';
 import 'package:jdih_kendari/screens/documents.dart';
+import 'package:jdih_kendari/screens/kabar.dart';
 import 'package:jdih_kendari/screens/statistik.dart';
 import 'package:jdih_kendari/theme.dart';
 import 'package:jdih_kendari/widgets.dart';
@@ -39,6 +40,20 @@ void main() {
     expect(docFileName('https://h'), 'dokumen.pdf');
     expect(isPdfUrl('https://h/a/x.PDF'), true);
     expect(isPdfUrl('https://h/a/x.docx'), false);
+    expect(docKindLabel('https://h/a/x.pdf'), startsWith('Dokumen PDF'));
+    expect(docKindLabel('https://h/a/x.docx'), 'Berkas DOCX · unduh untuk membuka');
+  });
+
+  test('nama berkas unduhan dibersihkan dan dipangkas', () {
+    const url = 'https://h/storage/dokumen/1690_final(1).pdf';
+    expect(downloadFileName(url, 'Perda No. 5/2023 : Retribusi*'),
+        'Perda No. 5 2023 Retribusi.pdf');
+    // judul kosong / habis dibersihkan -> pakai nama asli di server
+    expect(downloadFileName(url, '   '), '1690_final(1).pdf');
+    expect(downloadFileName(url, '///'), '1690_final(1).pdf');
+    final panjang = downloadFileName(url, 'A' * 200);
+    expect(panjang.length, 64);
+    expect(panjang.endsWith('.pdf'), true);
   });
 
   testWidgets('kartu utama render tanpa overflow', (tester) async {
@@ -67,12 +82,35 @@ void main() {
       ),
     ));
     await tester.pump();
-    expect(find.text('PERDA'), findsOneWidget);
-    // gulir sampai tile berkas: ListView membangun item secara malas
-    await tester.scrollUntilVisible(find.text('perda-5-2023.pdf'), 300,
+    // JenisChip menormalkan jenis ke Title Case: 'PERDA' -> 'Perda'
+    expect(find.text('Perda'), findsOneWidget);
+    // gulir sampai tile berkas: ListView membangun item secara malas.
+    // Nama file mentah diganti keterangan jenis berkas (docKindLabel).
+    final berkas = find.text('Dokumen PDF · dapat dibaca di aplikasi');
+    await tester.scrollUntilVisible(berkas, 300,
         scrollable: find.byType(Scrollable).first);
-    expect(find.text('perda-5-2023.pdf'), findsOneWidget);
-    expect(find.text('Tanya AI Sekarang'), findsOneWidget);
+    expect(berkas, findsOneWidget);
+    expect(find.text('Cari dengan AI'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('kartu kabar: tinggi seragam berapa pun panjang isinya',
+      (tester) async {
+    const pendek = <String, dynamic>{'id': 1, 'judul': 'Rapat', 'tanggal': '2025-06-08'};
+    final panjang = {..._berita, 'id': 2, 'tag': 'Pemerintahan'};
+    await tester.pumpWidget(MaterialApp(
+      theme: appTheme(Brightness.light),
+      home: Scaffold(
+        body: ListView(padding: const EdgeInsets.all(16), children: [
+          MediaCard(pendek, onTap: () {}),
+          const SizedBox(height: 12),
+          MediaCard(panjang, badge: 'Pemerintahan', onTap: () {}),
+        ]),
+      ),
+    ));
+    await tester.pump();
+    expect(tester.getSize(find.byType(MediaCard).at(0)).height,
+        tester.getSize(find.byType(MediaCard).at(1)).height);
     expect(tester.takeException(), isNull);
   });
 
