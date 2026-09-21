@@ -48,7 +48,7 @@
 		<div class="section ber-form">
 			<form class="form-horizontal"
 				action="{{ $isCreate ? route('backend.berita.store') : route('backend.berita.update', $data->id) }}"
-				method="POST" enctype="multipart/form-data">
+				method="POST" enctype="multipart/form-data" data-once>
 				@csrf
 				@if (!$isCreate)
 					@method('PATCH')

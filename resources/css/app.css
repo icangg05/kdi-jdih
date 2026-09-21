@@ -252,3 +252,12 @@ body.high-contrast .blur-3xl {
 /* kontras tinggi menang atas mode malam */
 .dark body.high-contrast { background-color: #000; }
 .dark body.high-contrast :is(.bg-white, .bg-gray-50, .bg-slate-50) { background-color: #000; }
+
+/* ---- Konten editor Quill (narasi, berita, pengumuman, dst.) ----
+   Perataan disimpan sebagai kelas ql-align-*. Gambar dibuat inline seperti di
+   editor agar ikut perataan paragrafnya (preflight menjadikannya block). */
+.ql-align-left { text-align: left; }
+.ql-align-center { text-align: center; }
+.ql-align-right { text-align: right; }
+.ql-align-justify { text-align: justify; }
+.prose p img { display: inline; margin: 0; }

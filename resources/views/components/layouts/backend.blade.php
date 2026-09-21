@@ -137,6 +137,12 @@
 			<x-backend.breadcrumb :title="$title" :listNav="$listNav" />
 
 			<section class="content">
+				@if (session('warning'))
+					<div class="alert alert-warning alert-dismissible">
+						<button type="button" class="close" data-dismiss="alert" aria-label="Tutup">&times;</button>
+						<i class="icon fa fa-warning"></i> {{ session('warning') }}
+					</div>
+				@endif
 				{{ $slot }}
 			</section>
 		</div>
@@ -171,6 +177,38 @@
 
 
 	@stack('script')
+
+	<script>
+		// Form ber-data-once hanya terkirim sekali: klik Simpan berkali-kali tidak lagi
+		// membuat data ganda. Dipasang paling akhir agar submit yang sudah dibatalkan
+		// validasi lain (editor wajib diisi, upload gambar belum selesai) tidak mengunci tombol.
+		document.addEventListener('submit', function(e) {
+			var form = e.target;
+			if (!form.hasAttribute('data-once') || e.defaultPrevented) return;
+			if (form.dataset.sending) return e.preventDefault();
+			form.dataset.sending = '1';
+			// Ditunda: tombol yang di-disable saat event submit ikut hilang dari data kiriman.
+			setTimeout(function() {
+				form.querySelectorAll('button[type=submit]').forEach(function(btn) {
+					btn.dataset.html = btn.innerHTML;
+					btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan...';
+					btn.disabled = true;
+				});
+			});
+		});
+
+		// Kembali lewat tombol Back (halaman dipulihkan dari cache): aktifkan lagi tombolnya.
+		window.addEventListener('pageshow', function(e) {
+			if (!e.persisted) return;
+			document.querySelectorAll('form[data-sending]').forEach(function(form) {
+				delete form.dataset.sending;
+				form.querySelectorAll('button[type=submit]').forEach(function(btn) {
+					btn.innerHTML = btn.dataset.html;
+					btn.disabled = false;
+				});
+			});
+		});
+	</script>
 </body>
 
 </html>

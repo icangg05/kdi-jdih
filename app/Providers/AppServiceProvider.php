@@ -58,6 +58,9 @@ class AppServiceProvider extends ServiceProvider
         Pengumuman::observe(PengumumanObserver::class);
         Document::observe(DocumentObserver::class);
         DataLampiran::observe(DataLampiranObserver::class);
+
+        // Hapus file gambar editor saat dibuang dari isi / datanya dihapus
+        \App\Services\EditorImages::register();
     }
 
     /**

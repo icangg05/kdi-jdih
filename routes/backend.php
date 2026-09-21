@@ -17,6 +17,7 @@ use App\Http\Controllers\Backend\FormHasilUjiMateriController;
 use App\Http\Controllers\Backend\FormStatusController;
 use App\Http\Controllers\Backend\MonografiController;
 use App\Http\Controllers\Backend\NarasiController;
+use App\Http\Controllers\Backend\EditorImageController;
 use App\Http\Controllers\Backend\ProfilController;
 use App\Http\Controllers\Backend\PutusanController;
 use App\Http\Controllers\Backend\UserController;
@@ -86,6 +87,11 @@ Route::middleware('auth')->prefix('dashboard')->name('backend.')->group(function
     ->name('narasi.edit');
   Route::patch('/narasi/{id}/update', [NarasiController::class, 'update'])
     ->name('narasi.update');
+
+
+  // Upload gambar dari editor Quill (dipakai semua form)
+  Route::post('/editor/upload-image', EditorImageController::class)
+    ->name('editor.upload-image');
 
 
   // Route form peraturan terkait

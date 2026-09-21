@@ -94,8 +94,9 @@
 					<!-- CONTENT -->
 					{{-- Narasi disimpan sebagai paste-an Word: tiap <span> membawa inline
 					     font-family (Tahoma/Verdana/Helvetica/Arial) & font-size pt yang
-					     menimpa Source Sans 3 — dinetralkan agar ikut tipografi situs. --}}
-					<div class="relative prose prose-slate max-w-none text-center
+					     menimpa Source Sans 3 — dinetralkan agar ikut tipografi situs.
+					     Perataan tidak dipaksa di sini: ikut kelas ql-align-* dari editor. --}}
+					<div class="relative prose prose-slate max-w-none
 						[&_*]:[font-family:inherit]!
 						[&_span]:[font-size:inherit]!
 						[&_span]:[background-color:transparent]!">
