@@ -152,3 +152,18 @@ npm run build                      # build aset produksi
 ---
 
 © 2026 Pemerintah Kota Kendari — Bagian Hukum Setda Kota Kendari.
+
+Dua cara, dua-duanya sudah saya jalankan dan berhasil di repo ini.
+
+Cara 1 — pakai container app yang sudah ada (image-nya sudah berisi nodejs npm, lihat Dockerfile:7, dan .:/app sudah di-mount):
+
+
+docker compose exec -u 1000:1000 app npm run build
+Cara 2 — image node sekali pakai, tanpa bergantung pada image app:
+
+
+docker run --rm -v "$PWD":/app -w /app -u $(id -u):$(id -g) node:20-alpine npm run build
+Kuncinya -u $(id -u):$(id -g). Tanpa itu container jalan sebagai root dan hasil build jadi milik root — itu persis penyebab error EACCES ... public/build/assets tadi. Karena public/build sudah terlanjur root, saya perbaiki sekali (tanpa sudo host):
+
+
+docker compose exec app chown -R 1000:1000 /app/public/build

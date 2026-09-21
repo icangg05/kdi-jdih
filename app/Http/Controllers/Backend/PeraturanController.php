@@ -86,6 +86,14 @@ class PeraturanController extends Controller
       ->select('peraturan_terkait.*', 'document.judul as judul_peraturan_terkait')
       ->get();
 
+    // Query data peraturan pelaksana
+    $dataPeraturanPelaksana = DB::table('peraturan_pelaksana')
+      ->where('id_dokumen', (int) $id)
+      ->leftJoin('document', 'peraturan_pelaksana.peraturan_pelaksana', '=', 'document.id')
+      ->orderBy('peraturan_pelaksana.urutan')
+      ->select('peraturan_pelaksana.*', 'document.judul as judul_peraturan_pelaksana')
+      ->get();
+
     // Query data hasil uji materi
     $dataHasilUjiMateri = HasilUjiMateri::where('id_dokumen', (int) $id)->get();
 
@@ -102,6 +110,7 @@ class PeraturanController extends Controller
       'title',
       'peraturan',
       'dataPeraturanTerkait',
+      'dataPeraturanPelaksana',
       'dataHasilUjiMateri',
       'dataStatus',
     ));

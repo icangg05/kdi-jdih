@@ -9,6 +9,7 @@ use App\Http\Controllers\Backend\PeraturanController;
 use App\Http\Controllers\Backend\VideoController;
 use App\Http\Controllers\Backend\SurveyController;
 use App\Http\Controllers\Backend\FormController;
+use App\Http\Controllers\Backend\FormPeraturanPelaksanaController;
 use App\Http\Controllers\Backend\FormPeraturanTerkaitController;
 use App\Http\Controllers\Backend\BeritaController;
 use App\Http\Controllers\Backend\DashboardController;
@@ -90,6 +91,12 @@ Route::middleware('auth')->prefix('dashboard')->name('backend.')->group(function
   // Route form peraturan terkait
   Route::prefix('form/{idDokumen}')->group(function () {
     Route::resource('form-peraturan-terkait', FormPeraturanTerkaitController::class)->except('index');
+  });
+
+
+  // Route form peraturan pelaksana
+  Route::prefix('form/{idDokumen}')->group(function () {
+    Route::resource('form-peraturan-pelaksana', FormPeraturanPelaksanaController::class)->except('index');
   });
 
 

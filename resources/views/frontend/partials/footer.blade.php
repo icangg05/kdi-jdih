@@ -51,21 +51,21 @@
 					{{ __('JDIH Kota Kendari hadir untuk meningkatkan pelayanan kepada masyarakat atas kebutuhan dokumentasi dan informasi hukum secara lengkap, akurat, mudah, dan cepat.') }}
 				</p>
 
-				{{-- Aplikasi mobile: belum rilis, jadi kartu statis (bukan tautan) --}}
-				<div class="mt-6 flex items-center gap-3 rounded bg-white/5 ring-1 ring-white/10 px-4 py-3 max-w-[42ch]">
+				{{-- Aplikasi mobile sudah rilis di Google Play --}}
+				<a href="https://play.google.com/store/apps/details?id=id.go.kendarikota.jdih"
+					target="_blank" rel="noopener noreferrer"
+					class="group mt-6 flex items-center gap-3 rounded bg-white/5 ring-1 ring-white/10 px-4 py-3 max-w-[42ch] transition hover:bg-white/10 hover:ring-primary/40">
 					<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-primary/15 text-lg text-primary ring-1 ring-primary/25">
 						<i class="fa-brands fa-google-play"></i>
 					</span>
 					<div class="min-w-0">
 						<p class="text-xs text-white/50">{{ __('Aplikasi Mobile') }}</p>
 						<p class="text-sm font-semibold text-white">
-							{{ __('Segera Hadir') }}
-							<span class="ml-1.5 align-middle inline-flex items-center rounded bg-primary/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-								{{ __('Coming Soon') }}
-							</span>
+							{{ __('Unduh di Google Play') }}
+							<i class="fa-solid fa-arrow-up-right-from-square ml-1 text-[10px] text-primary transition group-hover:translate-x-0.5"></i>
 						</p>
 					</div>
-				</div>
+				</a>
 			</div>
 
 			<!-- Tautan -->

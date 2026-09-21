@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Document;
+use App\Models\PeraturanPelaksana;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -93,6 +94,9 @@ class DocumentObserver
         DB::table('data_lampiran')->where('id', $item->id)->delete();
       }
     }
+
+    // Hapus per model (bukan query massal) supaya hook `deleted` ikut membuang berkas unggahannya
+    PeraturanPelaksana::where('id_dokumen', $document->id)->get()->each->delete();
   }
 
   /** 

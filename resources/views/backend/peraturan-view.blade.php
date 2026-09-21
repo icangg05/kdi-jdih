@@ -15,6 +15,12 @@
 				href="#tab_7"
 				data-toggle="tab">Hasil Uji Materi</a>
 		</li>
+		<li class="tab-item" data-tab="dataPeraturanPelaksana"
+			onclick="localStorage.setItem('tabActive', 'dataPeraturanPelaksana');">
+			<a
+				href="#tab_9"
+				data-toggle="tab">Peraturan Pelaksana</a>
+		</li>
 		<li class="tab-item" data-tab="dataStatus" onclick="localStorage.setItem('tabActive', 'dataStatus');">
 			<a
 				href="#tab_8"
@@ -308,6 +314,77 @@
 							@empty
 								<tr>
 									<td colspan="5">
+										<div class="empty text-center">No results found.</div>
+									</td>
+								</tr>
+							@endforelse
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{{-- Tab data peraturan pelaksana --}}
+	<div class="tab-pane tab-item" data-tab="dataPeraturanPelaksana" id="tab_9">
+		<div class="box-header">
+			<a class="btn btn-success btn-flat"
+				href="{{ route('backend.form-peraturan-pelaksana.create', $peraturan->id) }}"><i
+					class="fa fa-plus-circle"></i> Tambah Peraturan Pelaksana</a>
+			<p></p>
+			<div id="w19" class="grid-view is-bs3 hide-resize">
+				<div id="w19-container" class="table-responsive kv-grid-container">
+					<table class="kv-grid-table table table-bordered table-striped kv-table-wrap">
+						<thead>
+							<tr>
+								<th class="text-center" style="width: 60px;">No</th>
+								<th>Peraturan Pelaksana</th>
+								<th style="min-width: 150px;">Catatan</th>
+								<th class="text-center" style="width: 150px;">Aksi</th>
+							</tr>
+						</thead>
+						<tbody>
+							@forelse ($dataPeraturanPelaksana as $item)
+								<tr>
+									<td class="text-center">{{ $loop->iteration }}.</td>
+									<td>
+										@if (filled($item->peraturan_pelaksana))
+											<a href="{{ route('backend.peraturan.show', $item->peraturan_pelaksana) }}">{{ $item->judul_peraturan_pelaksana }}</a>
+										@else
+											{{ $item->judul_pelaksana }}
+											@if (checkFilePath(config('app.doc_directory'), $item->file_pelaksana))
+												<br><a href="{{ asset('storage/' . config('app.doc_directory') . $item->file_pelaksana) }}">
+													<i class="fa fa-file-pdf-o"></i> {{ $item->file_pelaksana }}
+												</a>
+											@else
+												<br><small class="text-danger">Berkas tidak ditemukan</small>
+											@endif
+										@endif
+									</td>
+									<td>{{ !empty($item->catatan_pelaksana) ? $item->catatan_pelaksana : '—' }}</td>
+									<td class="text-center">
+										<a href="{{ route('backend.form-peraturan-pelaksana.edit', [$peraturan->id, $item->id]) }}"
+											class="btn btn-sm btn-warning">
+											<b class="fa fa-pencil"></b>
+										</a>&nbsp;
+
+										<form style="display: inline"
+											action="{{ route('backend.form-peraturan-pelaksana.destroy', [$peraturan->id, $item->id]) }}"
+											method="post">
+											@csrf
+											@method('delete')
+
+											<button style="outline: none;"
+												type="submit"
+												class="btn btn-sm btn-danger" onclick="return confirm('Yakin akan menghapus data ini?')">
+												<b class="fa fa-trash"></b>
+											</button>
+										</form>
+									</td>
+								</tr>
+							@empty
+								<tr>
+									<td colspan="4">
 										<div class="empty text-center">No results found.</div>
 									</td>
 								</tr>
