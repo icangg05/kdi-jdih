@@ -2,7 +2,6 @@
     <!-- Wajib untuk release build: template Flutter hanya menaruh ini di manifest debug -->
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:usesCleartextTraffic="true"
         android:label="JDIH Kendari"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

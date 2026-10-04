@@ -1,11 +1,19 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Kunci upload Play Store milik app yang sudah rilis (id.go.kendarikota.jdih).
+// key.properties + *.jks sengaja tidak di-commit (.gitignore).
+val keystoreProperties = Properties().apply {
+    rootProject.file("key.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+
 android {
-    namespace = "go.kendarikota.jdih.jdih_kendari"
+    namespace = "id.go.kendarikota.jdih"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,8 +23,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "go.kendarikota.jdih.jdih_kendari"
+        // sama dengan app versi pertama di Play Store, supaya terpasang sebagai update
+        applicationId = "id.go.kendarikota.jdih"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -25,11 +33,25 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            keystoreProperties.getProperty("storeFile")?.let { storeFile = file(it) }
+            storePassword = keystoreProperties.getProperty("storePassword")
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // tanpa key.properties (mesin lain) jatuh ke kunci debug agar build
+            // tetap jalan — hasilnya TIDAK bisa diunggah ke Play Store
+            signingConfig = if (keystoreProperties.isEmpty) {
+                logger.warn("key.properties tidak ada: release ditandatangani kunci debug")
+                signingConfigs.getByName("debug")
+            } else {
+                signingConfigs.getByName("release")
+            }
         }
     }
 }

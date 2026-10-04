@@ -199,6 +199,8 @@ Respons memakai envelope daftar (`data` + `pagination`).
     "status": "Berlaku",
     "status_terakhir": null,
     "abstrak": "<p>...</p>",
+    "abstrak_url": null,
+    "share_url": "https://.../id/dokumen/peraturan/{hashid}",
     "gambar_sampul_url": "https://.../storage/gambar/sampul.jpg",
 
     "isbn": null,
@@ -279,14 +281,16 @@ dokumen — `documents` akan kosong dan AI menjawab dari konteks percakapan.
 ```json
 { "id": 45, "tanggal": "2024-02-26", "judul": "...", "image_url": "https://.../storage/gambar/img.jpg", "ringkasan": "180 char teks polos ..." }
 ```
-**NewsDetail:** `{ "id", "tanggal", "judul", "isi": "<p>HTML</p>", "image_url" }`.
+**NewsDetail:** `{ "id", "tanggal", "judul", "isi": "<p>HTML</p>", "image_url", "share_url" }`.
+
+`share_url` (berita, pengumuman, dokumen) = URL halaman web publik (ID di-encode Hashids) untuk tombol Bagikan. Dokumen: bila kolom `abstrak` berisi nama file PDF (data lama), `abstrak` = null dan `abstrak_url` = URL file-nya (null bila file tak ada).
 
 ### 2.9 Pengumuman — `GET /api/v1/announcements` & `/announcements/{id}`
 **AnnouncementListItem:**
 ```json
 { "id": 12, "tanggal": "2024-01-10", "judul": "...", "tag": "Putusan", "image_url": "https://.../storage/gambar/x.jpg", "ringkasan": "..." }
 ```
-**AnnouncementDetail:** tambahkan `"isi": "<p>HTML</p>"` dan `"dokumen_url": "https://.../storage/dokumen/x.pdf"` (nullable).
+**AnnouncementDetail:** tambahkan `"isi": "<p>HTML</p>"`, `"dokumen_url": "https://.../storage/dokumen/x.pdf"` (nullable), dan `"share_url"`.
 
 ### 2.10 Informasi Hukum
 - `GET /api/v1/legal-info/types` → `{ "data": [ {id, singkatan, nama} ] }`

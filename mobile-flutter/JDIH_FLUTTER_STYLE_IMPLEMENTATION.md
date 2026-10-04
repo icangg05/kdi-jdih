@@ -1,5 +1,12 @@
 # Implementasi Branding Flutter — JDIH Kota Kendari
 
+> **Tidak berlaku lagi (2026-10-05).** Palet oranye/emas/krem dan font Plus
+> Jakarta Sans di bawah sudah diganti. Acuan sekarang: warna web
+> (`DESIGN.md`, `resources/css/app.css`) dan `03-DESIGN-SYSTEM.md` — Kendari
+> Amber `#FF891E` + Civic Blue `#015BA5` di atas netral slate; font Source
+> Sans 3 (UI) + Source Serif 4 (teks bacaan). Token ada di
+> `app/lib/theme.dart`.
+
 Dokumen ini merangkum konfigurasi package, font, dan color palette untuk aplikasi **JDIH Kota Kendari**.
 
 ## 1. Keputusan desain

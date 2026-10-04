@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Vinkla\Hashids\Facades\Hashids;
 
 /**
  * API read-only untuk aplikasi mobile (frontend publik).
@@ -86,6 +87,18 @@ class MobileApiController extends Controller
         }
     }
 
+    /** Tautan halaman web publik untuk dibagikan dari app (ID web memakai Hashids). */
+    private function shareUrl(string $route, int $id, array $params = []): string
+    {
+        return route("frontend.$route", ['locale' => App::getLocale(), ...$params, 'id' => Hashids::encode($id)]);
+    }
+
+    /** Kolom `abstrak` dokumen bisa berisi nama file PDF di dir dokumen/ (mirror dokumen-show web), bukan teks. */
+    private function isPdfName(?string $v): bool
+    {
+        return (bool) preg_match('/^[^<>\n]{1,200}\.pdf$/i', trim((string) $v));
+    }
+
     /** Paginasi seragam dari query builder. */
     private function paginated($builder, Request $r, callable $map): array
     {
@@ -119,7 +132,7 @@ class MobileApiController extends Controller
             'status'            => $d->status,
             'status_terakhir'   => $d->status_terakhir,
             'bidang_hukum'      => $d->bidang_hukum,
-            'abstrak_singkat'   => $this->excerpt(tt($d, 'abstrak')),
+            'abstrak_singkat'   => $this->isPdfName($d->abstrak) ? '' : $this->excerpt(tt($d, 'abstrak')),
             'gambar_sampul_url' => $this->imgUrl($d->gambar_sampul),
             'hit_see'           => (int) ($d->hit_see ?? 0),
             'hit_download'      => (int) ($d->hit_download ?? 0),
@@ -303,6 +316,7 @@ class MobileApiController extends Controller
         }
 
         hitDocument($id, 'hit_see');
+        $abstrakPdf = $this->isPdfName($d->abstrak);
 
         $subjek = DB::table('data_subyek')->where('id_dokumen', $id)->pluck('subyek')->filter()->values();
 
@@ -342,7 +356,9 @@ class MobileApiController extends Controller
             'penandatanganan'      => $d->penandatanganan,
             'status'               => $d->status,
             'status_terakhir'      => $d->status_terakhir,
-            'abstrak'              => tt($d, 'abstrak'),
+            'abstrak'              => $abstrakPdf ? null : tt($d, 'abstrak'),
+            'abstrak_url'          => $abstrakPdf ? $this->docUrl(trim($d->abstrak)) : null,
+            'share_url'            => $this->shareUrl('dokumen.show', $d->id, ['kategori' => self::CATS[$d->tipe_dokumen] ?? 'peraturan']),
             'gambar_sampul_url'    => $this->imgUrl($d->gambar_sampul),
             // monografi/artikel
             'isbn'                 => $d->isbn,
@@ -437,6 +453,7 @@ class MobileApiController extends Controller
             'judul'     => tt($b, 'judul'),
             'isi'       => tt($b, 'isi'),
             'image_url' => $this->imgUrl($b->image),
+            'share_url' => $this->shareUrl('berita.show', $b->id),
         ]]);
     }
 
@@ -470,6 +487,7 @@ class MobileApiController extends Controller
             'isi'         => tt($p, 'isi'),
             'image_url'   => $this->imgUrl($p->image),
             'dokumen_url' => $this->docUrl($p->dokumen),
+            'share_url'   => $this->shareUrl('pengumuman.show', $p->id),
         ]]);
     }
 

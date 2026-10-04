@@ -1,32 +1,451 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-18T00:00:00Z",
+  "generatedAt": "2026-10-05T00:00:00Z",
   "title": "Design System: JDIH Kota Kendari",
   "extensions": {
     "colorMeta": {
-      "primary": { "role": "primary", "displayName": "Kendari Amber", "canonical": "#ff891e", "tonalRamp": ["#3d1f04", "#5c2f06", "#8a460a", "#b85d0e", "#e57411", "#ff891e", "#ffab5c", "#ffd0a3"] },
-      "accent": { "role": "secondary", "displayName": "Civic Blue", "canonical": "#015ba5", "tonalRamp": ["#021a30", "#032948", "#043a66", "#014f8e", "#015ba5", "#2a7fc0", "#6ba8d6", "#aecfe9"] },
-      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#1e293b", "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"] },
-      "surface": { "role": "neutral", "displayName": "Reading Room White", "canonical": "#ffffff", "tonalRamp": ["#e2e8f0", "#eef2f6", "#f1f5f9", "#f8fafc", "#ffffff", "#ffffff", "#ffffff", "#ffffff"] }
+      "primary": {
+        "role": "primary",
+        "displayName": "Kendari Amber",
+        "canonical": "#ff891e",
+        "tonalRamp": [
+          "#170600",
+          "#3c1b01",
+          "#663202",
+          "#944b03",
+          "#c46506",
+          "#f6810a",
+          "#feb787",
+          "#ffeadd"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Amber Deep",
+        "canonical": "#ea8221",
+        "tonalRamp": [
+          "#170700",
+          "#3b1b01",
+          "#653301",
+          "#924c01",
+          "#c26700",
+          "#ef8628",
+          "#ffb783",
+          "#ffeadc"
+        ]
+      },
+      "primary-ink": {
+        "role": "primary",
+        "displayName": "Amber Ink",
+        "canonical": "#a65307",
+        "tonalRamp": [
+          "#170600",
+          "#3d1a00",
+          "#673102",
+          "#964901",
+          "#be6929",
+          "#e58c4f",
+          "#feb78a",
+          "#ffeadd"
+        ]
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Civic Blue",
+        "canonical": "#015ba5",
+        "tonalRamp": [
+          "#000b1d",
+          "#00254a",
+          "#02427b",
+          "#1062ad",
+          "#3a85d3",
+          "#5fa9f9",
+          "#a2cdff",
+          "#e4f0fe"
+        ]
+      },
+      "accent-hover": {
+        "role": "secondary",
+        "displayName": "Civic Blue Deep",
+        "canonical": "#014f8e",
+        "tonalRamp": [
+          "#000b1d",
+          "#002649",
+          "#024379",
+          "#2063a4",
+          "#4486c9",
+          "#67a9ef",
+          "#a1cefe",
+          "#e4f0fe"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0f172a",
+        "tonalRamp": [
+          "#040a1c",
+          "#1c2539",
+          "#384258",
+          "#566178",
+          "#77829b",
+          "#99a5bf",
+          "#bdc9e4",
+          "#e7effe"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "#1e293b",
+        "tonalRamp": [
+          "#030b1a",
+          "#1a2537",
+          "#374256",
+          "#556277",
+          "#768399",
+          "#98a6bd",
+          "#bbcae2",
+          "#e6effe"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "#475569",
+        "tonalRamp": [
+          "#030b1b",
+          "#192637",
+          "#354356",
+          "#546277",
+          "#748499",
+          "#97a6bd",
+          "#bacbe2",
+          "#e5efff"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Reading Room White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "surface-muted": {
+        "role": "neutral",
+        "displayName": "Cool Page",
+        "canonical": "#f8fafc",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#242527",
+          "#414244",
+          "#606163",
+          "#818284",
+          "#a3a5a7",
+          "#c7c9cb",
+          "#edeff1"
+        ]
+      },
+      "surface-subtle": {
+        "role": "neutral",
+        "displayName": "Second Layer",
+        "canonical": "#f1f5f9",
+        "tonalRamp": [
+          "#090b0e",
+          "#222528",
+          "#3f4246",
+          "#5e6265",
+          "#7f8386",
+          "#a2a5a9",
+          "#c6cacd",
+          "#ebeff3"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#e2e8f0",
+        "tonalRamp": [
+          "#080b10",
+          "#21252b",
+          "#3e4249",
+          "#5d6268",
+          "#7d838a",
+          "#a0a6ad",
+          "#c4cad1",
+          "#e9eff7"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Control Edge",
+        "canonical": "#7c8aa0",
+        "tonalRamp": [
+          "#030b1a",
+          "#1a2537",
+          "#364356",
+          "#556277",
+          "#758399",
+          "#98a6bd",
+          "#bbcae2",
+          "#e6effe"
+        ]
+      },
+      "status-active": {
+        "role": "status",
+        "displayName": "Berlaku",
+        "canonical": "#166534",
+        "tonalRamp": [
+          "#001004",
+          "#002e12",
+          "#015024",
+          "#277240",
+          "#4b9561",
+          "#6fb982",
+          "#93dea5",
+          "#c8ffd4"
+        ]
+      },
+      "status-active-bg": {
+        "role": "status",
+        "displayName": "Berlaku Tint",
+        "canonical": "#dcfce7",
+        "tonalRamp": [
+          "#000f06",
+          "#112b1c",
+          "#2e4939",
+          "#4d6957",
+          "#6d8b78",
+          "#90ae9a",
+          "#b3d2be",
+          "#d8f8e3"
+        ]
+      },
+      "status-changed": {
+        "role": "status",
+        "displayName": "Diubah",
+        "canonical": "#854d0e",
+        "tonalRamp": [
+          "#150700",
+          "#391d01",
+          "#623500",
+          "#8a5215",
+          "#ae733c",
+          "#d4965f",
+          "#faba82",
+          "#ffeada"
+        ]
+      },
+      "status-changed-bg": {
+        "role": "status",
+        "displayName": "Diubah Tint",
+        "canonical": "#fef9c3",
+        "tonalRamp": [
+          "#0e0c00",
+          "#2a2600",
+          "#494310",
+          "#686332",
+          "#8a8453",
+          "#aca774",
+          "#d1cc97",
+          "#f6f1bc"
+        ]
+      },
+      "status-revoked": {
+        "role": "status",
+        "displayName": "Dicabut / Error",
+        "canonical": "#991b1b",
+        "tonalRamp": [
+          "#1f0001",
+          "#4d0003",
+          "#80010a",
+          "#aa2e2a",
+          "#d1534b",
+          "#fa786c",
+          "#feb3aa",
+          "#fee9e6"
+        ]
+      },
+      "status-revoked-bg": {
+        "role": "status",
+        "displayName": "Dicabut Tint",
+        "canonical": "#fee2e2",
+        "tonalRamp": [
+          "#160607",
+          "#331f1f",
+          "#513c3c",
+          "#725a5b",
+          "#947b7b",
+          "#b89e9e",
+          "#ddc2c2",
+          "#ffe8e8"
+        ]
+      },
+      "overlay": {
+        "role": "neutral",
+        "displayName": "Hero Overlay",
+        "canonical": "#000000a6"
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Hero / page headline. Restrained; a public portal informs, not shouts." },
-      "headline": { "displayName": "Headline", "purpose": "Section titles on landing and index pages." },
-      "title": { "displayName": "Title", "purpose": "Card and document-list titles." },
-      "body": { "displayName": "Body", "purpose": "Descriptions, metadata, prose. Cap prose at 65-75ch." },
-      "label": { "displayName": "Label", "purpose": "Buttons, eyebrows, tags — often uppercase with tracking." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "The single headline number on a screen."
+      },
+      "judul-detail": {
+        "displayName": "Judul Detail",
+        "purpose": "Detail page titles (serif, app)."
+      },
+      "judul": {
+        "displayName": "Judul",
+        "purpose": "Screen, section, and app bar titles."
+      },
+      "angka": {
+        "displayName": "Angka",
+        "purpose": "Document numbers and KPI values."
+      },
+      "subjudul": {
+        "displayName": "Subjudul",
+        "purpose": "Subsection and featured-card titles."
+      },
+      "judul-item": {
+        "displayName": "Judul Item",
+        "purpose": "Card titles in lists."
+      },
+      "bacaan": {
+        "displayName": "Bacaan",
+        "purpose": "Long reading text (serif, app), max 720dp column."
+      },
+      "isi": {
+        "displayName": "Isi",
+        "purpose": "Ordinary UI text."
+      },
+      "isi-kecil": {
+        "displayName": "Isi Kecil",
+        "purpose": "Metadata, summaries, notes."
+      },
+      "label-besar": {
+        "displayName": "Label Besar",
+        "purpose": "Button labels."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Chips, pills, nav labels."
+      },
+      "label-kecil": {
+        "displayName": "Label Kecil",
+        "purpose": "Badges, tags, chart axes. Size floor."
+      }
     },
     "shadows": [
-      { "name": "resting-card", "value": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)", "purpose": "Separate a white card from the page at rest." },
-      { "name": "hover-lift", "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", "purpose": "Card hover, paired with translateY(-2px)." },
-      { "name": "floating-layer", "value": "0 25px 50px -12px rgb(0 0 0 / 0.25)", "purpose": "Hero search box, dropdowns, modals that float above the page." }
+      {
+        "name": "floating-nav",
+        "value": "0 4px 16px rgba(15, 23, 42, 0.08)",
+        "purpose": "App floating bottom bar; the only resting shadow in the app."
+      },
+      {
+        "name": "ai-lift",
+        "value": "0 3px 8px rgba(15, 23, 42, 0.3)",
+        "purpose": "Raised Ask-AI center action (approximates Material elevation with ink shadow at 30%)."
+      },
+      {
+        "name": "segment",
+        "value": "0 1px 3px rgba(15, 23, 42, 0.06)",
+        "purpose": "Selected segment of the AI mode switch."
+      },
+      {
+        "name": "web-rest",
+        "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "purpose": "Web resting card (Tailwind shadow-sm), paired with ring-1 ring-slate-200."
+      },
+      {
+        "name": "web-hover",
+        "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "purpose": "Web hover lift (shadow-lg)."
+      },
+      {
+        "name": "web-float",
+        "value": "0 25px 50px -12px rgb(0 0 0 / 0.25)",
+        "purpose": "Web dropdowns, suggestion panels, modals (shadow-2xl)."
+      }
     ],
     "motion": [
-      { "name": "state-transition", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for hover/focus/color state changes, ~150-250ms." }
+      {
+        "name": "web-rise",
+        "value": "0.7s cubic-bezier(0.16, 1, 0.3, 1), translateY(16px) -> none",
+        "purpose": "Web animate-rise; stagger via animation-delay 0.08s per item."
+      },
+      {
+        "name": "app-page",
+        "value": "fade + 3% rise, ease-out-cubic",
+        "purpose": "App page transitions (Android)."
+      },
+      {
+        "name": "app-tab",
+        "value": "200ms fade, ease-out-cubic",
+        "purpose": "App tab switch: fade only, no movement."
+      },
+      {
+        "name": "app-list-rise",
+        "value": "opacity 200ms ease-out, 1.5% rise 240ms ease-out-cubic",
+        "purpose": "One entrance per list, no per-card stagger."
+      },
+      {
+        "name": "app-press",
+        "value": "scale(0.985)",
+        "purpose": "Pressed interactive cards; released past touch slop."
+      },
+      {
+        "name": "ai-typing",
+        "value": "12ms per character, clamped 0.8-6s",
+        "purpose": "AI answer typing reveal."
+      }
     ],
     "breakpoints": [
-      { "name": "md", "value": "768px" },
-      { "name": "lg", "value": "1024px" }
+      {
+        "name": "app-medium",
+        "value": "600dp",
+        "purpose": "Rail replaces bottom nav."
+      },
+      {
+        "name": "app-2-col",
+        "value": "720dp",
+        "purpose": "Card grid 2 columns (content width); also the reading column cap."
+      },
+      {
+        "name": "app-expanded",
+        "value": "840dp",
+        "purpose": "Master-detail lists; home two columns."
+      },
+      {
+        "name": "app-3-col",
+        "value": "1200dp",
+        "purpose": "Card grid 3 columns; grid max width."
+      },
+      {
+        "name": "web-sm",
+        "value": "640px"
+      },
+      {
+        "name": "web-md",
+        "value": "768px"
+      },
+      {
+        "name": "web-lg",
+        "value": "1024px"
+      },
+      {
+        "name": "web-xl",
+        "value": "1280px"
+      }
     ]
   },
   "components": [
@@ -34,77 +453,162 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The main action — search, submit, primary CTA. Kendari Amber, white text, often a leading icon.",
-      "html": "<button class=\"ds-btn-primary\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M21 21l-4.35-4.35\"/></svg>Cari</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #ff891e; color: #fff; font-family: 'Open Sans', sans-serif; font-weight: 600; font-size: 0.875rem; padding: 0.75rem 2rem; border: none; border-radius: 0.25rem; cursor: pointer; transition: background 0.18s cubic-bezier(0.4,0,0.2,1); } .ds-btn-primary:hover { background: #ea8221; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,137,30,0.45); }"
+      "description": "The one main action on a screen. Amber fill, ink label (Ink-On-Amber Rule).",
+      "html": "<button class=\"ds-btn-primary\">Lihat Dokumen</button>",
+      "css": ".ds-btn-primary { font-family: 'Source Sans 3', sans-serif; font-weight: 600; font-size: 15px; line-height: 1.25; min-height: 48px; padding: 12px 20px; border-radius: 4px; cursor: pointer; transition: background .18s cubic-bezier(.16,1,.3,1), transform .12s; background: #ff891e; color: #0f172a; border: none; } .ds-btn-primary:hover { background: #ea8221; } .ds-btn-primary:active { transform: scale(.985); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #015ba5; } .ds-btn-primary:disabled { background: rgba(255,137,30,.35); color: rgba(15,23,42,.55); cursor: default; }"
     },
     {
-      "name": "Accent Button",
+      "name": "Outlined Button",
       "kind": "button",
-      "refersTo": "button-accent",
-      "description": "Secondary-but-prominent action where amber would over-signal. Civic Blue.",
-      "html": "<button class=\"ds-btn-accent\">Lihat Detail</button>",
-      "css": ".ds-btn-accent { display: inline-flex; align-items: center; gap: 0.5rem; background: #015ba5; color: #fff; font-family: 'Open Sans', sans-serif; font-weight: 600; font-size: 0.875rem; padding: 0.75rem 2rem; border: none; border-radius: 0.25rem; cursor: pointer; transition: background 0.18s cubic-bezier(0.4,0,0.2,1); } .ds-btn-accent:hover { background: #014f8e; } .ds-btn-accent:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(1,91,165,0.45); }"
+      "refersTo": "button-outlined",
+      "description": "Secondary actions: Muat ulang, Salin.",
+      "html": "<button class=\"ds-btn-outlined\">Muat ulang</button>",
+      "css": ".ds-btn-outlined { font-family: 'Source Sans 3', sans-serif; font-weight: 600; font-size: 15px; line-height: 1.25; min-height: 48px; padding: 12px 20px; border-radius: 4px; cursor: pointer; transition: background .18s cubic-bezier(.16,1,.3,1), transform .12s; background: #fff; color: #0f172a; border: 1px solid #7c8aa0; } .ds-btn-outlined:hover { background: #f8fafc; } .ds-btn-outlined:active { transform: scale(.985); } .ds-btn-outlined:focus-visible { outline: none; border-color: #015ba5; box-shadow: 0 0 0 1px #015ba5; }"
+    },
+    {
+      "name": "Text Button",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Links and tertiary actions in Civic Blue.",
+      "html": "<button class=\"ds-btn-text\">Lihat semua</button>",
+      "css": ".ds-btn-text { font-family: 'Source Sans 3', sans-serif; font-weight: 600; font-size: 15px; min-height: 48px; padding: 0 12px; background: none; border: none; border-radius: 4px; color: #015ba5; cursor: pointer; transition: background .18s; } .ds-btn-text:hover { background: rgba(1,91,165,.08); } .ds-btn-text:focus-visible { outline: 2px solid #015ba5; outline-offset: 2px; }"
     },
     {
       "name": "Search Input",
       "kind": "input",
-      "refersTo": "input-search",
-      "description": "Document search field with a leading magnifier icon. The primary retrieval affordance.",
-      "html": "<div class=\"ds-search\"><svg class=\"ds-search__icon\" viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M21 21l-4.35-4.35\"/></svg><input class=\"ds-search__field\" type=\"text\" placeholder=\"Cari dokumen hukum...\"></div>",
-      "css": ".ds-search { position: relative; } .ds-search__icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; } .ds-search__field { width: 100%; font-family: 'Open Sans', sans-serif; font-size: 0.875rem; color: #1e293b; background: #fff; border: 1px solid #d1d5db; border-radius: 0.25rem; padding: 0.875rem 1rem 0.875rem 3rem; transition: border-color 0.18s, box-shadow 0.18s; } .ds-search__field::placeholder { color: #64748b; } .ds-search__field:focus { outline: none; border-color: #015ba5; box-shadow: 0 0 0 2px rgba(1,91,165,0.35); }"
+      "refersTo": "input",
+      "description": "White field, Control Edge border (3.5:1), 2dp blue focus.",
+      "html": "<label class=\"ds-input\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z\"/></svg><input placeholder=\"Cari peraturan, nomor, atau tahun\" aria-label=\"Cari dokumen\"></label>",
+      "css": ".ds-input { display: flex; align-items: center; gap: 10px; font-family: 'Source Sans 3', sans-serif; background: #fff; border: 1px solid #7c8aa0; border-radius: 4px; padding: 12px 14px; color: #475569; max-width: 360px; transition: border-color .18s; } .ds-input input { border: none; outline: none; flex: 1; font: inherit; font-size: 16px; color: #0f172a; background: none; } .ds-input input::placeholder { color: #475569; } .ds-input:focus-within { border-color: #015ba5; box-shadow: inset 0 0 0 1px #015ba5; }"
     },
     {
       "name": "Document Card",
       "kind": "card",
       "refersTo": "card",
-      "description": "A single result in a document list. Flat at rest, lifts on hover.",
-      "html": "<article class=\"ds-doc-card\"><h3 class=\"ds-doc-card__title\">Peraturan Daerah Kota Kendari Nomor 5 Tahun 2024</h3><p class=\"ds-doc-card__meta\">Peraturan Daerah · No. 5 · 2024 · Berlaku</p><p class=\"ds-doc-card__excerpt\">Tentang penyelenggaraan ketertiban umum dan ketentraman masyarakat.</p><a class=\"ds-doc-card__link\" href=\"#\">Lihat dokumen</a></article>",
-      "css": ".ds-doc-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08); transition: box-shadow 0.18s, transform 0.18s cubic-bezier(0.4,0,0.2,1); } .ds-doc-card:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); transform: translateY(-2px); } .ds-doc-card__title { font-family: 'Open Sans', sans-serif; font-weight: 600; font-size: 1.125rem; line-height: 1.4; color: #1e293b; margin: 0 0 0.5rem; } .ds-doc-card__meta { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: #475569; margin: 0 0 0.75rem; } .ds-doc-card__excerpt { font-size: 0.875rem; line-height: 1.6; color: #475569; margin: 0 0 1rem; } .ds-doc-card__link { font-size: 0.875rem; font-weight: 600; color: #015ba5; text-decoration: none; } .ds-doc-card__link:hover { color: #014f8e; text-decoration: underline; }"
+      "description": "Signature retrieval card: number block, type chip + status badge, title, counts, chevron. No side stripe.",
+      "html": "<a class=\"ds-doc\" href=\"#\"><span class=\"ds-doc-no\"><small>No.</small><b>21</b><small>2026</small></span><span class=\"ds-doc-body\"><span class=\"ds-doc-head\"><span class=\"ds-chip\">PERWALI</span><span class=\"ds-badge\">Berlaku</span></span><span class=\"ds-doc-title\">Peraturan Wali Kota Kendari tentang Tata Kelola Arsip Daerah</span><span class=\"ds-doc-meta\">1.204 dilihat · 86 diunduh<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z\"/></svg></span></span></a>",
+      "css": ".ds-doc { display: flex; font-family: 'Source Sans 3', sans-serif; text-decoration: none; color: #0f172a; background: #fff; border: 1px solid #e2e8f0; border-radius: 4px; overflow: hidden; max-width: 420px; transition: transform .12s, border-color .18s; } .ds-doc:active { transform: scale(.985); } .ds-doc:focus-visible { outline: none; border: 2px solid #015ba5; } .ds-doc-no { width: 56px; flex: none; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 4px; } .ds-doc-no small { font-size: 12px; font-weight: 600; color: #475569; } .ds-doc-no b { font-size: 20px; line-height: 1.15; font-variant-numeric: tabular-nums; } .ds-doc-body { display: flex; flex-direction: column; gap: 8px; padding: 12px; flex: 1; } .ds-doc-head { display: flex; justify-content: space-between; gap: 8px; } .ds-chip { font-size: 12px; font-weight: 600; color: #015ba5; background: rgba(1,91,165,.08); border-radius: 4px; padding: 3px 8px; } .ds-badge { font-size: 12px; font-weight: 600; color: #166534; background: #dcfce7; border-radius: 4px; padding: 3px 8px; } .ds-doc-title { font-size: 15px; font-weight: 700; line-height: 1.35; } .ds-doc-meta { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #475569; }"
     },
     {
-      "name": "Section Eyebrow + Heading",
+      "name": "Status Badges",
+      "kind": "chip",
+      "refersTo": "badge-status-active",
+      "description": "Legal status pairs, outside the brand palette.",
+      "html": "<span class=\"ds-st ds-st-a\">Berlaku</span> <span class=\"ds-st ds-st-c\">Diubah</span> <span class=\"ds-st ds-st-r\">Dicabut</span>",
+      "css": ".ds-st { font-family: 'Source Sans 3', sans-serif; display: inline-block; font-size: 12px; font-weight: 600; line-height: 1.25; border-radius: 4px; padding: 3px 8px; } .ds-st-a { color: #166534; background: #dcfce7; } .ds-st-c { color: #854d0e; background: #fef9c3; } .ds-st-r { color: #991b1b; background: #fee2e2; }"
+    },
+    {
+      "name": "Floating Bottom Nav",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "App nav under 600dp: floating bar, amber-tint active indicator, raised Ask-AI square in a canvas ring.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Navigasi utama\"><a class=\"ds-nav-i ds-on\" href=\"#\" aria-current=\"page\"><span><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z\"/></svg></span>Beranda</a><a class=\"ds-nav-i\" href=\"#\"><span><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z\"/></svg></span>Dokumen</a><a class=\"ds-nav-ai\" href=\"#\" aria-label=\"Tanya AI dan pencarian\"><span><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z\"/></svg></span>Tanya AI</a><a class=\"ds-nav-i\" href=\"#\"><span><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM10 17H5v-6h5v6zm9 0h-7v-2h7v2zm0-4h-7v-2h7v2zm0-4H5V7h14v2z\"/></svg></span>Kabar</a><a class=\"ds-nav-i\" href=\"#\"><span><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z\"/></svg></span>Menu</a></nav>",
+      "css": ".ds-nav { font-family: 'Source Sans 3', sans-serif; display: flex; align-items: flex-end; justify-content: space-around; background: #fff; border: 1px solid #e2e8f0; border-radius: 4px; box-shadow: 0 4px 16px rgba(15,23,42,.08); padding: 8px 4px 10px; max-width: 380px; margin-top: 24px; } .ds-nav a { text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: #475569; min-width: 56px; } .ds-nav-i span { display: grid; place-items: center; width: 52px; height: 30px; border-radius: 4px; border: 1px solid transparent; transition: background .2s; } .ds-nav-i:hover span { background: #f1f5f9; } .ds-nav-i.ds-on { color: #a65307; font-weight: 700; } .ds-nav-i.ds-on span { background: rgba(255,137,30,.16); border-color: rgba(255,137,30,.55); } .ds-nav-ai { color: #0f172a !important; margin-top: -28px; } .ds-nav-ai span { display: grid; place-items: center; width: 48px; height: 48px; background: #ff891e; color: #0f172a; border-radius: 4px; outline: 4px solid #f8fafc; box-shadow: 0 3px 8px rgba(15,23,42,.3); } .ds-nav a:focus-visible { outline: 2px solid #015ba5; outline-offset: 2px; border-radius: 4px; }"
+    },
+    {
+      "name": "Section Header",
       "kind": "custom",
-      "refersTo": "headline",
-      "description": "Section title pattern used on landing/index pages, with the amber underline accent.",
-      "html": "<header class=\"ds-section-head\"><span class=\"ds-section-head__eyebrow\">Katalog</span><h2 class=\"ds-section-head__title\">Peraturan &amp; Keputusan</h2><span class=\"ds-section-head__rule\"></span></header>",
-      "css": ".ds-section-head__eyebrow { display: block; font-family: 'Open Sans', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #015ba5; margin: 0 0 0.5rem; } .ds-section-head__title { font-family: 'Open Sans', sans-serif; font-weight: 700; font-size: 1.5rem; line-height: 1.25; color: #1e293b; margin: 0; text-wrap: balance; } .ds-section-head__rule { display: block; width: 3.5rem; height: 0.25rem; background: #ff891e; border-radius: 9999px; margin-top: 0.75rem; }"
+      "refersTo": "",
+      "description": "Amber 4x20 bar + Judul title + blue \"Lihat semua\" link (max 45% of row).",
+      "html": "<div class=\"ds-sh\"><i></i><h3>Dokumen Terbaru</h3><a href=\"#\">Lihat semua</a></div>",
+      "css": ".ds-sh { font-family: 'Source Sans 3', sans-serif; display: flex; align-items: center; gap: 10px; padding: 28px 0 14px; max-width: 420px; } .ds-sh i { width: 4px; height: 20px; background: #ff891e; flex: none; } .ds-sh h3 { margin: 0; flex: 1; font-size: 20px; line-height: 1.3; font-weight: 700; color: #0f172a; } .ds-sh a { max-width: 45%; color: #015ba5; font-size: 15px; font-weight: 600; text-decoration: none; } .ds-sh a:hover { text-decoration: underline; text-underline-offset: 3px; } .ds-sh a:focus-visible { outline: 2px solid #015ba5; outline-offset: 2px; }"
+    },
+    {
+      "name": "AI Chat Turn",
+      "kind": "custom",
+      "refersTo": "bubble-user",
+      "description": "Blue user bubble, white bordered answer card with serif Bacaan text and Amber Ink sparkle.",
+      "html": "<div class=\"ds-chat\"><p class=\"ds-q\">Apa aturan terbaru soal retribusi parkir?</p><div class=\"ds-a\"><span class=\"ds-a-l\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z\"/></svg>Jawaban AI</span><p>Ketentuan retribusi parkir tepi jalan umum diatur dalam Perda Kota Kendari tentang Pajak Daerah dan Retribusi Daerah, yang menetapkan tarif per jenis kendaraan.</p></div></div>",
+      "css": ".ds-chat { display: flex; flex-direction: column; gap: 12px; max-width: 420px; } .ds-q { font-family: 'Source Sans 3', sans-serif; align-self: flex-end; margin: 0; max-width: 80%; background: #015ba5; color: #fff; font-size: 15px; line-height: 1.5; padding: 10px 14px; border-radius: 4px; } .ds-a { background: #fff; border: 1px solid #e2e8f0; border-radius: 4px; padding: 12px 14px 14px; } .ds-a-l { font-family: 'Source Sans 3', sans-serif; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #475569; } .ds-a-l svg { color: #a65307; width: 16px; height: 16px; } .ds-a p { margin: 8px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-size: 16.5px; line-height: 1.65; color: #0f172a; }"
     }
   ],
   "narrative": {
     "northStar": "The Civic Reading Room",
-    "overview": "JDIH Kota Kendari behaves like a well-run public reading room for legal records: calm, bright, and orderly. The primary job of every screen is retrieval — a citizen or a legal practitioner arrives looking for a specific document, and the interface walks them to it with minimal friction. The palette is disciplined: Kendari Amber is signage (point, mark, primary action), Civic Blue is the institutional voice, everything else is quiet white and cool slate. It explicitly rejects the old-government-portal feel — dense raw tables, cramped type, documents buried behind layered menus — without becoming a flashy marketing site.",
+    "overview": "JDIH Kota Kendari behaves like a well-run public reading room for legal records: calm, bright, and orderly. Every screen exists for retrieval. A citizen or a legal practitioner arrives looking for a specific regulation, ruling, or document, and the interface walks them to it with as little friction as possible. Hierarchy does the guiding and the tool disappears into the task. The app is the same room carried in a pocket. It reads more than the website does, so long-form text gets a serif companion. Its chrome is quieter still: flat bordered surfaces, one corner radius, and no decoration that does not carry meaning.\n\nThe palette is disciplined. Kendari Amber is the room's signage. It points to the main action, marks where you are, and stays rare enough to keep that meaning. Civic Blue is the institutional voice for links, information, form controls, and data. Everything else is quiet: white content on a cool slate canvas, readable ink, and hairline borders. Warmth comes from the amber signage and from generous, legible type, never from a tinted page.\n\nThe system rejects the old-government-portal feel: dense raw tables without hierarchy, cramped small type, and documents buried behind layered menus. It is not a cold archive that intimidates a first-time visitor, and it is not a marketing site. The register is a functional public tool, and familiarity is a feature.",
     "keyCharacteristics": [
       "Retrieval-first: every screen shortens the path to a document.",
-      "One warm accent (amber) used sparingly, one institutional accent (blue) for support.",
-      "Flat surfaces lifted by soft shadows only when they separate content or respond to state.",
-      "Single type family (Open Sans) carrying the full hierarchy — clarity over ornament.",
-      "Accessible by default: WCAG 2.1 AA contrast, keyboard paths, prefers-reduced-motion, multi-language."
+      "One warm signal (amber) used sparingly, one institutional voice (blue) for everything informational.",
+      "Flat at rest, separated by hairlines and a white-on-slate tonal step.",
+      "One UI family (Source Sans 3) on both surfaces; a serif (Source Serif 4) only for text that is read, in the app.",
+      "One corner: 4px.",
+      "Accessible by default: WCAG 2.1 AA contrast, 48dp targets, text scaling to 200%, reduced motion, four languages."
     ],
     "rules": [
-      { "name": "The Amber Sparingly Rule", "body": "Kendari Amber marks primary action, current position, and highlight — nothing else, under ~10% of any screen. When amber fills whole sections it stops meaning 'act here'.", "section": "colors" },
-      { "name": "The No-Washed-Text Rule", "body": "Body text on white is Ink or Ink Muted (#1e293b / #475569), never lighter. Gray text on amber or blue is forbidden — use white or a darker shade of the same hue.", "section": "colors" },
-      { "name": "The One-Family Rule", "body": "Open Sans in multiple weights carries display through label. No display or secondary font for flavor; hierarchy is a weight-and-size problem.", "section": "typography" },
-      { "name": "The Flat-At-Rest Rule", "body": "Surfaces are flat when idle. A shadow that grows is a response to state (hover, float, focus), not decoration on every card.", "section": "elevation" }
+      {
+        "name": "The Amber Sparingly Rule",
+        "body": "Amber marks the primary action, the current position, and AI. Nothing else. On any screen it covers well under 10% of the surface. Once amber fills a whole section, it stops meaning \"act here\".",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink-On-Amber Rule",
+        "body": "Text and icons on an amber fill are Ink (7.5:1), never white (2.4:1). The app holds this everywhere. The web still has white-on-amber buttons from before; they fail AA and should move to ink when touched.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Washed-Text Rule",
+        "body": "Body text on white is Ink or Ink Muted, never lighter. Gray text never sits on amber or blue. Use Ink on amber, white on blue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Light Room Rule",
+        "body": "Both surfaces ship light only. The app keeps dark constants in `theme.dart` for a future pass, but it is locked to light, and its splash stays light even when the system is in dark mode. The web adds a high-contrast mode (`body.high-contrast`) that pushes muted text and hairlines to near-black.",
+        "section": "colors"
+      },
+      {
+        "name": "The One-Family UI Rule",
+        "body": "Source Sans 3 carries every interface element on both surfaces. No display face, and no Poppins or Inter, which were legacy on two web screens.",
+        "section": "typography"
+      },
+      {
+        "name": "The Serif-Is-For-Reading Rule",
+        "body": "Source Serif 4 appears only on text that is read: Bacaan and Judul Detail. A serif on a button, card, label, or number is wrong.",
+        "section": "typography"
+      },
+      {
+        "name": "The Role-Not-Size Rule",
+        "body": "Every app text uses a `T` role. A literal `fontSize:` outside `theme.dart` fails `test/tipografi_test.dart`. The app once had 21 ad-hoc sizes, and this test keeps that from coming back.",
+        "section": "typography"
+      },
+      {
+        "name": "The Reading Column Rule",
+        "body": "Long text never runs wider than 720dp, whatever the window. A tablet makes the margins wider, not the measure.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat-At-Rest Rule",
+        "body": "A shadow is a response to floating or to state. It is never decoration baked into every card. App cards have a border and no elevation (`elevation: 0`, no surface tint).",
+        "section": "elevation"
+      },
+      {
+        "name": "The One-Corner Rule",
+        "body": "If it is rounded, it is 4px. Larger radii on cards or buttons (8, 12, 16) are pre-redesign leftovers and should not spread.",
+        "section": "shapes"
+      }
     ],
     "dos": [
-      "Do keep Kendari Amber (#ff891e) to primary action, current state, and highlight — under ~10% of any screen.",
-      "Do use Civic Blue (#015ba5) for secondary actions, links, and focus rings.",
-      "Do hold body text at Ink (#1e293b) or Ink Muted (#475569) on white; verify >=4.5:1 (>=3:1 for large/bold text).",
-      "Do carry the whole type hierarchy with Open Sans in different weights.",
-      "Do keep surfaces flat at rest; add shadow only on hover, float, or focus.",
-      "Do give every interactive element a visible focus state and keep touch targets >=44px.",
-      "Do honor prefers-reduced-motion for every AOS/scroll reveal and keep transitions ~150-250ms."
+      "**Do** keep Kendari Amber to primary action, current position, and AI, under about 10% of any screen.",
+      "**Do** put Ink (`#0f172a`) on amber fills, and use Amber Ink (`#a65307`) whenever amber must be text.",
+      "**Do** use Civic Blue for links, information chips, form controls, focus, data, and the user's own chat bubble.",
+      "**Do** hold body text at Ink or Ink Muted on white, at 4.5:1 or better (3:1 for large text and UI component edges).",
+      "**Do** use the `T` roles in the app and Source Sans 3 for every UI element on both surfaces.",
+      "**Do** reserve Source Serif 4 for reading text and detail titles in the app.",
+      "**Do** use a 4px corner on everything rounded, and keep edge lines square.",
+      "**Do** keep surfaces flat at rest with hairline borders; shadow only what floats or responds to state.",
+      "**Do** cap reading content at 720dp and switch layout by window width (600 / 840), not by device.",
+      "**Do** give every interactive element a visible focus state and a 48dp target, and test at 200% text.",
+      "**Do** honor reduced motion everywhere."
     ],
     "donts": [
-      "Don't recreate the old-government-portal feel: dense raw tables with no hierarchy, cramped small type, or documents buried behind layered menus.",
-      "Don't flood whole sections with amber fills — it destroys the 'act here' signal.",
-      "Don't use light/faint gray for body or placeholder text 'for elegance'; it fails contrast and readability.",
-      "Don't introduce a display or second body font (no spreading Poppins/Inter); it breaks the One-Family Rule.",
-      "Don't put gray text on amber or blue backgrounds — use white or a darker shade of the same hue.",
-      "Don't use border-left/border-right thicker than 1px as a colored accent stripe; use a full border, a tint, or a leading icon.",
-      "Don't ship interactive components with half their states — default, hover, focus, active, disabled, loading, and error all matter.",
-      "Don't render suggestion/dropdown panels inside overflow-hidden containers where they clip; float them properly above the page."
+      "**Don't** recreate the old-government-portal feel: dense raw tables without hierarchy, cramped small type, or documents buried behind layered menus.",
+      "**Don't** put white text on amber; it is 2.4:1.",
+      "**Don't** flood sections with amber fills, or use amber for status. Legal status keeps its green, yellow, and red pairs.",
+      "**Don't** use colored side stripes (a left or right border over 1px) on cards, answers, or alerts; all of them were removed from the app. Use a badge, a tint, or a full border.",
+      "**Don't** introduce a display face or a second UI font, and don't set UI, numbers, or buttons in the serif.",
+      "**Don't** write literal font sizes in app screens; add or reuse a `T` role.",
+      "**Don't** use radii above 4px on cards and buttons, or uppercase-tracked labels above headings.",
+      "**Don't** stagger cards one by one or animate whole sections in; one rise per list is enough.",
+      "**Don't** let a tablet stretch phone cards or text lines; use the grid, master-detail, and the reading column.",
+      "**Don't** clip suggestion or dropdown panels inside `overflow-hidden` containers on the web; float them above the page."
     ]
   }
 }

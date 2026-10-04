@@ -4,4 +4,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- server dev lokal (BASE_URL http://10.0.2.2:...) masih HTTP polos;
+         rilis memakai HTTPS produksi, jadi cleartext hanya diizinkan di debug -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

@@ -12,11 +12,11 @@ class ChartColors {
   /// Satu hue untuk seluruh batang. Kategori dokumen tidak punya urutan
   /// alami, jadi warna TIDAK ikut nilainya — panjang batang sudah
   /// menyampaikan besarannya.
-  static const bar = Color(0xFFEA580C); // 3,56:1 di atas putih
+  static const bar = C.accent; // biru = data; 6,9:1 di atas putih
 
   /// Status hukum: makna, bukan identitas. Selalu disertai ikon + label.
   static const berlaku = Color(0xFF15803D);
-  static const diubah = Color(0xFFDE8C0A);
+  static const diubah = Color(0xFFC2700A); // 3,7:1 (dulu 2,7:1, gagal)
   static const dicabut = Color(0xFFC81E1E);
 
   /// Track batang: satu langkah dari permukaan, netral.
@@ -48,61 +48,75 @@ class _StatistikScreenState extends State<StatistikScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: const BrandAppBar('Statistik Koleksi'),
-        body: FutureBuilder<Json>(
-          future: _future,
-          builder: (context, snap) {
-            if (snap.hasError) {
-              return ErrorRetry('${snap.error}', onRetry: _reload);
-            }
-            if (!snap.hasData) return const SkeletonList(count: 4, height: 170);
-            final d = snap.data!;
-            return RefreshIndicator(
-              onRefresh: () async => _reload(),
-              child: ListView(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                children: [
-                  RingkasanCard(
-                    total: d.i('total_dokumen'),
-                    dilihat: d.i('total_views'),
-                    diunduh: d.i('total_downloads'),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  TahunChart(_slices(d.l('dokumen_per_tahun'), 'tahun')),
-                  const SizedBox(height: AppSpacing.md),
-                  JenisChart(_slices(d.l('dokumen_per_tipe'), 'tipe')),
-                  const SizedBox(height: AppSpacing.md),
-                  StatusChart(_statusBuckets(d.l('dokumen_per_status'))),
-                  const SizedBox(height: AppSpacing.md),
-                  TerpopulerCard(d.l('most_viewed')),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                      'Diperbarui ${d.sn('last_updated') ?? '-'}. '
-                      'Angka dihitung langsung dari basis data JDIH Kota Kendari.',
-                      style: const TextStyle(
-                          fontSize: 12, height: 1.5, color: C.lightInkMuted)),
-                ],
+    appBar: const BrandAppBar('Statistik Koleksi'),
+    body: FutureBuilder<Json>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return ErrorRetry('${snap.error}', onRetry: _reload);
+        }
+        if (!snap.hasData) return const SkeletonList(count: 4, height: 170);
+        final d = snap.data!;
+        return RefreshIndicator(
+          onRefresh: () async => _reload(),
+          child: ListView(
+            padding: padTengah(context, maks: 1000),
+            children: [
+              RingkasanCard(
+                total: d.i('total_dokumen'),
+                dilihat: d.i('total_views'),
+                diunduh: d.i('total_downloads'),
               ),
-            );
-          },
-        ),
-      );
+              const SizedBox(height: AppSpacing.md),
+              // layar lebar: grafik berpasangan, bukan satu grafik selebar
+              // tablet yang batangnya jadi pita tipis panjang
+              ..._berpasangan(context, [
+                TahunChart(_slices(d.l('dokumen_per_tahun'), 'tahun')),
+                StatusChart(statusBuckets(d.l('dokumen_per_status'))),
+                JenisChart(_slices(d.l('dokumen_per_tipe'), 'tipe')),
+                TerpopulerCard(d.l('most_viewed')),
+              ]),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Diperbarui ${d.sn('last_updated') ?? '-'}. '
+                'Angka dihitung langsung dari basis data JDIH Kota Kendari.',
+                style: T.isiKecil.copyWith(color: C.lightInkMuted),
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
+
+  /// Kartu berurutan, dua sebaris bila lebar cukup (>= 720dp).
+  static List<Widget> _berpasangan(BuildContext context, List<Widget> kartu) {
+    final dua = MediaQuery.sizeOf(context).width >= 720;
+    return [
+      for (var i = 0; i < kartu.length; i += dua ? 2 : 1) ...[
+        dua
+            ? BarisKartu(kolom: 2, children: kartu.sublist(i, i + 2))
+            : kartu[i],
+        const SizedBox(height: AppSpacing.md),
+      ],
+    ];
+  }
 
   static List<Slice> _slices(List<Json> rows, String labelKey) =>
       [for (final r in rows) (label: r.s(labelKey), value: r.i('total'))]
           .where((s) => s.label.isNotEmpty && s.value > 0)
           .toList();
+}
 
-  /// Teks status dari basis data bebas bentuk, jadi dipetakan lewat
-  /// [statusKindOf] — sumber kebenaran yang sama dengan badge di daftar.
-  static Map<StatusKind, int> _statusBuckets(List<Json> rows) {
-    final out = <StatusKind, int>{};
-    for (final r in rows) {
-      final k = statusKindOf(r.sn('status'));
-      out[k] = (out[k] ?? 0) + r.i('total');
-    }
-    return out;
+/// Teks status dari basis data bebas bentuk, jadi dipetakan lewat
+/// [statusKindOf] — sumber kebenaran yang sama dengan badge di daftar.
+Map<StatusKind, int> statusBuckets(List<Json> rows) {
+  final out = <StatusKind, int>{};
+  for (final r in rows) {
+    final k = statusKindOf(r.sn('status'));
+    out[k] = (out[k] ?? 0) + r.i('total');
   }
+  return out;
 }
 
 // ============================================================
@@ -112,40 +126,42 @@ class _StatistikScreenState extends State<StatistikScreen> {
 /// Satu angka utama memimpin halaman; dua angka pendukung di sampingnya.
 /// Nilai tunggal adalah pekerjaan angka besar, bukan grafik satu batang.
 class RingkasanCard extends StatelessWidget {
-  const RingkasanCard(
-      {super.key,
-      required this.total,
-      required this.dilihat,
-      required this.diunduh});
+  const RingkasanCard({
+    super.key,
+    required this.total,
+    required this.dilihat,
+    required this.diunduh,
+  });
   final int total, dilihat, diunduh;
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    child: Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Total dokumen hukum',
+            style: T.isiKecil.copyWith(color: C.lightInkMuted),
+          ),
+          Text(_n.format(total), style: T.display),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
             children: [
-              const Text('Total dokumen hukum',
-                  style: TextStyle(fontSize: 13, color: C.lightInkMuted)),
-              Text(_n.format(total),
-                  style: const TextStyle(
-                      fontSize: 40,
-                      height: 1.1,
-                      fontWeight: FontWeight.w800,
-                      fontFeatures: [FontFeature.tabularFigures()])),
-              const SizedBox(height: AppSpacing.lg),
-              Row(children: [
-                Expanded(
-                    child: _Kpi(Icons.visibility_outlined, 'Dilihat', dilihat)),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                    child: _Kpi(Icons.download_outlined, 'Diunduh', diunduh)),
-              ]),
+              Expanded(
+                child: _Kpi(Icons.visibility_outlined, 'Dilihat', dilihat),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: _Kpi(Icons.download_outlined, 'Diunduh', diunduh),
+              ),
             ],
           ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
 }
 
 class _Kpi extends StatelessWidget {
@@ -156,37 +172,45 @@ class _Kpi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        label: '$label: ${_n.format(value)}',
-        excludeSemantics: true,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md, vertical: AppSpacing.md),
-          decoration: BoxDecoration(
-            color: C.lightSubtle,
-            borderRadius: BorderRadius.circular(AppRadius.card),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    label: '$label: ${_n.format(value)}',
+    excludeSemantics: true,
+    child: Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: C.lightSubtle,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(children: [
-                Icon(icon, size: 14, color: C.lightInkMuted),
-                const SizedBox(width: 4),
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 12, color: C.lightInkMuted)),
-              ]),
-              const SizedBox(height: 2),
-              Text(_n.format(value),
+              Icon(icon, size: 14, color: C.lightInkMuted),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: [FontFeature.tabularFigures()])),
+                  style: T.isiKecil.copyWith(color: C.lightInkMuted),
+                ),
+              ),
             ],
           ),
-        ),
-      );
+          const SizedBox(height: 2),
+          Text(
+            _n.format(value),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: T.angka,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 // ============================================================
@@ -213,8 +237,10 @@ class TahunChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ChartTitle('Dokumen per tahun',
-                'Jumlah dokumen menurut tahun terbit'),
+            const ChartTitle(
+              'Dokumen per tahun',
+              'Jumlah dokumen menurut tahun terbit',
+            ),
             const SizedBox(height: AppSpacing.lg),
             SizedBox(
               height: 152,
@@ -232,15 +258,16 @@ class TahunChart extends StatelessWidget {
                             // label nilai hanya pada puncak — angka di setiap
                             // kolom jadi kekacauan dan tidak terbaca
                             SizedBox(
-                              height: 16,
+                              height: 16 * skalaTeks(context),
                               child: i == puncak
-                                  ? Text(_n.format(e.value),
-                                      style: const TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          fontFeatures: [
-                                            FontFeature.tabularFigures()
-                                          ]))
+                                  ? Text(
+                                      _n.format(e.value),
+                                      style: T.labelKecil.copyWith(
+                                        fontFeatures: [
+                                          FontFeature.tabularFigures(),
+                                        ],
+                                      ),
+                                    )
                                   : null,
                             ),
                             Expanded(
@@ -250,13 +277,14 @@ class TahunChart extends StatelessWidget {
                                   width: 20, // batang tipis, sisanya udara
                                   child: TweenAnimationBuilder<double>(
                                     tween: Tween(
-                                        begin: reduce ? e.value / maks : 0,
-                                        end: e.value / maks),
+                                      begin: reduce ? e.value / maks : 0,
+                                      end: e.value / maks,
+                                    ),
                                     duration: Duration(
-                                        milliseconds: reduce ? 0 : 320),
+                                      milliseconds: reduce ? 0 : 320,
+                                    ),
                                     curve: Curves.easeOutCubic,
-                                    builder: (_, t, __) =>
-                                        FractionallySizedBox(
+                                    builder: (_, t, _) => FractionallySizedBox(
                                       heightFactor: t.clamp(0.02, 1.0),
                                       alignment: Alignment.bottomCenter,
                                       child: const DecoratedBox(
@@ -264,7 +292,10 @@ class TahunChart extends StatelessWidget {
                                           color: ChartColors.bar,
                                           // ujung data membulat, pangkal siku
                                           borderRadius: BorderRadius.vertical(
-                                              top: Radius.circular(4)),
+                                            top: Radius.circular(
+                                              AppRadius.chip,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -273,11 +304,15 @@ class TahunChart extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            Text(e.label,
-                                maxLines: 1,
-                                overflow: TextOverflow.clip,
-                                style: const TextStyle(
-                                    fontSize: 9.5, color: C.lightInkMuted)),
+                            Text(
+                              e.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.clip,
+                              style: T.labelKecil.copyWith(
+                                fontWeight: FontWeight.w400,
+                                color: C.lightInkMuted,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -312,7 +347,8 @@ class JenisChart extends StatelessWidget {
     final sisa = urut.skip(tampil).fold(0, (a, e) => a + e.value);
     final rows = <Slice>[
       ...atas,
-      if (sisa > 0) (label: 'Lainnya (${urut.length - tampil} jenis)', value: sisa),
+      if (sisa > 0)
+        (label: 'Lainnya (${urut.length - tampil} jenis)', value: sisa),
     ];
     final maks = rows.map((e) => e.value).reduce((a, b) => a > b ? a : b);
 
@@ -322,8 +358,10 @@ class JenisChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ChartTitle('Dokumen per jenis',
-                'Tujuh jenis dengan koleksi terbanyak'),
+            const ChartTitle(
+              'Dokumen per jenis',
+              'Tujuh jenis dengan koleksi terbanyak',
+            ),
             const SizedBox(height: AppSpacing.lg),
             for (final (i, e) in rows.indexed) ...[
               if (i > 0) const SizedBox(height: AppSpacing.md),
@@ -338,8 +376,12 @@ class JenisChart extends StatelessWidget {
 
 /// Satu batang mendatar: nama di kiri, nilai di ujung, track netral.
 class BarRow extends StatelessWidget {
-  const BarRow(
-      {super.key, required this.label, required this.value, required this.max});
+  const BarRow({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.max,
+  });
   final String label;
   final int value, max;
 
@@ -353,25 +395,30 @@ class BarRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Expanded(
-              child: Text(label,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w600)),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            // nilai memakai token teks, bukan warna data
-            Text(_n.format(value),
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    fontFeatures: [FontFeature.tabularFigures()])),
-          ]),
+                  style: T.label,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              // nilai memakai token teks, bukan warna data
+              Text(
+                _n.format(value),
+                style: T.label.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 6),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(AppRadius.chip),
             child: Container(
               height: 10,
               color: ChartColors.track,
@@ -381,13 +428,18 @@ class BarRow extends StatelessWidget {
                   tween: Tween(begin: reduce ? ratio : 0, end: ratio),
                   duration: Duration(milliseconds: reduce ? 0 : 320),
                   curve: Curves.easeOutCubic,
-                  builder: (_, t, __) => FractionallySizedBox(
+                  // heightFactor wajib: Align memberi batas tinggi longgar,
+                  // dan DecoratedBox tanpa anak lalu setinggi 0 (batang tak
+                  // pernah tampil)
+                  builder: (_, t, _) => FractionallySizedBox(
                     widthFactor: t.clamp(0.0, 1.0),
+                    heightFactor: 1,
                     child: const DecoratedBox(
                       decoration: BoxDecoration(
                         color: ChartColors.bar,
-                        borderRadius:
-                            BorderRadius.horizontal(right: Radius.circular(4)),
+                        borderRadius: BorderRadius.horizontal(
+                          right: Radius.circular(AppRadius.chip),
+                        ),
                       ),
                     ),
                   ),
@@ -417,17 +469,22 @@ class StatusChart extends StatelessWidget {
       StatusKind.berlaku,
       'Berlaku',
       Icons.check_circle_outline,
-      ChartColors.berlaku
+      ChartColors.berlaku,
     ),
     (StatusKind.diubah, 'Diubah', Icons.edit_outlined, ChartColors.diubah),
-    (StatusKind.dicabut, 'Tidak berlaku', Icons.cancel_outlined, ChartColors.dicabut),
+    (
+      StatusKind.dicabut,
+      'Tidak berlaku',
+      Icons.cancel_outlined,
+      ChartColors.dicabut,
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final data = [
-      for (final r in _rows) (row: r, value: status[r.$1] ?? 0),
-    ].where((e) => e.value > 0).toList();
+    final data = [for (final r in _rows) (row: r, value: status[r.$1] ?? 0)]
+        .where((e) => e.value > 0)
+        .toList();
     final total = data.fold(0, (a, e) => a + e.value);
 
     return Card(
@@ -436,26 +493,37 @@ class StatusChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ChartTitle('Status keberlakuan',
-                'Bagian koleksi yang masih berlaku'),
+            const ChartTitle(
+              'Status keberlakuan',
+              'Bagian koleksi yang masih berlaku',
+            ),
             const SizedBox(height: AppSpacing.lg),
             if (total == 0)
-              const Text('Data status belum tersedia.',
-                  style: TextStyle(fontSize: 13, color: C.lightInkMuted))
+              Text(
+                'Data status belum tersedia.',
+                style: T.isiKecil.copyWith(color: C.lightInkMuted),
+              )
             else ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppRadius.chip),
                 child: SizedBox(
                   height: 14,
-                  child: Row(children: [
-                    for (final (i, e) in data.indexed) ...[
-                      // celah 2px berwarna permukaan memisahkan segmen —
-                      // bukan garis tepi, yang menambah tinta non-data
-                      if (i > 0) const SizedBox(width: 2),
-                      Expanded(
-                          flex: e.value, child: ColoredBox(color: e.row.$4)),
+                  // stretch: ColoredBox tanpa anak mengambil tinggi minimum,
+                  // dan di Row biasa itu 0 — segmen tidak tergambar sama sekali
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final (i, e) in data.indexed) ...[
+                        // celah 2px berwarna permukaan memisahkan segmen —
+                        // bukan garis tepi, yang menambah tinta non-data
+                        if (i > 0) const SizedBox(width: 2),
+                        Expanded(
+                          flex: e.value,
+                          child: ColoredBox(color: e.row.$4),
+                        ),
+                      ],
                     ],
-                  ]),
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -478,12 +546,13 @@ class StatusChart extends StatelessWidget {
 }
 
 class _LegendRow extends StatelessWidget {
-  const _LegendRow(
-      {required this.color,
-      required this.icon,
-      required this.label,
-      required this.value,
-      required this.percent});
+  const _LegendRow({
+    required this.color,
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.percent,
+  });
   final Color color;
   final IconData icon;
   final String label;
@@ -496,27 +565,33 @@ class _LegendRow extends StatelessWidget {
     return Semantics(
       label: '$label: ${_n.format(value)} dokumen, $pct',
       excludeSemantics: true,
-      child: Row(children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 6),
-        Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Text(label,
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13)),
-        ),
-        Text('${_n.format(value)}  ·  $pct',
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                fontFeatures: [FontFeature.tabularFigures()])),
-      ]),
+              style: T.isiKecil,
+            ),
+          ),
+          Text(
+            '${_n.format(value)}  ·  $pct',
+            style: T.label.copyWith(
+              fontWeight: FontWeight.w700,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -533,50 +608,55 @@ class TerpopulerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const ChartTitle('Paling banyak dilihat',
-                  'Lima dokumen dengan pembaca terbanyak'),
-              const SizedBox(height: AppSpacing.md),
-              if (items.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                  child: Text(
-                      'Belum ada dokumen yang tercatat dibaca. Angka ini mulai '
-                      'terisi setelah pengunjung membuka halaman dokumen.',
-                      style: TextStyle(
-                          fontSize: 13, height: 1.5, color: C.lightInkMuted)),
-                )
-              else
-                for (final (i, d) in items.indexed)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    minLeadingWidth: 28,
-                    leading: Text('${i + 1}',
-                        style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: C.lightInkMuted)),
-                    title: Text(d.s('judul'),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w600)),
-                    subtitle: Text('${_n.format(d.i('views'))} kali dilihat',
-                        style: const TextStyle(fontSize: 12)),
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) =>
-                                DocumentDetailScreen(id: d.i('id')))),
-                  ),
-            ],
+    child: Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const ChartTitle(
+            'Paling banyak dilihat',
+            'Lima dokumen dengan pembaca terbanyak',
           ),
-        ),
-      );
+          const SizedBox(height: AppSpacing.md),
+          if (items.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+              child: Text(
+                'Belum ada dokumen yang tercatat dibaca. Angka ini mulai '
+                'terisi setelah pengunjung membuka halaman dokumen.',
+                style: T.isiKecil.copyWith(color: C.lightInkMuted),
+              ),
+            )
+          else
+            for (final (i, d) in items.indexed)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                minLeadingWidth: 28,
+                leading: Text(
+                  '${i + 1}',
+                  style: T.judulItem.copyWith(color: C.lightInkMuted),
+                ),
+                title: Text(
+                  d.s('judul'),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: T.label,
+                ),
+                subtitle: Text(
+                  '${_n.format(d.i('views'))} kali dilihat',
+                  style: T.isiKecil,
+                ),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DocumentDetailScreen(id: d.i('id')),
+                  ),
+                ),
+              ),
+        ],
+      ),
+    ),
+  );
 }
 
 class ChartTitle extends StatelessWidget {
@@ -585,14 +665,11 @@ class ChartTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 2),
-          Text(subtitle,
-              style: const TextStyle(fontSize: 12, color: C.lightInkMuted)),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(title, style: T.subjudul),
+      const SizedBox(height: 2),
+      Text(subtitle, style: T.isiKecil.copyWith(color: C.lightInkMuted)),
+    ],
+  );
 }
