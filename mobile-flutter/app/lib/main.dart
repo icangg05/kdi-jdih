@@ -12,13 +12,14 @@ import 'screens/documents.dart';
 import 'screens/home.dart';
 import 'screens/kabar.dart';
 import 'screens/lainnya.dart';
+import 'screens/pembuka.dart';
 import 'screens/search.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('id');
+  await initializeDateFormatting();
   // tema dikunci terang -> ikon status bar selalu gelap
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.transparent),
@@ -27,11 +28,8 @@ Future<void> main() async {
   // lisensi OFL font yang dibundel ikut tampil di halaman lisensi
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks([
-      'Source Sans 3',
-    ], await rootBundle.loadString('assets/fonts/OFL.txt'));
-    yield LicenseEntryWithLineBreaks([
-      'Source Serif 4',
-    ], await rootBundle.loadString('assets/fonts/OFL-SourceSerif4.txt'));
+      'Kanit',
+    ], await rootBundle.loadString('assets/fonts/OFL-Kanit.txt'));
   });
 
   final prefs = await SharedPreferences.getInstance();
@@ -48,7 +46,12 @@ class JdihApp extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: langNotifier,
     builder: (context, _) => MaterialApp(
-      title: 'JDIH Kota Kendari',
+      onGenerateTitle: (c) => c.l10n.appName,
+      // bahasa UI = bahasa konten (langNotifier); teks Material bawaan
+      // (tooltip, menu salin-tempel) ikut lewat GlobalMaterialLocalizations
+      locale: Locale(langNotifier.value),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       debugShowCheckedModeBanner: false,
       // tema dikunci terang; dark theme tetap ada kalau nanti dibuka lagi
       theme: appTheme(Brightness.light),
@@ -68,19 +71,55 @@ class JdihApp extends StatelessWidget {
         ),
         child: child!,
       ),
-      // ganti bahasa -> rebuild seluruh shell agar semua layar refetch
-      home: RootShell(key: ValueKey(langNotifier.value)),
+      home: const _Awal(),
     ),
   );
 }
 
-/// Transisi antar-tab: fade saja, dijalankan ulang tiap kali index
-/// berubah. Dipasang di atas IndexedStack — bukan menggantinya — supaya isi
-/// tiap tab (hasil pencarian, posisi gulir) tidak ikut dibuang saat berpindah.
+/// Beranda dibangun (dan mulai memuat) di bawah layar pembuka: saat pembuka
+/// memudar, isinya sudah datang atau tinggal sebentar lagi.
+class _Awal extends StatefulWidget {
+  const _Awal();
+
+  @override
+  State<_Awal> createState() => _AwalState();
+}
+
+class _AwalState extends State<_Awal> {
+  var _pembuka = true;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+    fit: StackFit.expand,
+    children: [
+      ExcludeSemantics(
+        excluding: _pembuka,
+        // ganti bahasa -> rebuild seluruh shell agar semua layar refetch.
+        // Didengar di sini: _Awal const tidak ikut dibangun ulang MaterialApp
+        child: ListenableBuilder(
+          listenable: langNotifier,
+          builder: (_, _) => RootShell(key: ValueKey(langNotifier.value)),
+        ),
+      ),
+      if (_pembuka) Pembuka(onSelesai: () => setState(() => _pembuka = false)),
+    ],
+  );
+}
+
+/// Transisi antar-tab. Tab biasa: fade saja, berpindah tab bukan perjalanan.
+/// Tab [naik] (Tanya AI) naik dari bawah menutupi tab asal dan turun lagi
+/// saat ditinggalkan, seperti halaman yang dibuka di atasnya. Semua tab tetap
+/// hidup di satu Stack (pengganti IndexedStack): hasil cari, percakapan, dan
+/// posisi gulir tidak hilang saat berpindah.
 class _TabTransition extends StatefulWidget {
-  const _TabTransition({super.key, required this.index, required this.child});
-  final int index;
-  final Widget child;
+  const _TabTransition({
+    super.key,
+    required this.index,
+    required this.naik,
+    required this.children,
+  });
+  final int index, naik;
+  final List<Widget> children;
 
   @override
   State<_TabTransition> createState() => _TabTransitionState();
@@ -88,16 +127,27 @@ class _TabTransition extends StatefulWidget {
 
 class _TabTransitionState extends State<_TabTransition>
     with SingleTickerProviderStateMixin {
-  late final _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 200),
-    value: 1,
-  );
+  late final _c = AnimationController(vsync: this, value: 1)
+    // tab asal disembunyikan lagi begitu lembar AI selesai bergerak
+    ..addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) setState(() {});
+    });
+
+  /// Tab sebelumnya: tetap terlihat di bawah lembar AI selama ia bergerak.
+  late int _lalu = widget.index;
+
+  bool get _lembar =>
+      _c.isAnimating && (widget.index == widget.naik || _lalu == widget.naik);
 
   @override
   void didUpdateWidget(_TabTransition old) {
     super.didUpdateWidget(old);
-    if (old.index != widget.index) _c.forward(from: 0);
+    if (old.index == widget.index) return;
+    _lalu = old.index;
+    if (MediaQuery.of(context).disableAnimations) return;
+    final ai = widget.index == widget.naik || _lalu == widget.naik;
+    _c.duration = Duration(milliseconds: ai ? 320 : 200);
+    _c.forward(from: 0);
   }
 
   @override
@@ -108,11 +158,37 @@ class _TabTransitionState extends State<_TabTransition>
 
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.of(context).disableAnimations) return widget.child;
-    // fade-through: berpindah tab bukan perjalanan, jadi tanpa gerak naik
-    return FadeTransition(
-      opacity: CurvedAnimation(parent: _c, curve: Curves.easeOutCubic),
-      child: widget.child,
+    final lembar = _lembar;
+    // lembar AI digambar paling atas: masuk = tab baru, keluar = tab AI
+    final atas = lembar && _lalu == widget.naik ? _lalu : widget.index;
+    final masuk = CurvedAnimation(parent: _c, curve: Curves.easeOutCubic);
+    final posisi = _lalu == widget.naik && widget.index != widget.naik
+        ? geserNaik(ReverseAnimation(_c))
+        : geserNaik(_c);
+    Widget lapis(int i) => KeyedSubtree(
+      key: ValueKey(i),
+      child: Offstage(
+        offstage: i != widget.index && !(lembar && i == _lalu),
+        child: SlideTransition(
+          position: lembar && i == atas
+              ? posisi
+              : const AlwaysStoppedAnimation(Offset.zero),
+          child: FadeTransition(
+            opacity: !lembar && i == widget.index
+                ? masuk
+                : kAlwaysCompleteAnimation,
+            child: widget.children[i],
+          ),
+        ),
+      ),
+    );
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        for (var i = 0; i < widget.children.length; i++)
+          if (i != atas) lapis(i),
+        lapis(atas),
+      ],
     );
   }
 }
@@ -175,18 +251,16 @@ class _RootShellState extends State<RootShell> {
           final tab = _TabTransition(
             key: _tumpukan,
             index: index,
-            child: IndexedStack(
-              index: index,
-              children: [
-                for (final (i, h) in halaman.indexed)
-                  // tab tersembunyi tidak dilukis, tetapi animasinya (kilau
-                  // kerangka muat, denyut) tetap meminta frame tanpa henti
-                  TickerMode(
-                    enabled: i == index,
-                    child: _dibuka.contains(i) ? h : const SizedBox.shrink(),
-                  ),
-              ],
-            ),
+            naik: _cari,
+            children: [
+              for (final (i, h) in halaman.indexed)
+                // tab tersembunyi tidak dilukis, tetapi animasinya (kilau
+                // kerangka muat, denyut) tetap meminta frame tanpa henti
+                TickerMode(
+                  enabled: i == index,
+                  child: _dibuka.contains(i) ? h : const SizedBox.shrink(),
+                ),
+            ],
           );
           // jendela >= 600dp: rail di samping, bukan bar bawah yang melar
           if (MediaQuery.sizeOf(context).width >= kLebarSedang) {
@@ -213,16 +287,18 @@ class _RootShellState extends State<RootShell> {
 }
 
 const _tujuan = [
-  (icon: Icons.home_outlined, aktif: Icons.home, label: 'Beranda'),
-  (
-    icon: Icons.description_outlined,
-    aktif: Icons.description,
-    label: 'Dokumen',
-  ),
-  (icon: Icons.auto_awesome, aktif: Icons.auto_awesome, label: 'Tanya AI'),
-  (icon: Icons.newspaper_outlined, aktif: Icons.newspaper, label: 'Kabar'),
-  (icon: Icons.menu, aktif: Icons.menu, label: 'Menu'),
+  (icon: Icons.home_outlined, aktif: Icons.home),
+  (icon: Icons.description_outlined, aktif: Icons.description),
+  (icon: Icons.auto_awesome, aktif: Icons.auto_awesome),
+  (icon: Icons.newspaper_outlined, aktif: Icons.newspaper),
+  (icon: Icons.menu, aktif: Icons.menu),
 ];
+
+/// Label [_tujuan], urutan sama.
+List<String> _labelTujuan(BuildContext context) {
+  final l = context.l10n;
+  return [l.navHome, l.navDocuments, l.navAskAi, l.navNews, l.navMenu];
+}
 
 /// Navigasi samping untuk jendela >= 600dp (tablet, foldable terbuka, HP
 /// lanskap): NavigationRail Material, dengan Tanya AI sebagai aksi utama di
@@ -248,14 +324,14 @@ class RailSamping extends StatelessWidget {
         builder: (context, box) => SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: box.maxHeight),
-            child: IntrinsicHeight(child: _rail()),
+            child: IntrinsicHeight(child: _rail(_labelTujuan(context))),
           ),
         ),
       ),
     ),
   );
 
-  Widget _rail() => NavigationRail(
+  Widget _rail(List<String> label) => NavigationRail(
     selectedIndex: _tab.contains(index) ? _tab.indexOf(index) : null,
     onDestinationSelected: (i) => onTap(_tab[i]),
     labelType: NavigationRailLabelType.all,
@@ -264,13 +340,12 @@ class RailSamping extends StatelessWidget {
       child: _TombolAiRail(aktif: index == 2, onTap: () => onTap(2)),
     ),
     destinations: [
-      for (final t in _tujuan)
-        if (t.label != 'Tanya AI')
-          NavigationRailDestination(
-            icon: Icon(t.icon),
-            selectedIcon: Icon(t.aktif),
-            label: Text(t.label),
-          ),
+      for (final i in _tab)
+        NavigationRailDestination(
+          icon: Icon(_tujuan[i].icon),
+          selectedIcon: Icon(_tujuan[i].aktif),
+          label: Text(label[i]),
+        ),
     ],
   );
 }
@@ -284,7 +359,7 @@ class _TombolAiRail extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
     button: true,
     selected: aktif,
-    label: 'Tanya AI dan pencarian',
+    label: context.l10n.aiAndSearch(context.l10n.navAskAi),
     onTap: onTap,
     excludeSemantics: true,
     child: GestureDetector(
@@ -296,16 +371,16 @@ class _TombolAiRail extends StatelessWidget {
             color: C.primary,
             elevation: aktif ? 0 : 2,
             shadowColor: C.ink.withValues(alpha: .3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.button),
+            // lingkaran, sama dengan tombol tengah NavBawah
+            shape: CircleBorder(
               // terbuka = bertepi gelap tipis, padanan indikator aktif rail
               side: aktif
                   ? const BorderSide(color: C.primaryInk, width: 2)
                   : BorderSide.none,
             ),
+            clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: onTap,
-              borderRadius: BorderRadius.circular(AppRadius.button),
               child: const SizedBox(
                 width: 56,
                 height: 56,
@@ -315,7 +390,7 @@ class _TombolAiRail extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Tanya AI',
+            context.l10n.navAskAi,
             style: T.label.copyWith(
               color: C.lightInk,
               fontWeight: FontWeight.w700,
@@ -327,16 +402,17 @@ class _TombolAiRail extends StatelessWidget {
   );
 }
 
-/// Navigasi bawah melayang: empat tujuan + tombol Tanya AI yang menonjol di
-/// tengah — pintu masuk pencarian dan AI, aksi utama aplikasi ini. Semua
-/// tujuan tetap berlabel; ikon saja ambigu bagi pengguna awam.
+/// Navigasi bawah: bar putih selebar layar, empat tujuan + tombol Tanya AI
+/// berbentuk lingkaran yang menyembul di tengah — pintu masuk pencarian dan
+/// AI, aksi utama aplikasi ini. Semua tujuan tetap berlabel; ikon saja
+/// ambigu bagi pengguna awam.
 class NavBawah extends StatelessWidget {
   const NavBawah({super.key, required this.index, required this.onTap});
   final int index;
   final ValueChanged<int> onTap;
 
-  /// Tombol tengah menyembul sejauh ini di atas bar.
-  static const _sembul = 16.0;
+  /// Lingkaran tengah menyembul sejauh ini di atas bar.
+  static const _sembul = 24.0;
 
   @override
   Widget build(BuildContext context) {
@@ -345,58 +421,58 @@ class NavBawah extends StatelessWidget {
     // bar menyesuaikan, jadi tidak ada yang terpotong
     final teks = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5);
     final label = teks.scale(_gayaLabel.fontSize!) * _gayaLabel.height!;
+    final labelTujuan = _labelTujuan(context);
+    final bawah = MediaQuery.paddingOf(context).bottom;
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaler: teks),
-      child: SafeArea(
-        top: false,
-        minimum: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: SizedBox(
-            // tombol tengah (56) + label + jarak dasar menentukan tinggi minimum
-            height: math.max(64 + _sembul, 56 + label + _dasarLabel),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  top: _sembul,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: C.lightSurface,
-                      borderRadius: BorderRadius.circular(AppRadius.card),
-                      border: Border.all(color: C.lightLine),
-                      // bar benar-benar melayang di atas isi: satu bayangan lembut
-                      boxShadow: [
-                        BoxShadow(
-                          color: C.ink.withValues(alpha: .08),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+      child: SizedBox(
+        // lingkaran bercincin + label + jarak dasar menentukan tinggi minimum
+        height:
+            math.max(64 + _sembul, _TombolTengah.garis + 2 + label + _dasar) +
+            bawah,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              top: _sembul,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: C.lightSurface,
+                  border: const Border(top: BorderSide(color: C.lightLine)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: C.ink.withValues(alpha: .06),
+                      blurRadius: 16,
+                      offset: const Offset(0, -4),
                     ),
-                  ),
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final (i, t) in _tujuan.indexed)
-                      Expanded(
-                        child: i == 2
-                            ? _TombolTengah(
-                                label: t.label,
-                                onTap: () => onTap(i),
-                              )
-                            : _Item(
-                                icon: index == i ? t.aktif : t.icon,
-                                label: t.label,
-                                aktif: index == i,
-                                onTap: () => onTap(i),
-                              ),
-                      ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
+            Padding(
+              // bar ikut mewarnai area gestur sistem, isinya di atasnya
+              padding: EdgeInsets.only(bottom: bawah),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final (i, t) in _tujuan.indexed)
+                    Expanded(
+                      child: i == 2
+                          ? _TombolTengah(
+                              label: labelTujuan[i],
+                              aktif: index == i,
+                              onTap: () => onTap(i),
+                            )
+                          : _Item(
+                              icon: index == i ? t.aktif : t.icon,
+                              label: labelTujuan[i],
+                              aktif: index == i,
+                              onTap: () => onTap(i),
+                            ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -405,6 +481,9 @@ class NavBawah extends StatelessWidget {
 
 /// Label tujuan; tinggi baris tetap supaya tinggi bar bisa dihitung.
 const _gayaLabel = T.label;
+
+/// Jarak label ke dasar bar, sama untuk semua slot.
+const _dasar = 8.0;
 
 class _Item extends StatelessWidget {
   const _Item({
@@ -419,78 +498,84 @@ class _Item extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: NavBawah._sembul),
-    child: MergeSemantics(
-      child: Semantics(
-        selected: aktif,
-        button: true,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          // dasar label rata dengan label tombol tengah
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              // penanda aktif: kotak bertinta oranye di belakang ikon
-              AnimatedContainer(
-                duration: MediaQuery.of(context).disableAnimations
-                    ? Duration.zero
-                    : const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
-                width: 52,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: aktif
-                      ? C.primary.withValues(alpha: .16)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(AppRadius.chip),
-                  border: Border.all(
-                    color: aktif
-                        ? C.primary.withValues(alpha: .55)
-                        : Colors.transparent,
+  Widget build(BuildContext context) {
+    final durasi = MediaQuery.of(context).disableAnimations
+        ? Duration.zero
+        : const Duration(milliseconds: 200);
+    final warna = aktif ? C.primaryInk : C.lightInkMuted;
+    return Padding(
+      padding: const EdgeInsets.only(top: NavBawah._sembul),
+      child: MergeSemantics(
+        child: Semantics(
+          selected: aktif,
+          button: true,
+          child: InkWell(
+            onTap: onTap,
+            // dasar label rata dengan label tombol tengah
+            child: Column(
+              children: [
+                // penanda aktif: garis amber pendek di tepi atas bar
+                AnimatedContainer(
+                  duration: durasi,
+                  curve: Curves.easeOutCubic,
+                  width: aktif ? 24 : 0,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: C.primary,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                child: Icon(
-                  icon,
-                  size: 22,
-                  color: aktif ? C.primaryInk : C.lightInkMuted,
+                const Spacer(),
+                AnimatedScale(
+                  duration: durasi,
+                  curve: Curves.easeOutBack,
+                  scale: aktif ? 1.12 : 1,
+                  child: Icon(icon, size: 24, color: warna),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: _gayaLabel.copyWith(
-                  fontWeight: aktif ? FontWeight.w700 : FontWeight.w500,
-                  color: aktif ? C.primaryInk : C.lightInkMuted,
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: _gayaLabel.copyWith(
+                    fontWeight: aktif ? FontWeight.w600 : FontWeight.w400,
+                    color: warna,
+                  ),
                 ),
-              ),
-              const SizedBox(height: _dasarLabel),
-            ],
+                const SizedBox(height: _dasar),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
-/// Jarak label ke dasar bar, sama untuk semua slot.
-const _dasarLabel = 8.0;
-
-/// Kotak oranye bersudut 4dp yang menyembul di atas bar, labelnya sebaris
-/// dengan label tujuan lain. Cincin berwarna latar halaman memotong tepi bar
-/// sehingga tombol tampak duduk di lekukan.
+/// Lingkaran amber yang menyembul di atas bar, labelnya sebaris dengan label
+/// tujuan lain. Cincin putih selebar 5dp menyatukannya dengan bar sehingga
+/// tombol tampak duduk di lekukan.
 class _TombolTengah extends StatelessWidget {
-  const _TombolTengah({required this.label, required this.onTap});
+  const _TombolTengah({
+    required this.label,
+    required this.aktif,
+    required this.onTap,
+  });
   final String label;
+  final bool aktif;
   final VoidCallback onTap;
+
+  static const _isi = 56.0;
+  static const _cincin = 5.0;
+
+  /// Diameter lingkaran beserta cincinnya.
+  static const garis = _isi + _cincin * 2;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
-    label: '$label dan pencarian',
+    selected: aktif,
+    label: context.l10n.aiAndSearch(label),
     onTap: onTap,
     excludeSemantics: true,
     child: GestureDetector(
@@ -500,26 +585,42 @@ class _TombolTengah extends StatelessWidget {
         children: [
           Pressable(
             child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: C.lightBg,
-                borderRadius: BorderRadius.circular(AppRadius.button + 4),
+              width: garis,
+              height: garis,
+              padding: const EdgeInsets.all(_cincin),
+              decoration: const BoxDecoration(
+                color: C.lightSurface,
+                shape: BoxShape.circle,
               ),
-              child: Material(
-                color: C.primary,
-                elevation: 2,
-                shadowColor: C.ink.withValues(alpha: .3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.button),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFFA24D), C.primary],
+                  ),
+                  // cahaya amber di bawah lingkaran, bukan bayangan abu
+                  boxShadow: [
+                    BoxShadow(
+                      color: C.primary.withValues(alpha: .45),
+                      blurRadius: 14,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
-                child: InkWell(
-                  onTap: onTap,
-                  borderRadius: BorderRadius.circular(AppRadius.button),
-                  child: const SizedBox(
-                    width: 48,
-                    height: 48,
-                    // teks/ikon gelap di atas oranye: kontras >= 4,5:1
-                    child: Icon(Icons.auto_awesome, color: C.ink, size: 24),
+                child: Material(
+                  type: MaterialType.transparency,
+                  shape: const CircleBorder(),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: onTap,
+                    // ikon gelap di atas amber: kontras >= 4,5:1
+                    child: const Icon(
+                      Icons.auto_awesome,
+                      color: C.ink,
+                      size: 26,
+                    ),
                   ),
                 ),
               ),
@@ -531,11 +632,11 @@ class _TombolTengah extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: _gayaLabel.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: C.lightInk,
             ),
           ),
-          const SizedBox(height: _dasarLabel),
+          const SizedBox(height: _dasar),
         ],
       ),
     ),

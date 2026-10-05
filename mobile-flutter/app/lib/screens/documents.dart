@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -10,28 +11,45 @@ import '../widgets.dart';
 import 'doc_view.dart';
 
 const docCategories = [
-  (
-    slug: 'peraturan',
-    label: 'Peraturan & Keputusan',
-    short: 'Peraturan',
-    icon: Icons.account_balance,
-  ),
-  (
-    slug: 'monografi',
-    label: 'Monografi Hukum',
-    short: 'Monografi',
-    icon: Icons.menu_book,
-  ),
-  (
-    slug: 'artikel',
-    label: 'Artikel / Majalah Hukum',
-    short: 'Artikel',
-    icon: Icons.article,
-  ),
-  (slug: 'putusan', label: 'Putusan', short: 'Putusan', icon: Icons.gavel),
+  (slug: 'peraturan', icon: Icons.account_balance),
+  (slug: 'monografi', icon: Icons.menu_book),
+  (slug: 'artikel', icon: Icons.article),
+  (slug: 'putusan', icon: Icons.gavel),
 ];
 
-final _angka = NumberFormat.decimalPattern('id');
+/// Nama koleksi menurut bahasa aktif: lengkap, singkat (tab/pil), dan
+/// keterangan kartu.
+({String label, String short, String sub}) docCategoryText(
+  BuildContext context,
+  String slug,
+) {
+  final l = context.l10n;
+  return switch (slug) {
+    'peraturan' => (
+      label: l.catRegulations,
+      short: l.catRegulationsShort,
+      sub: l.catRegulationsSub,
+    ),
+    'monografi' => (
+      label: l.catMonographs,
+      short: l.catMonographsShort,
+      sub: l.catMonographsSub,
+    ),
+    'artikel' => (
+      label: l.catArticles,
+      short: l.catArticlesShort,
+      sub: l.catArticlesSub,
+    ),
+    'putusan' => (
+      label: l.catRulings,
+      short: l.catRulingsShort,
+      sub: l.catRulingsSub,
+    ),
+    _ => (label: slug, short: slug, sub: ''),
+  };
+}
+
+NumberFormat get _angka => NumberFormat.decimalPattern(langNotifier.value);
 
 /// Abstrak dokumen sebagai teks ATAU berkas PDF. Server yang belum memuat
 /// field `abstrak_url` mengirim NAMA berkas di kolom `abstrak`
@@ -50,8 +68,8 @@ final _angka = NumberFormat.decimalPattern('id');
   );
 }
 
-String docCategoryLabel(String slug) =>
-    docCategories.where((c) => c.slug == slug).firstOrNull?.label ?? slug;
+String docCategoryLabel(BuildContext context, String slug) =>
+    docCategoryText(context, slug).label;
 
 class DocumentCard extends StatelessWidget {
   const DocumentCard(this.d, {super.key});
@@ -88,117 +106,69 @@ class DocumentCard extends StatelessWidget {
                     builder: (_) => DocumentDetailScreen(id: d.i('id')),
                   ),
                 ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          // Tanpa blok nomor di kiri: nomor & tahun cukup sebaris di samping
+          // jenis, judul mendapat lebar penuh, dan bidang hukum + hitungan
+          // berbagi satu baris. Kartu ±30% lebih pendek, isinya sama.
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              10,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // blok nomor: penanda khas dokumen hukum, sekaligus jangkar
-                // visual — netral, satu langkah dari permukaan kartu
-                if (nomor != null)
-                  Container(
-                    width: 56,
-                    color: C.lightBg,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.md,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('No.', style: T.labelKecil.copyWith(color: muted)),
-                        Text(
-                          nomor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: T.angka,
-                        ),
-                        if (tahun != null)
-                          Text(
-                            tahun,
-                            style: T.labelKecil.copyWith(color: muted),
+                // Wrap bersarang: jenis+nomor di kiri, status di kanan;
+                // status panjang ("Berlaku, diubah sebagian ...") turun ke
+                // baris kedua alih-alih meluap. Lebar penuh agar spaceBetween
+                // berefek
+                SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: AppSpacing.sm,
+                    runSpacing: 6,
+                    children: [
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: AppSpacing.sm,
+                        runSpacing: 4,
+                        children: [
+                          JenisChip(
+                            d.sn('singkatan_jenis') ?? d.sn('jenis_peraturan'),
                           ),
-                      ],
-                    ),
-                  ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Wrap, bukan Row: status panjang ("Berlaku, diubah
-                        // sebagian ...") turun ke baris kedua alih-alih
-                        // meluap dari kartu
-                        // lebar penuh: Wrap menyusut selebar isinya, dan
-                        // tanpa ini spaceBetween tidak berefek
-                        SizedBox(
-                          width: double.infinity,
-                          child: Wrap(
-                            alignment: WrapAlignment.spaceBetween,
-                            spacing: AppSpacing.sm,
-                            runSpacing: 6,
-                            children: [
-                              JenisChip(
-                                d.sn('singkatan_jenis') ??
-                                    d.sn('jenis_peraturan'),
-                              ),
-                              StatusBadge(status),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        // titleCase: judul di basis data KAPITAL SEMUA dan
-                        // terbaca seperti diteriakkan
-                        Text(
-                          titleCase(d.s('judul')),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: T.judulItem,
-                        ),
-                        if (d.sn('bidang_hukum') != null) ...[
-                          const SizedBox(height: AppSpacing.sm),
-                          MetaPill(Icons.folder_outlined, d.s('bidang_hukum')),
-                        ],
-                        const SizedBox(height: AppSpacing.sm),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            // Wrap: dengan huruf besar atau angka jutaan,
-                            // jumlah unduhan turun ke baris kedua alih-alih
-                            // meluap; "Detail" tetap di kanan
-                            Expanded(
-                              child: Wrap(
-                                spacing: 12,
-                                runSpacing: 2,
-                                children: [
-                                  _Hitungan(
-                                    Icons.visibility_outlined,
-                                    d.i('hit_see'),
-                                    'dilihat',
-                                    muted,
-                                  ),
-                                  _Hitungan(
-                                    Icons.download_outlined,
-                                    d.i('hit_download'),
-                                    'diunduh',
-                                    muted,
-                                  ),
+                          if (nomor != null || tahun != null)
+                            Text(
+                              nomor == null
+                                  ? tahun!
+                                  : '${context.l10n.noAbbr} $nomor'
+                                        '${tahun == null ? '' : '/$tahun'}',
+                              style: T.label.copyWith(
+                                color: muted,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
                                 ],
                               ),
                             ),
-                            // panah saja: seluruh kartu sudah bisa diketuk;
-                            // label "Detail" berwarna di tiap kartu hanya
-                            // menambah riuh daftar
-                            const Icon(
-                              Icons.chevron_right,
-                              size: 16,
-                              color: C.accent,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                      StatusBadge(status),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 6),
+                // titleCase: judul di basis data KAPITAL SEMUA dan terbaca
+                // seperti diteriakkan
+                Text(
+                  titleCase(d.s('judul')),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: T.judulItem,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _BarisMeta(d, muted),
               ],
             ),
           ),
@@ -208,6 +178,8 @@ class DocumentCard extends StatelessWidget {
   }
 }
 
+/// Ikon + angka (dilihat/diunduh) pada kartu dokumen. Pembaca layar
+/// mendengar "1.234 dilihat", bukan angka tanpa konteks.
 /// Pemilihan dokumen di tata letak daftar+detail. Bila ada di atas sebuah
 /// [DocumentCard], ketukan memilih dokumen untuk panel kanan alih-alih
 /// membuka halaman baru.
@@ -268,12 +240,10 @@ class _DaftarDetailState extends State<DaftarDetail> {
           Expanded(
             child: Panel(
               child: _id == null
-                  ? const EmptyState(
+                  ? EmptyState(
                       icon: Icons.description_outlined,
-                      title: 'Pilih dokumen',
-                      message:
-                          'Ketuk dokumen di daftar untuk membaca rinciannya '
-                          'di sini, berdampingan dengan hasil lainnya.',
+                      title: context.l10n.pickDocument,
+                      message: context.l10n.pickDocumentHint,
                     )
                   : DocumentDetailScreen(
                       key: ValueKey(_id),
@@ -288,8 +258,63 @@ class _DaftarDetailState extends State<DaftarDetail> {
   );
 }
 
-/// Ikon + angka (dilihat/diunduh) pada kartu dokumen. Pembaca layar
-/// mendengar "1.234 dilihat", bukan angka tanpa konteks.
+/// Bidang hukum + jumlah dilihat/diunduh dalam satu baris. Tanpa panah:
+/// seluruh kartu sudah bisa diketuk. Huruf besar (> 130%): Wrap, supaya
+/// angka tidak meluap.
+class _BarisMeta extends StatelessWidget {
+  const _BarisMeta(this.d, this.muted);
+  final Json d;
+  final Color muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final b = d.sn('bidang_hukum');
+    final bidang = b == null
+        ? null
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.folder_outlined, size: 14, color: muted),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  titleCase(b),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: T.isiKecil.copyWith(color: muted),
+                ),
+              ),
+            ],
+          );
+    final hitungan = [
+      _Hitungan(
+        Icons.visibility_outlined,
+        d.i('hit_see'),
+        context.l10n.views,
+        muted,
+      ),
+      _Hitungan(
+        Icons.download_outlined,
+        d.i('hit_download'),
+        context.l10n.downloads,
+        muted,
+      ),
+    ];
+    if (skalaTeks(context) > 1.3) {
+      return Wrap(spacing: 12, runSpacing: 4, children: [?bidang, ...hitungan]);
+    }
+    return Row(
+      children: [
+        if (bidang != null) Expanded(child: bidang) else const Spacer(),
+        const SizedBox(width: 12),
+        hitungan[0],
+        const SizedBox(width: 12),
+        hitungan[1],
+      ],
+    );
+  }
+}
+
 class _Hitungan extends StatelessWidget {
   const _Hitungan(this.icon, this.nilai, this.arti, this.warna);
   final IconData icon;
@@ -334,16 +359,9 @@ class _DocumentsHubScreenState extends State<DocumentsHubScreen> {
   late final Future<Json> _stats = api.home();
   int _tab = 0;
 
-  static const _subtitle = {
-    'peraturan': 'Perda, Perwali, dan Keputusan Wali Kota',
-    'monografi': 'Buku dan kajian hukum daerah',
-    'artikel': 'Artikel dan majalah hukum',
-    'putusan': 'Putusan pengadilan terkait daerah',
-  };
-
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const BrandAppBar('Dokumen Hukum', showBack: false),
+    appBar: BrandAppBar(context.l10n.legalDocuments, showBack: false),
     body: CustomScrollView(
       slivers: [
         SliverPadding(
@@ -363,7 +381,7 @@ class _DocumentsHubScreenState extends State<DocumentsHubScreen> {
                     for (final c in docCategories)
                       _CategoryCard(
                         category: c,
-                        subtitle: _subtitle[c.slug] ?? '',
+                        subtitle: docCategoryText(context, c.slug).sub,
                         count: snap.hasData ? stats.i(c.slug) : null,
                         memuat: snap.connectionState != ConnectionState.done,
                       ),
@@ -392,7 +410,7 @@ class _DocumentsHubScreenState extends State<DocumentsHubScreen> {
                 },
               ),
               SectionHeader(
-                'Produk Hukum Terbaru',
+                context.l10n.latestLegalProducts,
                 onSeeAll: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -402,7 +420,10 @@ class _DocumentsHubScreenState extends State<DocumentsHubScreen> {
                 ),
               ),
               FilterPills(
-                labels: [for (final c in docCategories) c.short],
+                labels: [
+                  for (final c in docCategories)
+                    docCategoryText(context, c.slug).short,
+                ],
                 selected: _tab,
                 onSelected: (i) => setState(() => _tab = i),
               ),
@@ -434,7 +455,7 @@ class _CategoryCard extends StatelessWidget {
     required this.count,
     required this.memuat,
   });
-  final ({String slug, String label, String short, IconData icon}) category;
+  final ({String slug, IconData icon}) category;
   final String subtitle;
 
   /// null selagi dimuat, atau bila gagal dimuat.
@@ -466,7 +487,10 @@ class _CategoryCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(category.label, style: T.subjudul),
+                    Text(
+                      docCategoryText(context, category.slug).label,
+                      style: T.subjudul,
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
@@ -482,7 +506,7 @@ class _CategoryCard extends StatelessWidget {
                       )
                     else if (count != null)
                       Text(
-                        '$count dokumen tersedia',
+                        context.l10n.docsAvailable(count!),
                         style: T.labelKecil.copyWith(
                           color: C.accent,
                           fontFeatures: [FontFeature.tabularFigures()],
@@ -534,7 +558,7 @@ class _LatestDocumentsState extends State<_LatestDocuments> {
                     _future = api.documents(category: widget.category);
                   }),
                   icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Coba lagi'),
+                  label: Text(context.l10n.retry),
                 ),
               ],
             ),
@@ -627,6 +651,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
   /// saat aktif supaya terlihat filter mana yang sedang membatasi daftar.
   Widget _dropdown(
     String hint,
+    String semua,
     String value,
     String key,
     void Function(String) set,
@@ -670,13 +695,16 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
             style: T.label.copyWith(color: dark ? C.darkInk : C.lightInk),
             items: [
               // satu filter bisa dilepas tanpa mereset filter yang lain
-              DropdownMenuItem(value: '', child: Text('Semua $hint')),
+              DropdownMenuItem(value: '', child: Text(semua)),
               // nilai tetap apa adanya untuk API; yang di-titleCase hanya
               // tampilannya — "TIDAK BERLAKU" terbaca seperti diteriakkan
               for (final o in opts)
                 DropdownMenuItem(
                   value: o,
-                  child: Text(titleCase(o), overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    titleCase(key == 'status' ? statusLabel(context, o) : o),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
             ],
             onChanged: (v) => setState(() => set(v ?? '')),
@@ -698,7 +726,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
       _nomor,
     ].any((f) => f.isNotEmpty);
     return Scaffold(
-      appBar: BrandAppBar(docCategoryLabel(widget.category)),
+      appBar: BrandAppBar(docCategoryLabel(context, widget.category)),
       // jendela lebar: daftar + detail berdampingan
       body: DaftarDetail(
         daftar: Column(
@@ -720,9 +748,9 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                       Expanded(
                         child: TextField(
                           controller: _qCtrl,
-                          decoration: const InputDecoration(
-                            hintText: 'Cari judul...',
-                            prefixIcon: Icon(Icons.search),
+                          decoration: InputDecoration(
+                            hintText: context.l10n.searchTitleHint,
+                            prefixIcon: const Icon(Icons.search),
                           ),
                           textInputAction: TextInputAction.search,
                           onSubmitted: (v) => setState(() => _q = v.trim()),
@@ -735,9 +763,9 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                         width: 112,
                         child: TextField(
                           controller: _nomorCtrl,
-                          decoration: const InputDecoration(
-                            hintText: 'Nomor',
-                            prefixIcon: Icon(Icons.tag),
+                          decoration: InputDecoration(
+                            hintText: context.l10n.number,
+                            prefixIcon: const Icon(Icons.tag),
                           ),
                           textInputAction: TextInputAction.search,
                           onSubmitted: (v) => setState(() => _nomor = v.trim()),
@@ -750,10 +778,23 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _dropdown('Jenis', _jenis, 'jenis', (v) => _jenis = v),
-                        _dropdown('Tahun', _tahun, 'tahun', (v) => _tahun = v),
                         _dropdown(
-                          'Status',
+                          context.l10n.type,
+                          context.l10n.filterAllTypes,
+                          _jenis,
+                          'jenis',
+                          (v) => _jenis = v,
+                        ),
+                        _dropdown(
+                          context.l10n.year,
+                          context.l10n.filterAllYears,
+                          _tahun,
+                          'tahun',
+                          (v) => _tahun = v,
+                        ),
+                        _dropdown(
+                          context.l10n.status,
+                          context.l10n.filterAllStatus,
                           _status,
                           'status',
                           (v) => _status = v,
@@ -762,7 +803,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                           TextButton.icon(
                             onPressed: _reset,
                             icon: const Icon(Icons.close, size: 16),
-                            label: const Text('Reset'),
+                            label: Text(context.l10n.reset),
                           ),
                       ],
                     ),
@@ -773,7 +814,9 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          '$_total dokumen${hasFilter ? ' sesuai filter' : ''}',
+                          hasFilter
+                              ? context.l10n.docCountFiltered(_total!)
+                              : context.l10n.docCount(_total!),
                           style: T.labelKecil.copyWith(color: muted),
                         ),
                       ),
@@ -796,7 +839,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                   page: page,
                 ),
                 onTotal: (t) => setState(() => _total = t),
-                empty: 'Belum ada dokumen pada kategori ini.',
+                empty: context.l10n.emptyCategory,
                 // kosong karena filter != kosong karena belum ada isinya:
                 // "muat ulang" tidak akan mengubah apa pun
                 emptyView: !hasFilter
@@ -806,19 +849,18 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                         // kombinasi mana yang tidak menghasilkan apa-apa
                         [
                           _q,
-                          if (_nomor.isNotEmpty) 'No. $_nomor',
+                          if (_nomor.isNotEmpty)
+                            '${context.l10n.noAbbr} $_nomor',
                           _jenis,
                           _tahun,
                           _status,
                         ].where((f) => f.isNotEmpty).join(' · '),
-                        saran:
-                            'Longgarkan filternya atau periksa ejaan kata '
-                            'kuncinya.',
+                        saran: context.l10n.loosenFilters,
                         actions: [
                           FilledButton.icon(
                             onPressed: _reset,
                             icon: const Icon(Icons.close, size: 18),
-                            label: const Text('Reset filter'),
+                            label: Text(context.l10n.resetFilter),
                           ),
                         ],
                       ),
@@ -902,16 +944,16 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
   );
 
   Widget _heroBar(BuildContext context, Json d) => SliverAppBar(
-    expandedHeight: 136,
+    expandedHeight: kTinggiHeroDokumen,
     pinned: true,
     stretch: true,
-    backgroundColor: Theme.of(context).brightness == Brightness.dark
-        ? C.darkSurface
-        : C.lightSurface,
+    // tersemat tetap biru (pola memudar saat menciut): batas tegas dengan
+    // lembar putih yang digulir di bawahnya, ikon bilah status tetap putih
+    backgroundColor: C.accent,
     surfaceTintColor: Colors.transparent,
-    // tersemat di atas isi yang digulir: tanpa garis, judul tampak terpotong
-    // oleh bar putih yang menyatu dengan lembar putih di bawahnya
-    shape: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+    systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+      statusBarColor: Colors.transparent,
+    ),
     leadingWidth: 64,
     automaticallyImplyLeading: false,
     leading: widget.panel
@@ -920,17 +962,17 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
             padding: const EdgeInsets.only(left: AppSpacing.lg),
             child: RoundIconButton(
               Icons.arrow_back,
-              tooltip: 'Kembali',
+              tooltip: context.l10n.back,
               onPressed: () => Navigator.pop(context),
             ),
           ),
     actions: [ShareAction(d)],
     flexibleSpace: FlexibleSpaceBar(
       stretchModes: const [StretchMode.zoomBackground],
-      // Pita biru polos: wilayah identitas "dokumen resmi", gema globe biru
-      // pada logo. Tanpa cap air, tahun bayangan, atau label kapital — jenis,
-      // tahun, dan status sudah dibawa chip & pil tepat di bawahnya.
-      background: const ColoredBox(color: C.accentDeep),
+      // Kepala biru berpola, sama dengan app bar & beranda: wilayah
+      // identitas "dokumen resmi". Jenis, tahun, dan status dibawa chip & pil
+      // tepat di bawahnya, jadi hero tidak mengulangnya.
+      background: const PolaBiru(),
     ),
   );
 
@@ -957,21 +999,27 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         spacing: AppSpacing.sm,
         runSpacing: 6,
         children: [
-          if (nomor != null) MetaPill(Icons.tag, 'Nomor $nomor'),
-          if (tahun != null) MetaPill(Icons.event_outlined, 'Tahun $tahun'),
+          if (nomor != null)
+            MetaPill(Icons.tag, context.l10n.numberValue(nomor)),
+          if (tahun != null)
+            MetaPill(Icons.event_outlined, context.l10n.yearValue(tahun)),
           if (d.sn('bidang_hukum') != null)
             MetaPill(Icons.gavel, titleCase(d.s('bidang_hukum'))),
         ],
       ),
       const SizedBox(height: AppSpacing.lg),
       FilterPills(
-        labels: ['Tentang', 'Berkas (${lampiran.length})', 'Terkait'],
+        labels: [
+          context.l10n.tabAbout,
+          context.l10n.tabFiles(lampiran.length),
+          context.l10n.tabRelated,
+        ],
         selected: _tab,
         onSelected: (i) => setState(() => _tab = i),
       ),
       const SizedBox(height: AppSpacing.lg),
       ...switch (_tab) {
-        1 => _berkasTab(context, lampiran),
+        1 => _berkasTab(context, lampiran, d.s('judul')),
         2 => _terkaitTab(context, terkait),
         _ => _tentangTab(d),
       },
@@ -983,22 +1031,28 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     final (teks: abstrak, url: abstrakUrl) = abstrakDokumen(d);
     final subjek = d.ls('subjek');
     final pengarang = d.l('pengarang');
+    final l = context.l10n;
     final specs = <(IconData, String, String)>[
       (
         Icons.category_outlined,
         titleCase(d.sn('singkatan_jenis') ?? d.sn('jenis_peraturan') ?? '-'),
-        'Jenis',
+        l.type,
       ),
-      (Icons.event_outlined, d.sn('tahun_terbit') ?? '-', 'Tahun'),
+      (Icons.event_outlined, d.sn('tahun_terbit') ?? '-', l.year),
       (
         Icons.verified_outlined,
-        titleCase(d.sn('status') ?? d.sn('status_terakhir') ?? '-'),
-        'Status',
+        titleCase(
+          statusLabel(
+            context,
+            d.sn('status') ?? d.sn('status_terakhir') ?? '-',
+          ),
+        ),
+        l.status,
       ),
-      (Icons.translate, titleCase(d.sn('bahasa') ?? '-'), 'Bahasa'),
+      (Icons.translate, titleCase(d.sn('bahasa') ?? '-'), l.language),
     ];
     return [
-      const Text('Tentang Dokumen', style: T.subjudul),
+      Text(l.aboutDocument, style: T.subjudul),
       const SizedBox(height: AppSpacing.md),
       // dua kolom, bukan deret mendatar: empat kartu terbaca sekaligus dan
       // nilai panjang punya ruang dua baris alih-alih dipotong. Tinggi per
@@ -1015,40 +1069,41 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       ],
       if (abstrak != null || abstrakUrl != null) ...[
         const SizedBox(height: AppSpacing.lg),
-        const Text('Abstrak', style: T.subjudul),
+        Text(l.abstract, style: T.subjudul),
         if (abstrak != null) ReadMore(abstrak, html: true),
         // dokumen lama menyimpan abstraknya sebagai berkas PDF, bukan teks
         if (abstrakUrl != null) ...[
           const SizedBox(height: AppSpacing.sm),
           DocFileTile(
             abstrakUrl,
-            title: 'Abstrak ${titleCase(d.s('judul'))}',
+            title: l.abstractOf(titleCase(d.s('judul'))),
+            nama: l.fileAbstract(d.s('judul')),
             onOpen: () => api.documentDownload(widget.id).ignore(),
           ),
         ],
       ],
       const SizedBox(height: AppSpacing.sm),
       MetaTable({
-        'T.E.U.': d.sn('teu'),
-        'Bentuk': d.sn('bentuk_peraturan'),
-        'Jenis': d.sn('jenis_peraturan'),
-        'Tempat Terbit': d.sn('tempat_terbit'),
-        'Penerbit': d.sn('penerbit'),
-        'Tgl. Penetapan': fmtDate(d.sn('tanggal_penetapan')),
-        'Tgl. Pengundangan': fmtDate(d.sn('tanggal_pengundangan')),
-        'Sumber': d.sn('sumber'),
-        'Bahasa': d.sn('bahasa'),
-        'Bidang Hukum': d.sn('bidang_hukum'),
-        'Penandatangan': d.sn('penandatanganan'),
+        l.metaTeu: d.sn('teu'),
+        l.metaForm: d.sn('bentuk_peraturan'),
+        l.type: d.sn('jenis_peraturan'),
+        l.metaPlacePublished: d.sn('tempat_terbit'),
+        l.publisher: d.sn('penerbit'),
+        l.metaDateEnacted: fmtDate(d.sn('tanggal_penetapan')),
+        l.metaDatePromulgated: fmtDate(d.sn('tanggal_pengundangan')),
+        l.source: d.sn('sumber'),
+        l.language: d.sn('bahasa'),
+        l.metaLegalField: d.sn('bidang_hukum'),
+        l.metaSignatory: d.sn('penandatanganan'),
         'ISBN': d.sn('isbn'),
-        'Deskripsi Fisik': d.sn('deskripsi_fisik'),
-        'Lembaga Peradilan': d.sn('lembaga_peradilan'),
-        'Pemohon': d.sn('pemohon'),
-        'Termohon': d.sn('termohon'),
-        'Jenis Perkara': d.sn('jenis_perkara'),
+        l.metaPhysicalDesc: d.sn('deskripsi_fisik'),
+        l.metaCourt: d.sn('lembaga_peradilan'),
+        l.metaPetitioner: d.sn('pemohon'),
+        l.metaRespondent: d.sn('termohon'),
+        l.metaCaseType: d.sn('jenis_perkara'),
       }),
       if (subjek.isNotEmpty) ...[
-        const SectionHeader('Subjek'),
+        SectionHeader(l.subject),
         Wrap(
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
@@ -1056,32 +1111,37 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         ),
       ],
       if (pengarang.isNotEmpty) ...[
-        const SectionHeader('Pengarang'),
+        SectionHeader(l.author),
         Text(pengarang.map((p) => p.s('nama')).join(', ')),
       ],
     ];
   }
 
-  List<Widget> _berkasTab(BuildContext context, List<Json> lampiran) {
+  List<Widget> _berkasTab(
+    BuildContext context,
+    List<Json> lampiran,
+    String judul,
+  ) {
     if (lampiran.isEmpty) {
-      return const [
+      return [
         EmptyState(
           icon: Icons.folder_off_outlined,
-          title: 'Belum ada berkas',
-          message:
-              'Dokumen ini belum memiliki file yang bisa dilihat '
-              'atau diunduh. Coba periksa peraturan terkait.',
+          title: context.l10n.noFiles,
+          message: context.l10n.noFilesHint,
         ),
       ];
     }
     return [
-      for (final l in lampiran)
+      for (final (i, l) in lampiran.indexed)
         if (l.sn('url') != null)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: DocFileTile(
               l.s('url'),
-              title: l.sn('judul') ?? 'Dokumen',
+              title: l.sn('judul') ?? context.l10n.document,
+              // judul_lampiran berisi kode ("2026pw7416021"): nama berkas
+              // dari judul dokumen, berkas kedua dst. diberi nomor
+              nama: i == 0 ? judul : context.l10n.fileAttachmentN(judul, i + 1),
               onOpen: () => api.documentDownload(widget.id).ignore(),
             ),
           ),
@@ -1090,13 +1150,11 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
 
   List<Widget> _terkaitTab(BuildContext context, List<Json> terkait) {
     if (terkait.isEmpty) {
-      return const [
+      return [
         EmptyState(
           icon: Icons.link_off,
-          title: 'Tidak ada peraturan terkait',
-          message:
-              'Dokumen ini berdiri sendiri: tidak mengubah, '
-              'mencabut, atau diubah oleh peraturan lain.',
+          title: context.l10n.noRelated,
+          message: context.l10n.noRelatedHint,
         ),
       ];
     }
@@ -1156,13 +1214,15 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Statistik',
+                        context.l10n.statistics,
                         maxLines: 1,
                         style: T.isiKecil.copyWith(color: C.lightInkMuted),
                       ),
                       Text(
-                        '${_angka.format(st.i('dilihat'))} dilihat · '
-                        '${_angka.format(st.i('diunduh'))} unduh',
+                        context.l10n.viewsDownloads(
+                          _angka.format(st.i('dilihat')),
+                          _angka.format(st.i('diunduh')),
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: T.label.copyWith(fontWeight: FontWeight.w700),
@@ -1183,8 +1243,10 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                     ),
                     label: Text(
                       url == null
-                          ? 'Berkas tidak tersedia'
-                          : (isPdfUrl(url) ? 'Lihat Dokumen' : 'Unduh Dokumen'),
+                          ? context.l10n.fileUnavailable
+                          : (isPdfUrl(url)
+                                ? context.l10n.viewDocument
+                                : context.l10n.downloadDocument),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1198,16 +1260,12 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                                 MaterialPageRoute(
                                   builder: (_) => DocPreviewScreen(
                                     url: url,
-                                    title: utama!.sn('judul') ?? 'Dokumen',
+                                    title: d.s('judul'),
                                   ),
                                 ),
                               );
                             } else {
-                              downloadDoc(
-                                context,
-                                url,
-                                title: utama!.sn('judul'),
-                              );
+                              downloadDoc(context, url, title: d.s('judul'));
                             }
                           },
                   ),

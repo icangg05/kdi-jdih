@@ -1,0 +1,602 @@
+{
+  "@@locale": "id",
+  "appName": "JDIH Kota Kendari",
+  "navHome": "Beranda",
+  "navDocuments": "Dokumen",
+  "navAskAi": "Tanya AI",
+  "navNews": "Kabar",
+  "navMenu": "Menu",
+  "aiAndSearch": "{label} dan pencarian",
+  "@aiAndSearch": {
+    "description": "Label pembaca layar tombol Tanya AI",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "errServer": "Server sedang bermasalah. Coba lagi sebentar lagi.",
+  "errUnknownReply": "Server mengirim balasan yang tidak dikenali. Jika memakai Wi-Fi publik, pastikan sudah masuk (login) ke jaringannya.",
+  "errTooMany": "Terlalu banyak permintaan dalam waktu singkat. Tunggu sebentar, lalu coba lagi.",
+  "errInvalidInput": "Isian belum lengkap atau tidak sesuai. Periksa kembali, lalu kirim ulang.",
+  "errNotFound": "Data yang dicari tidak ditemukan.",
+  "errRequestFailed": "Permintaan tidak dapat diproses ({code}). Coba lagi.",
+  "@errRequestFailed": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "errTimeout": "Server lambat merespons. Coba lagi.",
+  "errOffline": "Tidak dapat terhubung ke server JDIH. Periksa koneksi internet, lalu coba lagi.",
+  "minRead": "{n} menit baca",
+  "@minRead": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "linkOpenFailed": "Tidak dapat membuka tautan.",
+  "closeImage": "Tutup gambar",
+  "statusInForce": "Berlaku",
+  "statusNotInForce": "Tidak Berlaku",
+  "statusRevoked": "Dicabut",
+  "statusAmended": "Diubah",
+  "legalDocument": "Dokumen Peraturan",
+  "seeAll": "Lihat semua",
+  "language": "Bahasa",
+  "notFound": "Tidak ditemukan",
+  "noMatch": "Tidak ada yang cocok dengan \"{query}\".",
+  "@noMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "noMatchHint": "Coba kata kunci yang lebih pendek, periksa ejaannya, atau ganti kategori.",
+  "aiPromoBody": "Tanyakan dengan bahasa sehari-hari. Jawabannya berupa percakapan, lengkap dengan dokumen hukum yang relevan.",
+  "aiPromoStart": "Mulai bertanya",
+  "latest": "Terbaru",
+  "share": "Bagikan",
+  "readLess": "Tutup",
+  "readMore": "Selengkapnya",
+  "retry": "Coba lagi",
+  "noData": "Tidak ada data.",
+  "emptyTitle": "Belum ada isinya",
+  "reload": "Muat ulang",
+  "loadMore": "Muat lanjutan",
+  "catRegulations": "Peraturan & Keputusan",
+  "catRegulationsShort": "Peraturan",
+  "catRegulationsSub": "Perda, Perwali, dan Keputusan Wali Kota",
+  "catMonographs": "Monografi Hukum",
+  "catMonographsShort": "Monografi",
+  "catMonographsSub": "Buku dan kajian hukum daerah",
+  "catArticles": "Artikel / Majalah Hukum",
+  "catArticlesShort": "Artikel",
+  "catArticlesSub": "Artikel dan majalah hukum",
+  "catRulings": "Putusan",
+  "catRulingsShort": "Putusan",
+  "catRulingsSub": "Putusan pengadilan terkait daerah",
+  "latestDocuments": "Dokumen Terbaru",
+  "jdihNews": "Kabar JDIH",
+  "collectionStats": "Statistik Koleksi",
+  "greetMorning": "Selamat pagi",
+  "greetMidday": "Selamat siang",
+  "greetAfternoon": "Selamat sore",
+  "greetEvening": "Selamat malam",
+  "logoJdihn": "Logo JDIHN",
+  "homeHeadline": "Cari aturan apa hari ini?",
+  "kendariEmblem": "Lambang Kota Kendari",
+  "adatMeaning": "Siapa yang menghargai adat, ia akan dihormati",
+  "@adatMeaning": {
+    "description": "Arti semboyan adat Tolaki"
+  },
+  "homeSearchHint": "Judul, nomor, atau pertanyaan...",
+  "search": "Cari",
+  "noAbbr": "No.",
+  "views": "dilihat",
+  "downloads": "diunduh",
+  "pickDocument": "Pilih dokumen",
+  "pickDocumentHint": "Ketuk dokumen di daftar untuk membaca rinciannya di sini, berdampingan dengan hasil lainnya.",
+  "legalDocuments": "Dokumen Hukum",
+  "latestLegalProducts": "Produk Hukum Terbaru",
+  "docsAvailable": "{count, plural, other{{count} dokumen tersedia}}",
+  "@docsAvailable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filterAllTypes": "Semua Jenis",
+  "filterAllYears": "Semua Tahun",
+  "filterAllStatus": "Semua Status",
+  "type": "Jenis",
+  "year": "Tahun",
+  "status": "Status",
+  "number": "Nomor",
+  "searchTitleHint": "Cari judul...",
+  "reset": "Reset",
+  "docCount": "{count, plural, other{{count} dokumen}}",
+  "@docCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docCountFiltered": "{count, plural, other{{count} dokumen sesuai filter}}",
+  "@docCountFiltered": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "emptyCategory": "Belum ada dokumen pada kategori ini.",
+  "loosenFilters": "Longgarkan filternya atau periksa ejaan kata kuncinya.",
+  "resetFilter": "Reset filter",
+  "back": "Kembali",
+  "numberValue": "Nomor {nomor}",
+  "@numberValue": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "yearValue": "Tahun {tahun}",
+  "@yearValue": {
+    "placeholders": {
+      "tahun": {
+        "type": "String"
+      }
+    }
+  },
+  "tabAbout": "Tentang",
+  "tabFiles": "Berkas ({count})",
+  "@tabFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tabRelated": "Terkait",
+  "aboutDocument": "Tentang Dokumen",
+  "abstract": "Abstrak",
+  "abstractOf": "Abstrak {judul}",
+  "@abstractOf": {
+    "placeholders": {
+      "judul": {
+        "type": "String"
+      }
+    }
+  },
+  "fileAbstract": "abstrak {judul}",
+  "@fileAbstract": {
+    "description": "Dasar nama berkas unduhan",
+    "placeholders": {
+      "judul": {
+        "type": "String"
+      }
+    }
+  },
+  "metaForm": "Bentuk",
+  "metaPlacePublished": "Tempat Terbit",
+  "publisher": "Penerbit",
+  "metaDateEnacted": "Tgl. Penetapan",
+  "metaDatePromulgated": "Tgl. Pengundangan",
+  "source": "Sumber",
+  "metaLegalField": "Bidang Hukum",
+  "metaSignatory": "Penandatangan",
+  "metaPhysicalDesc": "Deskripsi Fisik",
+  "metaCourt": "Lembaga Peradilan",
+  "metaPetitioner": "Pemohon",
+  "metaRespondent": "Termohon",
+  "metaCaseType": "Jenis Perkara",
+  "metaTeu": "T.E.U.",
+  "subject": "Subjek",
+  "author": "Pengarang",
+  "noFiles": "Belum ada berkas",
+  "noFilesHint": "Dokumen ini belum memiliki file yang bisa dilihat atau diunduh. Coba periksa peraturan terkait.",
+  "document": "Dokumen",
+  "fileAttachmentN": "{judul} lampiran {n}",
+  "@fileAttachmentN": {
+    "description": "Dasar nama berkas unduhan",
+    "placeholders": {
+      "judul": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "noRelated": "Tidak ada peraturan terkait",
+  "noRelatedHint": "Dokumen ini berdiri sendiri: tidak mengubah, mencabut, atau diubah oleh peraturan lain.",
+  "statistics": "Statistik",
+  "viewsDownloads": "{views} dilihat · {downloads} unduh",
+  "@viewsDownloads": {
+    "placeholders": {
+      "views": {
+        "type": "String"
+      },
+      "downloads": {
+        "type": "String"
+      }
+    }
+  },
+  "fileUnavailable": "Berkas tidak tersedia",
+  "viewDocument": "Lihat Dokumen",
+  "downloadDocument": "Unduh Dokumen",
+  "fileKindPdf": "Dokumen PDF · dapat dibaca di aplikasi",
+  "fileKindOther": "Berkas {ext} · unduh untuk membuka",
+  "@fileKindOther": {
+    "placeholders": {
+      "ext": {
+        "type": "String"
+      }
+    }
+  },
+  "fileGeneric": "Berkas",
+  "downloading": "Mengunduh {name}...",
+  "@downloading": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailed": "Berkas gagal diunduh. Periksa koneksi dan ruang penyimpanan, lalu coba lagi.",
+  "goToPage": "Buka halaman",
+  "pageNumber": "Nomor halaman",
+  "cancel": "Batal",
+  "go": "Buka",
+  "pageOutOfRange": "Dokumen ini hanya punya halaman 1 sampai {total}.",
+  "@pageOutOfRange": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "download": "Unduh",
+  "pdfCannotDisplay": "Dokumen ini tidak dapat ditampilkan di aplikasi, tetapi masih bisa diunduh dan dibuka dengan aplikasi pembaca PDF.",
+  "downloadInstead": "Unduh saja",
+  "prevPage": "Halaman sebelumnya",
+  "nextPage": "Halaman berikutnya",
+  "pageOf": "Halaman {page} dari {total}",
+  "@pageOf": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "view": "Lihat",
+  "newsAndInfo": "Kabar & Informasi",
+  "news": "Berita",
+  "announcements": "Pengumuman",
+  "announcement": "Pengumuman",
+  "video": "Video",
+  "legalInfoShort": "Info Hukum",
+  "legalInfo": "Informasi Hukum",
+  "clearSearch": "Hapus pencarian",
+  "noMatchHintShort": "Coba kata kunci yang lebih pendek, atau periksa ejaannya.",
+  "searchNewsHint": "Cari judul berita...",
+  "emptyNews": "Belum ada berita yang dipublikasikan.",
+  "searchAnnouncementsHint": "Cari judul pengumuman...",
+  "emptyAnnouncements": "Belum ada pengumuman.",
+  "emptyVideos": "Belum ada video di kanal JDIH.",
+  "moreNews": "Berita Lainnya",
+  "moreAnnouncements": "Pengumuman Lainnya",
+  "moreVideos": "Video Lainnya",
+  "enlargeCover": "Perbesar gambar sampul",
+  "tapToEnlarge": "Ketuk untuk perbesar",
+  "attachment": "Lampiran",
+  "announcementAttachment": "Lampiran Pengumuman",
+  "fileAttachmentOf": "lampiran {judul}",
+  "@fileAttachmentOf": {
+    "description": "Dasar nama berkas unduhan",
+    "placeholders": {
+      "judul": {
+        "type": "String"
+      }
+    }
+  },
+  "fileDocumentOf": "dokumen {judul}",
+  "@fileDocumentOf": {
+    "description": "Dasar nama berkas unduhan",
+    "placeholders": {
+      "judul": {
+        "type": "String"
+      }
+    }
+  },
+  "all": "Semua",
+  "emptyLegalInfo": "Naskah akademik, rancangan peraturan, dan kajian hukum akan tampil di sini begitu dipublikasikan.",
+  "emptyCategoryTitle": "Kategori ini masih kosong",
+  "emptySelectedCategory": "Belum ada dokumen pada kategori yang dipilih.",
+  "emptyTypeNamed": "Belum ada dokumen berjenis {jenis}. Kategori lain mungkin sudah terisi.",
+  "@emptyTypeNamed": {
+    "placeholders": {
+      "jenis": {
+        "type": "String"
+      }
+    }
+  },
+  "seeAllCategories": "Lihat semua kategori",
+  "linkCopied": "Tautan video disalin.",
+  "videoNotPlayable": "Video ini tersimpan di luar YouTube dan belum bisa diputar di aplikasi.",
+  "openInYoutube": "Buka di YouTube",
+  "openVideoLink": "Buka tautan video",
+  "copy": "Salin",
+  "profileHistory": "Sekilas Sejarah",
+  "profileLegalBasis": "Dasar Hukum",
+  "profileVision": "Visi",
+  "profileMission": "Misi",
+  "profileStructure": "Struktur Organisasi",
+  "more": "Lainnya",
+  "jdihProfile": "Profil JDIH",
+  "disabilityServices": "Layanan Disabilitas",
+  "lawMaking": "Pembentukan PUU",
+  "satisfactionSurvey": "Survei Kepuasan",
+  "aboutJdih": "Tentang JDIH",
+  "orgStructureOnWeb": "Konten struktur organisasi tersedia di situs web JDIH Kota Kendari.",
+  "jdihFull": "Jaringan Dokumentasi dan Informasi Hukum",
+  "phone": "Telepon",
+  "email": "Email",
+  "address": "Alamat",
+  "socialMedia": "Media Sosial",
+  "appLabel": "Aplikasi JDIH Kota Kendari",
+  "loadingApp": "{app}, sedang memuat",
+  "@loadingApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "kendariGov": "Pemerintah Kota Kendari",
+  "puuAcademicPaper": "Naskah Akademik",
+  "puuExplanatory": "Naskah Keterangan/Penjelasan",
+  "puuDraft": "Rancangan PUU",
+  "puuResearch": "Penelitian Hukum",
+  "puuLegalReview": "Pengkajian Hukum",
+  "puuConstitutionalReview": "Pengkajian Konstitusi",
+  "puuAnalysis": "Analisis & Evaluasi",
+  "secBackground": "Latar Belakang",
+  "secProblem": "Rumusan Masalah",
+  "secObjective": "Tujuan Penelitian",
+  "secMethod": "Metodologi",
+  "secFocus": "Fokus Penelitian",
+  "secResults": "Hasil Penelitian",
+  "secReviewObject": "Objek Pengkajian",
+  "secReviewConclusion": "Kesimpulan Pengkajian",
+  "secConstitutional": "Aspek Konstitusi",
+  "secEvalFindings": "Temuan Evaluasi",
+  "secRecommendation": "Rekomendasi",
+  "secImprovement": "Rekomendasi Perbaikan",
+  "secNotes": "Keterangan",
+  "metaInitiator": "Lembaga Pemrakarsa",
+  "metaStage": "Tahapan",
+  "metaWriter": "Penulis",
+  "metaEditor": "Editor",
+  "metaKeywords": "Kata Kunci",
+  "metaViews": "Dilihat",
+  "mainDocument": "Dokumen Utama",
+  "timesCount": "{n} kali",
+  "@timesCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "searchDisabilityHint": "Cari dokumen disabilitas...",
+  "metaPlaceEnacted": "Tempat Penetapan",
+  "metaEnactedBy": "Lembaga Penetap",
+  "metaDisabilityType": "Jenis Disabilitas",
+  "metaScope": "Ruang Lingkup",
+  "metaPolicySector": "Sektor Kebijakan",
+  "metaPages": "Jumlah Halaman",
+  "smartSearch": "Cari Pintar",
+  "textSearch": "Pencarian Teks",
+  "searchDocsHint": "Cari judul, nomor, atau topik...",
+  "resultsFor": "{count, plural, other{{count} hasil untuk \"{query}\"}}",
+  "@resultsFor": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "noMatchHintAi": "Coba kata kunci yang lebih pendek, ganti kategori di atas, atau tanyakan langsung ke AI.",
+  "searchLegalProducts": "Cari Produk Hukum",
+  "searchIntro": "Ketik judul, nomor, atau topik peraturan lalu tekan tombol cari pada papan ketik. Kategori di atas mempersempit hasilnya.",
+  "aiSuggest1": "Retribusi sampah",
+  "aiSuggest1Ask": "Apa aturan retribusi sampah?",
+  "aiSuggest2": "Perwali terbaru",
+  "aiSuggest2Ask": "Perwali terbaru tentang apa?",
+  "aiSuggest3": "Mengurus IMB/PBG",
+  "aiSuggest3Ask": "Bagaimana cara mengurus IMB?",
+  "aiSuggest4": "Pajak daerah",
+  "aiSuggest4Ask": "Apa saja jenis pajak daerah Kota Kendari?",
+  "aiSuggest5": "APBD",
+  "aiSuggest5Ask": "Apa isi peraturan daerah tentang APBD terbaru?",
+  "aiSuggest6": "Hak disabilitas",
+  "aiSuggest6Ask": "Apa aturan tentang hak penyandang disabilitas?",
+  "aiNoAnswer": "Maaf, saya belum bisa menjawab pertanyaan itu.",
+  "chatCleared": "Percakapan dibersihkan.",
+  "undo": "Urungkan",
+  "clearChat": "Bersihkan percakapan",
+  "chatLimitReached": "Batas {max} pertanyaan tercapai",
+  "@chatLimitReached": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "askHint": "Tulis pertanyaan Anda...",
+  "send": "Kirim",
+  "aiDisclaimer": "Jawaban dibuat otomatis oleh AI. Selalu periksa dokumen aslinya.",
+  "jdihAssistant": "Asisten JDIH",
+  "aiGreeting": "Halo! Tanyakan apa saja seputar hukum atau peraturan Kota Kendari. Saya akan menjawab sekaligus menunjukkan dokumen JDIH yang terkait.",
+  "tryAsking": "Coba tanyakan",
+  "resend": "Kirim ulang",
+  "aiStepUnderstand": "Memahami pertanyaan",
+  "aiStepSearch": "Menelusuri dokumen JDIH",
+  "aiStepMatch": "Mencocokkan pasal terkait",
+  "aiStepCompose": "Menyusun jawaban",
+  "aiSearching": "Menelusuri dokumen",
+  "relatedDocs": "Dokumen terkait",
+  "docsAttached": "{count, plural, other{{count} dokumen dilampirkan}}",
+  "@docsAttached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "percentRelevant": "{pct}% relevan",
+  "@percentRelevant": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "chatFull": "Percakapan ini sudah mencapai {max} pertanyaan. Mulai percakapan baru untuk bertanya lagi.",
+  "@chatFull": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "newChat": "Percakapan baru",
+  "updatedAt": "Diperbarui {date}.",
+  "@updatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "statsSource": "Angka dihitung langsung dari basis data JDIH Kota Kendari.",
+  "totalLegalDocs": "Total dokumen hukum",
+  "metaDownloads": "Diunduh",
+  "docsPerYear": "Dokumen per tahun",
+  "docsPerYearSub": "Jumlah dokumen menurut tahun terbit",
+  "labelDocs": "{label}: {count, plural, other{{count} dokumen}}",
+  "@labelDocs": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "otherTypes": "Lainnya ({n} jenis)",
+  "@otherTypes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "docsPerType": "Dokumen per jenis",
+  "docsPerTypeSub": "Tujuh jenis dengan koleksi terbanyak",
+  "statusTitle": "Status keberlakuan",
+  "statusSub": "Bagian koleksi yang masih berlaku",
+  "statusNoData": "Data status belum tersedia.",
+  "labelDocsPct": "{label}: {count, plural, other{{count} dokumen}}, {pct}",
+  "@labelDocsPct": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "mostViewed": "Paling banyak dilihat",
+  "mostViewedSub": "Lima dokumen dengan pembaca terbanyak",
+  "mostViewedEmpty": "Belum ada dokumen yang tercatat dibaca. Angka ini mulai terisi setelah pengunjung membuka halaman dokumen.",
+  "viewedTimes": "{count, plural, other{{count} kali dilihat}}",
+  "@viewedTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "userStudent": "Mahasiswa",
+  "userAcademic": "Akademisi",
+  "userPractitioner": "Praktisi Hukum",
+  "userPublic": "Masyarakat Umum",
+  "userOther": "Lainnya",
+  "aspectAccess": "Kemudahan Akses",
+  "aspectCompleteness": "Kelengkapan Informasi",
+  "aspectSpeed": "Kecepatan Loading",
+  "aspectInterface": "Tampilan Antarmuka",
+  "aspectRelevance": "Relevansi Pencarian",
+  "errNameRequired": "Nama wajib diisi.",
+  "errEmailFormat": "Format email belum benar, contoh: nama@contoh.go.id",
+  "errPickUserType": "Pilih salah satu jenis pengguna.",
+  "errRateAll": "Beri nilai 1–5 untuk setiap aspek.",
+  "thankYou": "Terima kasih!",
+  "surveySent": "Survei Anda telah terkirim.",
+  "ok": "OK",
+  "fieldName": "Nama *",
+  "fieldInstitution": "Instansi",
+  "fieldUserType": "Jenis Pengguna *",
+  "fieldRating": "Penilaian (1–5) *",
+  "fieldSuggestions": "Saran Perbaikan",
+  "fieldFeatures": "Fitur yang Diharapkan",
+  "fieldContactOk": "Bersedia dihubungi",
+  "fieldContact": "Kontak (HP/WA)",
+  "submitSurvey": "Kirim Survei",
+  "ratingOf": "{label} · {n} dari 5",
+  "@ratingOf": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ratingTooltip": "{label}, {n} dari 5",
+  "@ratingTooltip": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  }
+}

@@ -6,15 +6,20 @@ import '../widgets.dart';
 import 'doc_view.dart';
 
 /// Slug + label — samakan dengan backend (MobileApiController::PUU_LABEL).
-const puuCategories = [
-  (slug: 'naskah-akademik', label: 'Naskah Akademik'),
-  (slug: 'naskah-keterangan-penjelasan', label: 'Naskah Keterangan/Penjelasan'),
-  (slug: 'rancangan-puu', label: 'Rancangan PUU'),
-  (slug: 'penelitian-hukum', label: 'Penelitian Hukum'),
-  (slug: 'pengkajian-hukum', label: 'Pengkajian Hukum'),
-  (slug: 'pengkajian-konstitusi', label: 'Pengkajian Konstitusi'),
-  (slug: 'analisis-evaluasi', label: 'Analisis & Evaluasi'),
+List<({String slug, String label})> puuCategories(AppLocalizations l) => [
+  (slug: 'naskah-akademik', label: l.puuAcademicPaper),
+  (slug: 'naskah-keterangan-penjelasan', label: l.puuExplanatory),
+  (slug: 'rancangan-puu', label: l.puuDraft),
+  (slug: 'penelitian-hukum', label: l.puuResearch),
+  (slug: 'pengkajian-hukum', label: l.puuLegalReview),
+  (slug: 'pengkajian-konstitusi', label: l.puuConstitutionalReview),
+  (slug: 'analisis-evaluasi', label: l.puuAnalysis),
 ];
+
+/// Label kategori PUU dari slug; null bila slug tak dikenal.
+String? puuCategoryLabel(BuildContext context, String? slug) => puuCategories(
+  context.l10n,
+).where((c) => c.slug == slug).firstOrNull?.label;
 
 class PuuListScreen extends StatefulWidget {
   const PuuListScreen({super.key});
@@ -28,7 +33,7 @@ class _PuuListScreenState extends State<PuuListScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const BrandAppBar('Pembentukan PUU'),
+    appBar: BrandAppBar(context.l10n.lawMaking),
     body: Column(
       children: [
         SingleChildScrollView(
@@ -36,7 +41,7 @@ class _PuuListScreenState extends State<PuuListScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              for (final c in puuCategories)
+              for (final c in puuCategories(context.l10n))
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
@@ -63,10 +68,7 @@ class _PuuListScreenState extends State<PuuListScreen> {
                 ),
                 subtitle: Text(
                   [
-                    puuCategories
-                            .where((c) => c.slug == x.sn('kategori'))
-                            .firstOrNull
-                            ?.label ??
+                    puuCategoryLabel(context, x.sn('kategori')) ??
                         x.s('jenis_dokumen'),
                     if (x.sn('tahun') != null) x.s('tahun'),
                   ].join(' · '),
@@ -93,26 +95,39 @@ class PuuDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const BrandAppBar('Pembentukan PUU'),
+    appBar: BrandAppBar(context.l10n.lawMaking),
     body: LoadView(
       load: () => api.puuDetail(id),
+      contoh: const {
+        'judul':
+            'Naskah Akademik Rancangan Peraturan Daerah tentang Pajak Daerah',
+        'jenis_dokumen': 'Naskah Akademik',
+        'status_dokumen': 'Selesai',
+        'nomor_dokumen': '12',
+        'tahun': '2024',
+        'lembaga_pemrakarsa': 'Bagian Hukum Setda Kota Kendari',
+        'penulis': 'Tim Penyusun',
+        'abstrak': kSkeletonTeks,
+        'latar_belakang': kSkeletonTeks,
+      },
       builder: (context, x) {
         // section teks panjang; hanya tampil bila terisi
+        final l = context.l10n;
         final sections = <String, String?>{
-          'Abstrak': x.sn('abstrak'),
-          'Latar Belakang': x.sn('latar_belakang'),
-          'Rumusan Masalah': x.sn('rumusan_masalah'),
-          'Tujuan Penelitian': x.sn('tujuan_penelitian'),
-          'Metodologi': x.sn('metodologi_penelitian'),
-          'Fokus Penelitian': x.sn('fokus_penelitian'),
-          'Hasil Penelitian': x.sn('hasil_penelitian'),
-          'Objek Pengkajian': x.sn('objek_pengkajian'),
-          'Kesimpulan Pengkajian': x.sn('kesimpulan_pengkajian'),
-          'Aspek Konstitusi': x.sn('aspek_konstitusi'),
-          'Temuan Evaluasi': x.sn('temuan_evaluasi'),
-          'Rekomendasi': x.sn('rekomendasi'),
-          'Rekomendasi Perbaikan': x.sn('rekomendasi_perbaikan'),
-          'Keterangan': x.sn('keterangan'),
+          l.abstract: x.sn('abstrak'),
+          l.secBackground: x.sn('latar_belakang'),
+          l.secProblem: x.sn('rumusan_masalah'),
+          l.secObjective: x.sn('tujuan_penelitian'),
+          l.secMethod: x.sn('metodologi_penelitian'),
+          l.secFocus: x.sn('fokus_penelitian'),
+          l.secResults: x.sn('hasil_penelitian'),
+          l.secReviewObject: x.sn('objek_pengkajian'),
+          l.secReviewConclusion: x.sn('kesimpulan_pengkajian'),
+          l.secConstitutional: x.sn('aspek_konstitusi'),
+          l.secEvalFindings: x.sn('temuan_evaluasi'),
+          l.secRecommendation: x.sn('rekomendasi'),
+          l.secImprovement: x.sn('rekomendasi_perbaikan'),
+          l.secNotes: x.sn('keterangan'),
         };
         return ListView(
           padding: padTengah(context),
@@ -126,10 +141,7 @@ class PuuDetailScreen extends StatelessWidget {
             Row(
               children: [
                 JenisChip(
-                  puuCategories
-                          .where((c) => c.slug == x.sn('kategori'))
-                          .firstOrNull
-                          ?.label ??
+                  puuCategoryLabel(context, x.sn('kategori')) ??
                       x.sn('jenis_dokumen'),
                 ),
                 const SizedBox(width: 8),
@@ -140,14 +152,14 @@ class PuuDetailScreen extends StatelessWidget {
             Text(x.s('judul'), style: T.judulDetail),
             const SizedBox(height: 16),
             MetaTable({
-              'Nomor': x.sn('nomor_dokumen'),
-              'Tahun': x.sn('tahun'),
-              'Lembaga Pemrakarsa': x.sn('lembaga_pemrakarsa'),
-              'Tahapan': x.sn('tahapan_pembentukan'),
-              'Penulis': x.sn('penulis'),
-              'Editor': x.sn('editor'),
-              'Kata Kunci': x.sn('kata_kunci'),
-              'Dilihat': '${x.i('views')} kali',
+              l.number: x.sn('nomor_dokumen'),
+              l.year: x.sn('tahun'),
+              l.metaInitiator: x.sn('lembaga_pemrakarsa'),
+              l.metaStage: x.sn('tahapan_pembentukan'),
+              l.metaWriter: x.sn('penulis'),
+              l.metaEditor: x.sn('editor'),
+              l.metaKeywords: x.sn('kata_kunci'),
+              l.metaViews: l.timesCount(x.i('views')),
             }),
             for (final e in sections.entries)
               if (e.value != null) ...[
@@ -156,12 +168,20 @@ class PuuDetailScreen extends StatelessWidget {
               ],
             const SizedBox(height: 16),
             if (x.sn('dokumen_url') != null) ...[
-              const SectionHeader('Dokumen'),
-              DocFileTile(x.s('dokumen_url'), title: 'Dokumen Utama'),
+              SectionHeader(l.document),
+              DocFileTile(
+                x.s('dokumen_url'),
+                title: l.mainDocument,
+                nama: l.fileDocumentOf(x.s('judul')),
+              ),
             ],
             if (x.sn('lampiran_url') != null) ...[
               const SizedBox(height: AppSpacing.md),
-              DocFileTile(x.s('lampiran_url'), title: 'Lampiran'),
+              DocFileTile(
+                x.s('lampiran_url'),
+                title: l.attachment,
+                nama: l.fileAttachmentOf(x.s('judul')),
+              ),
             ],
             const SizedBox(height: 24),
           ],

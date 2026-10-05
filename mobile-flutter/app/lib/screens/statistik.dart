@@ -23,69 +23,68 @@ class ChartColors {
   static Color track = C.ink.withValues(alpha: .07);
 }
 
-final _n = NumberFormat.decimalPattern('id');
+NumberFormat get _n => NumberFormat.decimalPattern(langNotifier.value);
 
 /// Sebuah irisan data bernama: (label, nilai).
 typedef Slice = ({String label, int value});
 
 /// Ringkasan angka koleksi — seluruhnya dari satu panggilan
 /// `GET /api/jdih/statistics`.
-class StatistikScreen extends StatefulWidget {
+class StatistikScreen extends StatelessWidget {
   const StatistikScreen({super.key});
 
   @override
-  State<StatistikScreen> createState() => _StatistikScreenState();
-}
-
-class _StatistikScreenState extends State<StatistikScreen> {
-  late Future<Json> _future = api.statistics();
-
-  void _reload() {
-    setState(() {
-      _future = api.statistics();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const BrandAppBar('Statistik Koleksi'),
-    body: FutureBuilder<Json>(
-      future: _future,
-      builder: (context, snap) {
-        if (snap.hasError) {
-          return ErrorRetry('${snap.error}', onRetry: _reload);
-        }
-        if (!snap.hasData) return const SkeletonList(count: 4, height: 170);
-        final d = snap.data!;
-        return RefreshIndicator(
-          onRefresh: () async => _reload(),
-          child: ListView(
-            padding: padTengah(context, maks: 1000),
-            children: [
-              RingkasanCard(
-                total: d.i('total_dokumen'),
-                dilihat: d.i('total_views'),
-                diunduh: d.i('total_downloads'),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              // layar lebar: grafik berpasangan, bukan satu grafik selebar
-              // tablet yang batangnya jadi pita tipis panjang
-              ..._berpasangan(context, [
-                TahunChart(_slices(d.l('dokumen_per_tahun'), 'tahun')),
-                StatusChart(statusBuckets(d.l('dokumen_per_status'))),
-                JenisChart(_slices(d.l('dokumen_per_tipe'), 'tipe')),
-                TerpopulerCard(d.l('most_viewed')),
-              ]),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Diperbarui ${d.sn('last_updated') ?? '-'}. '
-                'Angka dihitung langsung dari basis data JDIH Kota Kendari.',
-                style: T.isiKecil.copyWith(color: C.lightInkMuted),
-              ),
-            ],
-          ),
-        );
+    appBar: BrandAppBar(context.l10n.collectionStats),
+    body: LoadView(
+      load: api.statistics,
+      contoh: const {
+        'total_dokumen': 1234,
+        'total_views': 12345,
+        'total_downloads': 1234,
+        'dokumen_per_tahun': [
+          {'tahun': '2021', 'total': 40},
+          {'tahun': '2022', 'total': 60},
+          {'tahun': '2023', 'total': 50},
+          {'tahun': '2024', 'total': 80},
+          {'tahun': '2025', 'total': 70},
+        ],
+        'dokumen_per_status': [
+          {'status': 'Berlaku', 'total': 3},
+          {'status': 'Dicabut', 'total': 1},
+        ],
+        'dokumen_per_tipe': [
+          {'tipe': 'Peraturan Daerah', 'total': 60},
+          {'tipe': 'Peraturan Wali Kota', 'total': 40},
+          {'tipe': 'Keputusan Wali Kota', 'total': 25},
+        ],
+        'most_viewed': [kSkeletonItem, kSkeletonItem, kSkeletonItem],
       },
+      builder: (context, d) => ListView(
+        padding: padTengah(context, maks: 1000),
+        children: [
+          RingkasanCard(
+            total: d.i('total_dokumen'),
+            dilihat: d.i('total_views'),
+            diunduh: d.i('total_downloads'),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // layar lebar: grafik berpasangan, bukan satu grafik selebar
+          // tablet yang batangnya jadi pita tipis panjang
+          ..._berpasangan(context, [
+            TahunChart(_slices(d.l('dokumen_per_tahun'), 'tahun')),
+            StatusChart(statusBuckets(d.l('dokumen_per_status'))),
+            JenisChart(_slices(d.l('dokumen_per_tipe'), 'tipe')),
+            TerpopulerCard(d.l('most_viewed')),
+          ]),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            '${context.l10n.updatedAt(d.sn('last_updated') ?? '-')} '
+            '${context.l10n.statsSource}',
+            style: T.isiKecil.copyWith(color: C.lightInkMuted),
+          ),
+        ],
+      ),
     ),
   );
 
@@ -142,7 +141,7 @@ class RingkasanCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Total dokumen hukum',
+            context.l10n.totalLegalDocs,
             style: T.isiKecil.copyWith(color: C.lightInkMuted),
           ),
           Text(_n.format(total), style: T.display),
@@ -150,11 +149,19 @@ class RingkasanCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _Kpi(Icons.visibility_outlined, 'Dilihat', dilihat),
+                child: _Kpi(
+                  Icons.visibility_outlined,
+                  context.l10n.metaViews,
+                  dilihat,
+                ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
-                child: _Kpi(Icons.download_outlined, 'Diunduh', diunduh),
+                child: _Kpi(
+                  Icons.download_outlined,
+                  context.l10n.metaDownloads,
+                  diunduh,
+                ),
               ),
             ],
           ),
@@ -237,10 +244,7 @@ class TahunChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ChartTitle(
-              'Dokumen per tahun',
-              'Jumlah dokumen menurut tahun terbit',
-            ),
+            ChartTitle(context.l10n.docsPerYear, context.l10n.docsPerYearSub),
             const SizedBox(height: AppSpacing.lg),
             SizedBox(
               height: 152,
@@ -250,7 +254,7 @@ class TahunChart extends StatelessWidget {
                   for (final (i, e) in rows.indexed)
                     Expanded(
                       child: Semantics(
-                        label: '${e.label}: ${_n.format(e.value)} dokumen',
+                        label: context.l10n.labelDocs(e.label, e.value),
                         excludeSemantics: true,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -348,7 +352,7 @@ class JenisChart extends StatelessWidget {
     final rows = <Slice>[
       ...atas,
       if (sisa > 0)
-        (label: 'Lainnya (${urut.length - tampil} jenis)', value: sisa),
+        (label: context.l10n.otherTypes(urut.length - tampil), value: sisa),
     ];
     final maks = rows.map((e) => e.value).reduce((a, b) => a > b ? a : b);
 
@@ -358,10 +362,7 @@ class JenisChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ChartTitle(
-              'Dokumen per jenis',
-              'Tujuh jenis dengan koleksi terbanyak',
-            ),
+            ChartTitle(context.l10n.docsPerType, context.l10n.docsPerTypeSub),
             const SizedBox(height: AppSpacing.lg),
             for (final (i, e) in rows.indexed) ...[
               if (i > 0) const SizedBox(height: AppSpacing.md),
@@ -390,7 +391,7 @@ class BarRow extends StatelessWidget {
     final ratio = max <= 0 ? 0.0 : value / max;
     final reduce = MediaQuery.of(context).disableAnimations;
     return Semantics(
-      label: '$label: ${_n.format(value)} dokumen',
+      label: context.l10n.labelDocs(label, value),
       excludeSemantics: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,17 +465,19 @@ class StatusChart extends StatelessWidget {
   const StatusChart(this.status, {super.key});
   final Map<StatusKind, int> status;
 
-  static const _rows = [
+  static List<(StatusKind, String, IconData, Color)> _rows(
+    AppLocalizations l,
+  ) => [
     (
       StatusKind.berlaku,
-      'Berlaku',
+      l.statusInForce,
       Icons.check_circle_outline,
       ChartColors.berlaku,
     ),
-    (StatusKind.diubah, 'Diubah', Icons.edit_outlined, ChartColors.diubah),
+    (StatusKind.diubah, l.statusAmended, Icons.edit_outlined, ChartColors.diubah),
     (
       StatusKind.dicabut,
-      'Tidak berlaku',
+      l.statusNotInForce,
       Icons.cancel_outlined,
       ChartColors.dicabut,
     ),
@@ -482,7 +485,9 @@ class StatusChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = [for (final r in _rows) (row: r, value: status[r.$1] ?? 0)]
+    final data = [
+      for (final r in _rows(context.l10n)) (row: r, value: status[r.$1] ?? 0),
+    ]
         .where((e) => e.value > 0)
         .toList();
     final total = data.fold(0, (a, e) => a + e.value);
@@ -493,14 +498,11 @@ class StatusChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ChartTitle(
-              'Status keberlakuan',
-              'Bagian koleksi yang masih berlaku',
-            ),
+            ChartTitle(context.l10n.statusTitle, context.l10n.statusSub),
             const SizedBox(height: AppSpacing.lg),
             if (total == 0)
               Text(
-                'Data status belum tersedia.',
+                context.l10n.statusNoData,
                 style: T.isiKecil.copyWith(color: C.lightInkMuted),
               )
             else ...[
@@ -563,7 +565,7 @@ class _LegendRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = '${(percent * 100).round()}%';
     return Semantics(
-      label: '$label: ${_n.format(value)} dokumen, $pct',
+      label: context.l10n.labelDocsPct(label, value, pct),
       excludeSemantics: true,
       child: Row(
         children: [
@@ -613,17 +615,13 @@ class TerpopulerCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ChartTitle(
-            'Paling banyak dilihat',
-            'Lima dokumen dengan pembaca terbanyak',
-          ),
+          ChartTitle(context.l10n.mostViewed, context.l10n.mostViewedSub),
           const SizedBox(height: AppSpacing.md),
           if (items.isEmpty)
             Padding(
               padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
               child: Text(
-                'Belum ada dokumen yang tercatat dibaca. Angka ini mulai '
-                'terisi setelah pengunjung membuka halaman dokumen.',
+                context.l10n.mostViewedEmpty,
                 style: T.isiKecil.copyWith(color: C.lightInkMuted),
               ),
             )
@@ -643,7 +641,7 @@ class TerpopulerCard extends StatelessWidget {
                   style: T.label,
                 ),
                 subtitle: Text(
-                  '${_n.format(d.i('views'))} kali dilihat',
+                  context.l10n.viewedTimes(d.i('views')),
                   style: T.isiKecil,
                 ),
                 onTap: () => Navigator.push(

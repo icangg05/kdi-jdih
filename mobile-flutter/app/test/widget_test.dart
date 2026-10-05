@@ -58,23 +58,35 @@ void main() {
     );
   });
 
-  test('nama berkas unduhan dibersihkan dan dipangkas', () {
-    const url = 'https://h/storage/dokumen/1690_final(1).pdf';
+  test('nama berkas = slug judul, seperti Str::slug di web', () {
+    const url = 'https://h/storage/dokumen/2026pw7416021.pdf';
     expect(
       downloadFileName(url, 'Perda No. 5/2023 : Retribusi*'),
-      'Perda No. 5 2023 Retribusi.pdf',
+      'perda-no-5-2023-retribusi.pdf',
     );
     // judul kosong / habis dibersihkan -> pakai nama asli di server
-    expect(downloadFileName(url, '   '), '1690_final(1).pdf');
-    expect(downloadFileName(url, '///'), '1690_final(1).pdf');
-    final panjang = downloadFileName(url, 'A' * 200);
-    expect(panjang.length, 64);
-    expect(panjang.endsWith('.pdf'), true);
+    expect(downloadFileName(url, '   '), '2026pw7416021.pdf');
+    expect(downloadFileName(url, '///'), '2026pw7416021.pdf');
+    // judul terjemahan zh tetap bermakna, tidak jatuh ke kode server
+    expect(downloadFileName(url, '肯达里 法规'), '肯达里-法规.pdf');
+    // judul satu paragraf: dipangkas di batas kata, tanpa '-' di ujung
+    final panjang = slugBerkas(
+      'PERATURAN WALI KOTA KENDARI NOMOR 21 TAHUN 2026 TENTANG STANDAR '
+      'PELAYANAN MINIMAL PADA BADAN LAYANAN UMUM DAERAH KOTA KENDARI',
+    );
+    expect(panjang.length, lessThanOrEqualTo(100));
+    expect(panjang, startsWith('peraturan-wali-kota-kendari-nomor-21'));
+    expect(panjang, endsWith('badan'));
+    // pratinjau mengirim slug ke unduhan: slug dua kali tetap sama
+    expect(slugBerkas(panjang), panjang);
   });
 
   testWidgets('kartu utama render tanpa overflow', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: appTheme(Brightness.light),
         home: Scaffold(
           body: ListView(
@@ -125,6 +137,9 @@ void main() {
     (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: appTheme(Brightness.light),
           home: Scaffold(
             body: PagedListView(
@@ -154,6 +169,9 @@ void main() {
     final panjang = {..._berita, 'id': 2, 'tag': 'Pemerintahan'};
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: appTheme(Brightness.light),
         home: Scaffold(
           body: ListView(
@@ -178,6 +196,9 @@ void main() {
   testWidgets('empty state menampilkan judul, pesan, dan aksi', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: appTheme(Brightness.light),
         home: Scaffold(
           body: EmptyState(
@@ -229,6 +250,9 @@ void main() {
     await http.runWithClient(() async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: appTheme(Brightness.light),
           home: const SearchScreen(
             initialAi: true,
@@ -236,7 +260,15 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle(); // jawab -> animasi ketik selesai
+      // jawaban sudah tiba tetapi masih diketik: bersihkan belum boleh
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      IconButton bersihkanBtn() => tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.cleaning_services_outlined),
+      );
+      expect(bersihkanBtn().onPressed, isNull);
+      await tester.pumpAndSettle(); // animasi ketik selesai
+      expect(bersihkanBtn().onPressed, isNotNull);
       expect(tester.takeException(), isNull);
 
       expect(bodies.single['query'], 'retribusi sampah');
@@ -280,7 +312,7 @@ void main() {
       await tester.tap(bersihkan);
       await tester.pumpAndSettle();
       expect(bersihkan, findsNothing);
-      expect(find.text('Apa aturan retribusi sampah?'), findsOneWidget);
+      expect(find.text('Retribusi sampah'), findsOneWidget);
       await tester.tap(find.text('Urungkan'));
       await tester.pumpAndSettle();
       expect(bersihkan, findsOneWidget);
@@ -297,6 +329,9 @@ void main() {
     var dipilih = -1;
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: appTheme(Brightness.light),
         home: MediaQuery(
           data: const MediaQueryData(
@@ -311,6 +346,7 @@ void main() {
     );
     expect(tester.takeException(), isNull);
     await tester.tap(find.text('Tanya AI'));
+    await tester.pump(const Duration(seconds: 1));
     expect(dipilih, 2);
   });
 
@@ -339,6 +375,9 @@ void main() {
   ) async {
     await tester.pumpWidget(
       const MaterialApp(
+        locale: Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
             padding: EdgeInsets.all(16),
@@ -424,6 +463,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: appTheme(Brightness.light),
         home: const Scaffold(
           body: SingleChildScrollView(
@@ -470,5 +512,57 @@ void main() {
     expect(p.items.length, 2);
     expect(p.hasMore, true);
     expect(p.total, 10);
+  });
+
+  testWidgets('kerangka muat = halaman aslinya berisi data contoh', (t) async {
+    await t.pumpWidget(
+      MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: LoadView(
+          load: () => Completer<Json>().future,
+          contoh: const {'judul': 'Judul contoh'},
+          builder: (_, d) => ListView(children: [Text(d.s('judul'))]),
+        ),
+      ),
+    );
+    expect(find.text('Judul contoh'), findsOneWidget);
+    // find.byType gagal: Skeletonizer() adalah factory ke subkelasnya
+    expect(find.byWidgetPredicate((w) => w is Skeletonizer), findsOneWidget);
+  });
+
+  testWidgets('tarik ke bawah: palu memuat ulang sekali, lalu kembali diam', (
+    tester,
+  ) async {
+    final selesai = Completer<void>();
+    var dipanggil = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: appTheme(Brightness.light),
+        home: Scaffold(
+          body: SegarkanHukum(
+            onRefresh: () {
+              dipanggil++;
+              return selesai.future;
+            },
+            child: ListView(
+              children: [for (var i = 0; i < 20; i++) Text('baris $i')],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.fling(find.text('baris 0'), const Offset(0, 300), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(dipanggil, 1);
+    // palu terus mengetuk selama onRefresh belum selesai
+    await tester.pump(const Duration(seconds: 2));
+    expect(tester.binding.hasScheduledFrame, isTrue);
+    selesai.complete();
+    await tester.pumpAndSettle();
+    expect(dipanggil, 1);
+    expect(tester.takeException(), isNull);
   });
 }

@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/gestures.dart' show kTouchSlop;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
@@ -12,16 +14,19 @@ import 'package:url_launcher/url_launcher.dart';
 import 'api.dart';
 import 'theme.dart';
 
-/// "2023-05-01" -> "1 Mei 2023". ponytail: selalu locale id, cukup untuk MVP.
+/// "2023-05-01" -> "1 Mei 2023" / "May 1, 2023" / "2023年5月1日", ikut
+/// bahasa aktif.
 String fmtDate(String? s) {
   final d = s == null ? null : DateTime.tryParse(s);
-  return d == null ? (s ?? '') : DateFormat('d MMMM y', 'id').format(d);
+  return d == null
+      ? (s ?? '')
+      : DateFormat.yMMMMd(langNotifier.value).format(d);
 }
 
 /// Versi ringkas untuk kartu sempit: "12 Okt 2023".
 String fmtDateShort(String? s) {
   final d = s == null ? null : DateTime.tryParse(s);
-  return d == null ? (s ?? '') : DateFormat('d MMM y', 'id').format(d);
+  return d == null ? (s ?? '') : DateFormat.yMMMd(langNotifier.value).format(d);
 }
 
 /// "pemberitahuan pelaksanaan" -> "Pemberitahuan pelaksanaan".
@@ -35,7 +40,7 @@ String readTime(String html) {
       .split(RegExp(r'\s+'))
       .where((w) => w.isNotEmpty)
       .length;
-  return '${(kata / 200).ceil().clamp(1, 99)} menit baca';
+  return l10nAktif.minRead((kata / 200).ceil().clamp(1, 99));
 }
 
 /// "PERATURAN WALI KOTA" -> "Peraturan Wali Kota".
@@ -52,9 +57,8 @@ Future<void> openUrl(BuildContext context, String? url) async {
     mode: LaunchMode.externalApplication,
   );
   if (!ok && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Tidak dapat membuka tautan.')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(context.l10n.linkOpenFailed)));
   }
 }
 
@@ -84,7 +88,7 @@ double skalaTeks(BuildContext context) =>
 const kLebarSedang = 600.0;
 const kLebarLebar = 840.0;
 
-/// Kolom teks bacaan & formulir: ±70 karakter serif 16,5.
+/// Kolom teks bacaan & formulir: ±70 karakter bacaan 16.
 const kKolomBaca = 720.0;
 
 /// Grid kartu tidak melebar melewati ini; di layar sangat lebar isinya
@@ -305,70 +309,6 @@ class _PulseState extends State<Pulse> with SingleTickerProviderStateMixin {
 Widget _bar(double w, [double h = 12]) =>
     Bone(width: w, height: h, uniRadius: AppRadius.chip);
 
-/// Skeleton daftar: kartu pulse berbentuk seperti isi aslinya (thumbnail +
-/// baris teks), bukan spinner dan bukan kotak polos — kotak polos berwarna
-/// samar terbaca sebagai halaman kosong, bukan sebagai "sedang memuat".
-class SkeletonList extends StatelessWidget {
-  const SkeletonList({
-    super.key,
-    this.count = 5,
-    this.height = 104,
-    this.padding = const EdgeInsets.all(16),
-  });
-  final int count;
-  final double height;
-  final EdgeInsets padding;
-
-  @override
-  Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return Skeletonizer.zone(
-      child: ListView.separated(
-        padding: padding,
-        physics: const NeverScrollableScrollPhysics(),
-        // sering dipakai sebagai anak ListView lain (mis. skeleton jawaban AI):
-        // tanpa shrinkWrap tingginya tak terbatas dan layout meledak
-        shrinkWrap: true,
-        itemCount: count,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
-        itemBuilder: (_, _) => Container(
-          height: height,
-          decoration: BoxDecoration(
-            color: dark ? C.darkSurface : C.lightSurface,
-            border: Border.all(color: dark ? C.darkLine : C.lightLine),
-            borderRadius: BorderRadius.circular(AppRadius.card),
-          ),
-          child: Row(
-            children: [
-              Bone(
-                width: height * .9,
-                height: height,
-                uniRadius: AppRadius.card,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _bar(double.infinity, 14),
-                      const SizedBox(height: 8),
-                      _bar(70, 10),
-                      const SizedBox(height: 8),
-                      _bar(double.infinity, 10),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Kerangka muat halaman detail artikel: blok hero, pil meta, judul, lalu
 /// baris paragraf — mengikuti tata letak ArticleDetail, bukan daftar kartu.
 class ArticleSkeleton extends StatelessWidget {
@@ -430,6 +370,9 @@ class ArticleSkeleton extends StatelessWidget {
   }
 }
 
+/// Tinggi hero berpola di detail dokumen (halaman asli & kerangkanya).
+const kTinggiHeroDokumen = 168.0;
+
 /// Kerangka muat halaman detail dokumen: hero gelap, chip status, judul,
 /// baris metadata, lalu bilah aksi — mengikuti tata letak detail peraturan.
 class DocDetailSkeleton extends StatelessWidget {
@@ -447,10 +390,7 @@ class DocDetailSkeleton extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                const SizedBox(
-                  height: 136,
-                  child: ColoredBox(color: C.accentDeep),
-                ),
+                const SizedBox(height: kTinggiHeroDokumen, child: PolaBiru()),
                 // lembar isi menimpa hero, sama seperti halaman aslinya
                 Transform.translate(
                   offset: const Offset(0, -24),
@@ -558,9 +498,83 @@ class DocDetailSkeleton extends StatelessWidget {
 //  SIGNATURE BRAND
 // ============================================================
 
-/// AppBar dengan garis gradien amber->biru di bawahnya (signature brand,
-/// sama dengan gradien from-primary to-accent di web).
-/// `tabs` opsional: TabBar dirender di atas garis gradient.
+/// Latar kepala halaman: gradien Civic Blue + kisi titik yang memudar dari
+/// sudut kanan atas dan tiga cincin tipis — gema peta bertitik pada desain
+/// acuan, tanpa aset gambar. Dipakai app bar, kepala beranda, dan hero
+/// detail dokumen.
+class PolaBiru extends StatelessWidget {
+  const PolaBiru({super.key, this.child});
+  final Widget? child;
+
+  // expand: flexibleSpace AppBar memberi constraint longgar, tanpa ini
+  // tingginya 0 dan polanya tak tergambar
+  @override
+  Widget build(BuildContext context) => SizedBox.expand(
+    child: DecoratedBox(
+      // tepi atas seragam C.accent: menyambung mulus dengan bilah status
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomRight,
+          colors: [C.accent, C.accentDeep, C.accentNight],
+        ),
+      ),
+      // flexibleSpace AppBar tidak memotong lukisannya sendiri: tanpa ClipRect
+      // cincin & busur jatuh ke isi halaman di bawah bar
+      child: ClipRect(
+        child: RepaintBoundary(
+          child: CustomPaint(painter: const _PolaPainter(), child: child),
+        ),
+      ),
+    ),
+  );
+}
+
+class _PolaPainter extends CustomPainter {
+  const _PolaPainter();
+
+  static const _jarak = 14.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final pusat = Offset(size.width * .88, 0);
+    final jangkau = math.max(size.width * .75, 1.0);
+    final titik = Paint();
+    for (var y = _jarak / 2; y < size.height; y += _jarak) {
+      for (var x = _jarak / 2; x < size.width; x += _jarak) {
+        final d = (Offset(x, y) - pusat).distance / jangkau;
+        if (d >= 1) continue;
+        titik.color = Colors.white.withValues(alpha: .26 * (1 - d));
+        canvas.drawCircle(Offset(x, y), 1.3, titik);
+      }
+    }
+    final cincin = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = Colors.white.withValues(alpha: .1);
+    for (final r in const [.3, .55, .8]) {
+      canvas.drawCircle(pusat, size.width * r, cincin);
+    }
+    // satu busur amber tipis: aksen brand kedua, bukan garis pemisah
+    canvas.drawArc(
+      Rect.fromCircle(center: pusat, radius: size.width * .55),
+      math.pi * .62,
+      math.pi * .22,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round
+        ..color = C.primary.withValues(alpha: .7),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_PolaPainter old) => false;
+}
+
+/// App bar biru berpola ([PolaBiru]) dengan judul putih. `tabs` opsional:
+/// TabBar dirender di lajur putih di bawahnya, warnanya tetap tema terang.
 class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
   const BrandAppBar(
     this.title, {
@@ -578,7 +592,7 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize =>
-      Size.fromHeight(kToolbarHeight + 3 + (tabs?.preferredSize.height ?? 0));
+      Size.fromHeight(kToolbarHeight + (tabs?.preferredSize.height ?? 0));
 
   @override
   Widget build(BuildContext context) => AppBar(
@@ -588,24 +602,24 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
     actions: actions,
     leading: leading,
     automaticallyImplyLeading: showBack ?? true,
-    bottom: PreferredSize(
-      preferredSize: Size.fromHeight(3 + (tabs?.preferredSize.height ?? 0)),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ?tabs,
-          const SizedBox(
-            height: 3,
-            width: double.infinity,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [C.primary, C.accent]),
-              ),
+    backgroundColor: C.accent,
+    foregroundColor: C.onDark,
+    titleTextStyle: Theme.of(context).textTheme.titleLarge
+        ?.copyWith(color: C.onDark),
+    // ikon bilah status putih di atas biru
+    systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+      statusBarColor: Colors.transparent,
+    ),
+    flexibleSpace: const PolaBiru(),
+    bottom: tabs == null
+        ? null
+        : PreferredSize(
+            preferredSize: tabs!.preferredSize,
+            child: ColoredBox(
+              color: Theme.of(context).colorScheme.surface,
+              child: tabs,
             ),
           ),
-        ],
-      ),
-    ),
   );
 }
 
@@ -636,12 +650,10 @@ class NetImage extends StatelessWidget {
           : C.lightSubtle,
       child: const Icon(Icons.image_outlined, color: C.lightLineStrong),
     );
-    // Sampul cadangan saat berita/pengumuman tidak punya gambar atau gagal
-    // dimuat. Aset lokal, jadi tetap tampil tanpa jaringan.
-    const fallback = Image(
-      image: AssetImage('assets/img/default-cover.webp'),
-      fit: BoxFit.cover,
-    );
+    // Sampul cadangan saat gambar tidak ada atau gagal dimuat: ilustrasi
+    // hukum + Kendari, aset lokal (tetap tampil tanpa jaringan), dalam dua
+    // potongan supaya BoxFit.cover tidak memangkas habis isinya.
+    final fallback = _SampulCadangan(width: width, height: height);
     // Ukuran dipasang di SizedBox, bukan di gambarnya. Bila width diteruskan ke
     // CachedNetworkImage, intrinsic height-nya jadi width/rasio gambar — dan
     // IntrinsicHeight pada kartu daftar ikut memakainya, sehingga kartu
@@ -670,6 +682,38 @@ class NetImage extends StatelessWidget {
       child: radius > 0
           ? ClipRRect(borderRadius: BorderRadius.circular(radius), child: img)
           : img,
+    );
+  }
+}
+
+/// Ilustrasi pengganti gambar: versi potret untuk kotak yang lebih tinggi
+/// daripada lebarnya (sampul dokumen, thumbnail tegak), lanskap selebihnya.
+class _SampulCadangan extends StatelessWidget {
+  const _SampulCadangan({this.width, this.height});
+  final double? width, height;
+
+  static Widget _gambar(bool potret) => Image(
+    image: AssetImage(
+      potret
+          ? 'assets/img/default-potret.webp'
+          : 'assets/img/default-lanskap.webp',
+    ),
+    fit: BoxFit.cover,
+    width: double.infinity,
+    height: double.infinity,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    // ukuran pasti: putuskan langsung. LayoutBuilder tidak mendukung ukuran
+    // intrinsik, dan sampul 52x68 Info Hukum duduk di dalam IntrinsicHeight
+    if (width != null && height != null) return _gambar(height! > width!);
+    return LayoutBuilder(
+      builder: (context, box) {
+        final w = box.hasBoundedWidth ? box.maxWidth : width ?? 0;
+        final h = box.hasBoundedHeight ? box.maxHeight : height ?? 0;
+        return _gambar(w > 0 && h > w);
+      },
     );
   }
 }
@@ -740,7 +784,7 @@ class _ImageViewer extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.sm),
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.white),
-                tooltip: 'Tutup gambar',
+                tooltip: context.l10n.closeImage,
                 onPressed: () => Navigator.pop(context),
               ),
             ),
@@ -780,6 +824,19 @@ StatusKind statusKindOf(String? status) {
   StatusKind.lain => (C.lightInkMuted, C.lightSubtle),
 };
 
+/// Nilai status baku dari basis data diterjemahkan; teks lain (mis. "Diubah
+/// dengan Perda 3/2020") tampil apa adanya.
+String statusLabel(BuildContext context, String status) {
+  final l = context.l10n;
+  return switch (status.trim().toLowerCase()) {
+    'berlaku' => l.statusInForce,
+    'tidak berlaku' => l.statusNotInForce,
+    'dicabut' => l.statusRevoked,
+    'diubah' => l.statusAmended,
+    _ => status,
+  };
+}
+
 class StatusBadge extends StatelessWidget {
   const StatusBadge(this.status, {super.key});
   final String? status;
@@ -796,7 +853,7 @@ class StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.chip),
       ),
       child: Text(
-        status!,
+        statusLabel(context, status!),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: T.labelKecil.copyWith(color: dark ? bg : fg),
@@ -812,7 +869,9 @@ class JenisChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = label?.trim() ?? '';
-    final text = (l.isEmpty || l == '-') ? 'Dokumen Peraturan' : titleCase(l);
+    final text = (l.isEmpty || l == '-')
+        ? context.l10n.legalDocument
+        : titleCase(l);
     // informasi, bukan aksi: biru. Amber disisakan untuk yang bisa ditekan
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -875,8 +934,8 @@ class SectionHeader extends StatelessWidget {
                   size: 15,
                   color: C.accent,
                 ),
-                label: const Text(
-                  'Lihat semua',
+                label: Text(
+                  context.l10n.seeAll,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -914,11 +973,14 @@ class IconTile extends StatelessWidget {
 
 const kLangs = {'id': 'Indonesia', 'en': 'English', 'zh': '中文', 'ko': '한국어'};
 
-/// Dialog bahasa konten; dipakai dari beranda maupun tab Lainnya.
+/// Dialog bahasa (teks UI + konten); dipakai dari beranda maupun tab Lainnya.
 /// Pil bahasa di header: bendera huruf + kode aktif + caret pemicu dialog.
 class LangPill extends StatelessWidget {
-  const LangPill({super.key, required this.onTap});
+  const LangPill({super.key, required this.onTap, this.gelap = false});
   final VoidCallback onTap;
+
+  /// Di atas latar biru [PolaBiru]: putih transparan, bukan biru di biru.
+  final bool gelap;
 
   // area sentuh 48dp mengelilingi pil 36dp: ketukan yang meleset sedikit
   // dari pil tetap membuka pemilih bahasa
@@ -928,58 +990,61 @@ class LangPill extends StatelessWidget {
     onTap: onTap,
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: _pil(),
+      child: _pil(context),
     ),
   );
 
   // kontrol sekunder: biru, supaya amber di header tidak bersaing dengan
   // aksi utama halaman
-  Widget _pil() => Pressable(
-    child: Material(
-      color: C.accent.withValues(alpha: .08),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.chip),
-        side: BorderSide(color: C.accent.withValues(alpha: .35)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          height: 36,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // kode bahasa saja ("ID") tidak bermakna bagi pembaca layar
-                const Icon(
-                  Icons.language,
-                  size: 16,
-                  color: C.accent,
-                  semanticLabel: 'Bahasa konten',
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  langNotifier.value.toUpperCase(),
-                  style: T.label.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: C.accent,
+  Widget _pil(BuildContext context) {
+    final warna = gelap ? C.onDark : C.accent;
+    return Pressable(
+      child: Material(
+        color: warna.withValues(alpha: gelap ? .14 : .08),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.chip),
+          side: BorderSide(color: warna.withValues(alpha: .35)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox(
+            height: 36,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // kode bahasa saja ("ID") tidak bermakna bagi pembaca layar
+                  Icon(
+                    Icons.language,
+                    size: 16,
+                    color: warna,
+                    semanticLabel: context.l10n.language,
                   ),
-                ),
-                const Icon(Icons.expand_more, size: 16, color: C.accent),
-              ],
+                  const SizedBox(width: 6),
+                  Text(
+                    langNotifier.value.toUpperCase(),
+                    style: T.label.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: warna,
+                    ),
+                  ),
+                  Icon(Icons.expand_more, size: 16, color: warna),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 Future<void> pickLang(BuildContext context) => showDialog(
   context: context,
   builder: (c) => SimpleDialog(
-    title: const Text('Bahasa Konten'),
+    title: Text(context.l10n.language),
     children: [
       RadioGroup<String>(
         groupValue: langNotifier.value,
@@ -1092,11 +1157,10 @@ class NoResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) => EmptyState(
     icon: Icons.search_off,
-    title: 'Tidak ditemukan',
+    title: context.l10n.notFound,
     message:
-        'Tidak ada yang cocok dengan "$query". '
-        '${saran ?? 'Coba kata kunci yang lebih pendek, periksa ejaannya, '
-                'atau ganti kategori.'}',
+        '${context.l10n.noMatch(query)} '
+        '${saran ?? context.l10n.noMatchHint}',
     action: actions.isEmpty
         ? null
         : Wrap(
@@ -1108,56 +1172,96 @@ class NoResults extends StatelessWidget {
   );
 }
 
-/// Ajakan ke Asisten AI: satu-satunya blok gelap di beranda selain semboyan
-/// adat, dipakai sekali untuk menandai aksi paling menonjol.
+/// Rute halaman Tanya AI: naik dari bawah menutupi layar, turun lagi saat
+/// ditutup. Gerak dikurangi: langsung tampil.
+Route<void> ruteNaik(Widget halaman) => PageRouteBuilder<void>(
+  transitionDuration: const Duration(milliseconds: 320),
+  reverseTransitionDuration: const Duration(milliseconds: 260),
+  pageBuilder: (_, _, _) => halaman,
+  transitionsBuilder: (context, animasi, _, child) =>
+      MediaQuery.of(context).disableAnimations
+      ? child
+      : SlideTransition(position: geserNaik(animasi), child: child),
+);
+
+/// Posisi lembar yang naik dari bawah layar ke tempatnya.
+Animation<Offset> geserNaik(Animation<double> animasi) =>
+    Tween(begin: const Offset(0, 1), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: animasi,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      ),
+    );
+
+/// Ajakan ke Asisten AI: blok biru berpola, sama dengan app bar dan kepala
+/// beranda, dipakai sekali untuk menandai aksi paling menonjol.
 class AiPromoCard extends StatelessWidget {
   const AiPromoCard({super.key, required this.onTap});
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) => Pressable(
-    child: Material(
-      color: C.ink,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.card),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        // blok gelap sudah cukup menonjol; tanpa garis oranye di tepi kiri
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.auto_awesome, size: 18, color: C.primary),
-                  SizedBox(width: AppSpacing.sm),
-                  Flexible(
-                    child: Text(
-                      'Tanya AI',
-                      style: T.judul.copyWith(color: C.onDark),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      child: Stack(
+        children: [
+          // di dalam kerangka muat: permukaan putih bertepi seperti kartu
+          // kerangka lain, bukan pola biru yang ditimpa tulang abu
+          Positioned.fill(
+            child: Skeletonizer.maybeOf(context)?.enabled == true
+                ? const DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: C.lightSurface,
+                      border: Border.fromBorderSide(
+                        BorderSide(color: C.lightLine),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Tanyakan dengan bahasa sehari-hari. Jawabannya berupa '
-                'percakapan, lengkap dengan dokumen hukum yang relevan.',
-                style: T.isi.copyWith(color: C.onDark.withValues(alpha: .82)),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              FilledButton.icon(
-                onPressed: onTap,
-                icon: const Icon(Icons.arrow_forward, size: 18),
-                iconAlignment: IconAlignment.end,
-                label: const Text('Mulai bertanya'),
-              ),
-            ],
+                  )
+                : const PolaBiru(),
           ),
-        ),
+          // Material transparan di atas pola: percikan sentuh tampak
+          Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.auto_awesome, size: 18, color: C.primary),
+                        SizedBox(width: AppSpacing.sm),
+                        Flexible(
+                          child: Text(
+                            context.l10n.navAskAi,
+                            style: T.judul.copyWith(color: C.onDark),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      context.l10n.aiPromoBody,
+                      style: T.isi.copyWith(
+                        color: C.onDark.withValues(alpha: .86),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    FilledButton.icon(
+                      onPressed: onTap,
+                      icon: const Icon(Icons.arrow_forward, size: 18),
+                      iconAlignment: IconAlignment.end,
+                      label: Text(context.l10n.aiPromoStart),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     ),
   );
@@ -1216,7 +1320,7 @@ class NewsTile extends StatelessWidget {
                             Icon(Icons.star, size: 12, color: C.ink),
                             SizedBox(width: 4),
                             Text(
-                              'Terbaru',
+                              context.l10n.latest,
                               style: T.labelKecil.copyWith(color: C.ink),
                             ),
                           ],
@@ -1369,7 +1473,7 @@ class ShareAction extends StatelessWidget {
       padding: const EdgeInsets.only(right: AppSpacing.lg),
       child: RoundIconButton(
         Icons.share_outlined,
-        tooltip: 'Bagikan',
+        tooltip: context.l10n.share,
         onPressed: () {
           final box = context.findRenderObject() as RenderBox?;
           SharePlus.instance.share(
@@ -1433,7 +1537,7 @@ class _ReadMoreState extends State<ReadMore> {
           alignment: Alignment.centerLeft,
           child: TextButton(
             onPressed: () => setState(() => _open = !_open),
-            child: Text(_open ? 'Tutup' : 'Selengkapnya'),
+            child: Text(_open ? context.l10n.readLess : context.l10n.readMore),
           ),
         ),
       ],
@@ -1559,11 +1663,13 @@ class ErrorRetry extends StatelessWidget {
     this.message, {
     super.key,
     required this.onRetry,
-    this.retryLabel = 'Coba lagi',
+    this.retryLabel,
   });
   final String message;
   final VoidCallback onRetry;
-  final String retryLabel;
+
+  /// Bawaan: "Coba lagi".
+  final String? retryLabel;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -1576,11 +1682,207 @@ class ErrorRetry extends StatelessWidget {
           const SizedBox(height: 14),
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 14),
-          FilledButton(onPressed: onRetry, child: Text(retryLabel)),
+          FilledButton(
+            onPressed: onRetry,
+            child: Text(retryLabel ?? context.l10n.retry),
+          ),
         ],
       ),
     ),
   );
+}
+
+/// Tarik-untuk-memuat-ulang bertema hukum, pengganti RefreshIndicator: isi
+/// turun membuka ruang, palu hakim terangkat mengikuti tarikan jari, lalu
+/// mengetuk alasnya berulang (dengan percikan amber) selama data dimuat.
+/// Gerak dikurangi: palu diam di alas selama memuat.
+class SegarkanHukum extends StatefulWidget {
+  const SegarkanHukum({
+    super.key,
+    required this.onRefresh,
+    required this.child,
+  });
+  final Future<void> Function() onRefresh;
+  final Widget child;
+
+  @override
+  State<SegarkanHukum> createState() => _SegarkanHukumState();
+}
+
+class _SegarkanHukumState extends State<SegarkanHukum>
+    with SingleTickerProviderStateMixin {
+  /// Tinggi ruang palu saat siap dilepas.
+  static const _tinggi = 76.0;
+
+  late final _ketuk = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 720),
+  );
+
+  @override
+  void dispose() {
+    _ketuk.dispose();
+    super.dispose();
+  }
+
+  void _status(IndicatorStateChange u) {
+    if (u.didChange(to: IndicatorState.armed)) HapticFeedback.lightImpact();
+    if (u.didChange(to: IndicatorState.loading)) {
+      if (!MediaQuery.of(context).disableAnimations) _ketuk.repeat();
+    } else if (u.didChange(from: IndicatorState.loading)) {
+      _ketuk.stop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => CustomRefreshIndicator(
+    onRefresh: widget.onRefresh,
+    onStateChanged: _status,
+    offsetToArmed: _tinggi,
+    durations: const RefreshIndicatorDurations(
+      finalizeDuration: Duration(milliseconds: 260),
+    ),
+    builder: (context, child, c) => AnimatedBuilder(
+      animation: Listenable.merge([c, _ketuk]),
+      builder: (context, _) {
+        final tarik = c.value.clamp(0.0, 1.5);
+        final tinggi = _tinggi * math.min(tarik, 1.25);
+        final memuat = c.isLoading || c.isSettling;
+        return Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: tinggi,
+              child: ClipRect(
+                child: Opacity(
+                  opacity: math.min(1, tarik * 1.6),
+                  child: CustomPaint(
+                    painter: _PaluPainter(
+                      // menarik = mengangkat palu; memuat = mengetuk berulang
+                      angkat: memuat
+                          ? _ayunan(_ketuk.value)
+                          : math.min(1, tarik),
+                      benturan: memuat ? _benturan(_ketuk.value) : 0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Transform.translate(offset: Offset(0, tinggi), child: child),
+          ],
+        );
+      },
+    ),
+    child: widget.child,
+  );
+
+  /// Angkat perlahan (0-.6), hantam cepat (.6-.72), diam di alas.
+  static double _ayunan(double t) {
+    if (t < .6) return Curves.easeOutCubic.transform(t / .6);
+    if (t < .72) return 1 - Curves.easeInCubic.transform((t - .6) / .12);
+    return 0;
+  }
+
+  /// Percikan sesaat setelah palu menghantam alas.
+  static double _benturan(double t) =>
+      t < .72 ? 0 : 1 - ((t - .72) / .28).clamp(0.0, 1.0);
+}
+
+/// Palu hakim berporos di ujung gagang (kanan) di atas alas ketuk.
+class _PaluPainter extends CustomPainter {
+  _PaluPainter({required this.angkat, required this.benturan});
+
+  /// 0 = kepala palu di alas, 1 = terangkat penuh (±50°).
+  final double angkat;
+
+  /// 0-1: kekuatan percikan benturan.
+  final double benturan;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const alasW = 46.0, alasH = 8.0, kepalaW = 12.0, kepalaH = 24.0;
+    const gagang = 34.0;
+    // seluruh gambar duduk di dasar ruang yang terbuka
+    final alasTop = size.height - 14;
+    final cx = size.width / 2;
+
+    // alas ketuk
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: Offset(cx, alasTop + alasH / 2),
+          width: alasW,
+          height: alasH,
+        ),
+        const Radius.circular(2),
+      ),
+      Paint()..color = C.primaryInk,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(cx - alasW / 2 + 3, alasTop + alasH, alasW - 6, 3),
+      Paint()..color = C.primaryInk.withValues(alpha: .55),
+    );
+
+    // palu: berporos di ujung gagang, kepala di kiri
+    final poros = Offset(cx + gagang + kepalaW / 2, alasTop - kepalaH / 2);
+    canvas.save();
+    canvas.translate(poros.dx, poros.dy);
+    canvas.rotate(.9 * angkat);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTRB(-gagang - kepalaW / 2, -2.5, 0, 2.5),
+        const Radius.circular(2.5),
+      ),
+      Paint()..color = C.primaryInk,
+    );
+    final kepala = Rect.fromCenter(
+      center: const Offset(-gagang - kepalaW / 2, 0),
+      width: kepalaW,
+      height: kepalaH,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(kepala, const Radius.circular(2)),
+      Paint()..color = C.accent,
+    );
+    // dua pita amber di kepala palu
+    final pita = Paint()..color = C.primary;
+    for (final y in const [-7.0, 5.0]) {
+      canvas.drawRect(Rect.fromLTWH(kepala.left, y, kepalaW, 2.5), pita);
+    }
+    canvas.restore();
+
+    // percikan (di depan palu): garis pendek memancar diagonal ke dua sisi
+    // kepala palu, plus dua garis datar di ujung alas
+    if (benturan > 0) {
+      final percik = Paint()
+        ..color = C.primary.withValues(alpha: benturan)
+        ..strokeWidth = 2.5
+        ..strokeCap = StrokeCap.round;
+      final p = Offset(cx, alasTop);
+      final jauh = 10 + 10 * (1 - benturan);
+      for (final a in const [-2.75, -2.25, -.89, -.39]) {
+        final arah = Offset(math.cos(a), math.sin(a));
+        canvas.drawLine(
+          p + arah * (jauh * .6) + const Offset(0, -kepalaH * .1),
+          p + arah * jauh + const Offset(0, -kepalaH * .1),
+          percik,
+        );
+      }
+      for (final s in const [-1.0, 1.0]) {
+        canvas.drawLine(
+          p + Offset(s * (alasW / 2 + 4), 2),
+          p + Offset(s * (alasW / 2 + 4 + 8 * benturan), -2),
+          percik,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_PaluPainter old) =>
+      old.angkat != angkat || old.benturan != benturan;
 }
 
 /// FutureBuilder + retry + pull-to-refresh. `builder` harus mengembalikan scrollable.
@@ -1590,12 +1892,19 @@ class LoadView extends StatefulWidget {
     required this.load,
     required this.builder,
     this.skeleton,
+    this.contoh,
   });
   final Future<Json> Function() load;
   final Widget Function(BuildContext, Json) builder;
 
-  /// Kerangka muat khusus halaman ini; default daftar kartu.
+  /// Kerangka muat buatan tangan; tanpa ini [builder] dirender dengan
+  /// [contoh] di dalam Skeletonizer.
   final Widget? skeleton;
+
+  /// Data contoh berbentuk sama dengan respons. Selagi memuat, [builder]
+  /// dirender dengan data ini di dalam Skeletonizer: kerangka muat persis
+  /// bentuk halamannya, tanpa skeleton tiruan per layar yang bisa melenceng.
+  final Json? contoh;
 
   @override
   State<LoadView> createState() => _LoadViewState();
@@ -1619,10 +1928,18 @@ class _LoadViewState extends State<LoadView> {
         return ErrorRetry('${snap.error}', onRetry: _reload);
       }
       if (!snap.hasData) {
-        return widget.skeleton ?? const SkeletonList(count: 4, height: 120);
+        return widget.skeleton ??
+            Skeletonizer(
+              child: widget.builder(context, widget.contoh ?? const {}),
+            );
       }
-      return RefreshIndicator(
-        onRefresh: () async => _reload(),
+      // FutureBuilder menyimpan data lama selama future baru berjalan: isi
+      // tetap tampil dan palu terus mengetuk sampai data baru tiba
+      return SegarkanHukum(
+        onRefresh: () {
+          _reload();
+          return _future.then((_) {}, onError: (_) {});
+        },
         child: Rise(child: widget.builder(context, snap.data!)),
       );
     },
@@ -1648,6 +1965,14 @@ const Json kSkeletonItem = {
   'tag': 'Info',
 };
 
+/// Paragraf contoh untuk kerangka muat halaman bacaan (lihat
+/// [LoadView.contoh]): panjangnya menentukan jumlah baris kerangka.
+const kSkeletonTeks =
+    'Peraturan ini disusun untuk memberikan kepastian hukum dalam '
+    'penyelenggaraan pemerintahan daerah, meningkatkan kualitas pelayanan '
+    'kepada masyarakat, serta mendukung pembangunan Kota Kendari yang '
+    'berkelanjutan dan berkeadilan.';
+
 /// Daftar berpaginasi: infinite scroll + pull-to-refresh + empty/error state.
 /// Ganti `key` (ValueKey filter) untuk memuat ulang dengan filter baru.
 class PagedListView extends StatefulWidget {
@@ -1655,14 +1980,16 @@ class PagedListView extends StatefulWidget {
     super.key,
     required this.fetch,
     required this.itemBuilder,
-    this.empty = 'Tidak ada data.',
+    this.empty,
     this.emptyView,
     this.onTotal,
     this.padding = const EdgeInsets.all(16),
   });
   final Future<Paginated> Function(int page) fetch;
   final Widget Function(BuildContext, Json, int index) itemBuilder;
-  final String empty;
+
+  /// Pesan keadaan kosong; bawaan "Tidak ada data.".
+  final String? empty;
 
   /// Jumlah total hasil, dilaporkan sekali setelah halaman pertama termuat.
   final ValueChanged<int>? onTotal;
@@ -1746,12 +2073,12 @@ class _PagedListViewState extends State<PagedListView> {
       return widget.emptyView ??
           EmptyState(
             icon: Icons.inbox_outlined,
-            title: 'Belum ada isinya',
-            message: widget.empty,
+            title: context.l10n.emptyTitle,
+            message: widget.empty ?? context.l10n.noData,
             action: OutlinedButton.icon(
               onPressed: _refresh,
               icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Muat ulang'),
+              label: Text(context.l10n.reload),
             ),
           );
     }
@@ -1766,7 +2093,7 @@ class _PagedListViewState extends State<PagedListView> {
     final baris = (_items.length / kolom).ceil();
     // satu fade untuk seluruh daftar saat isi pertama tiba; kartu yang muncul
     // satu per satu hanya membuat pengguna menonton daftar dimuat
-    return RefreshIndicator(
+    return SegarkanHukum(
       onRefresh: _refresh,
       child: Rise(
         child: ListView.separated(
@@ -1789,7 +2116,7 @@ class _PagedListViewState extends State<PagedListView> {
                       TextButton.icon(
                         onPressed: _load,
                         icon: const Icon(Icons.refresh, size: 18),
-                        label: const Text('Muat lanjutan'),
+                        label: Text(context.l10n.loadMore),
                       ),
                     ],
                   ),

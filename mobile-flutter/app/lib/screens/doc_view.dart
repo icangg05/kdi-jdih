@@ -2,7 +2,9 @@ import 'package:file_saver/file_saver.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
+import '../api.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
@@ -19,29 +21,40 @@ bool isPdfUrl(String url) => docFileName(url).toLowerCase().endsWith('.pdf');
 /// ("1690_pengumuman_final(1).pdf") tidak bermakna, jadi yang ditampilkan
 /// jenis berkas + cara membukanya.
 String docKindLabel(String url) {
-  if (isPdfUrl(url)) return 'Dokumen PDF · dapat dibaca di aplikasi';
+  final l = l10nAktif;
+  if (isPdfUrl(url)) return l.fileKindPdf;
   final name = docFileName(url);
   final dot = name.lastIndexOf('.');
-  final ext = dot > 0 ? name.substring(dot + 1).toUpperCase() : 'Berkas';
-  return 'Berkas $ext · unduh untuk membuka';
+  final ext = dot > 0 ? name.substring(dot + 1).toUpperCase() : l.fileGeneric;
+  return l.fileKindOther(ext);
 }
 
-/// Nama berkas unduhan diambil dari judul dokumen, bukan nama di server.
-/// Karakter yang dilarang sistem berkas dibuang, spasi dirapatkan, dan
-/// panjangnya dipangkas 60 karakter (judul peraturan bisa satu paragraf).
-/// Jatuh kembali ke nama asli bila judulnya kosong atau habis dibersihkan.
+/// Nama berkas bersih, aturan yang sama dengan `Str::slug` di web: huruf
+/// kecil, selain huruf/angka jadi satu tanda hubung. Huruf non-Latin (judul
+/// terjemahan zh/ko) dipertahankan, bukan dibuang. Dipangkas di batas kata
+/// sekitar 100 karakter: judul peraturan bisa satu paragraf, sedangkan nama
+/// berkas dibatasi 255 byte.
+String slugBerkas(String? teks) {
+  var s = (teks ?? '')
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), '-')
+      .replaceAll(RegExp(r'^-+|-+$'), '');
+  if (s.length > 100) {
+    s = s.substring(0, 100);
+    final kata = s.lastIndexOf('-');
+    if (kata > 60) s = s.substring(0, kata);
+  }
+  return s;
+}
+
+/// Nama berkas unduhan = slug judul + ekstensi asli, bukan nama di server
+/// ("2026pw7416021.pdf"). Jatuh kembali ke nama asli bila judulnya kosong.
 String downloadFileName(String url, String? title) {
   final asli = docFileName(url);
   final dot = asli.lastIndexOf('.');
   final ext = dot > 0 ? asli.substring(dot) : '.pdf';
-  var bersih = (title ?? '')
-      .replaceAll(RegExp(r'[<>:"/\\|?*\x00-\x1F]'), ' ')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
-  if (bersih.length > 60) bersih = bersih.substring(0, 60);
-  // titik/spasi di ujung membuat berkas tidak bisa dibuat di Windows
-  bersih = bersih.replaceAll(RegExp(r'[. ]+$'), '');
-  return bersih.isEmpty ? asli : '$bersih$ext';
+  final slug = slugBerkas(title);
+  return slug.isEmpty ? asli : '$slug$ext';
 }
 
 /// Unduh ke perangkat tanpa keluar aplikasi.
@@ -59,6 +72,7 @@ Future<void> downloadDoc(
   String? title,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
+  final l = context.l10n;
   if (!_sedangDiunduh.add(url)) return;
   final name = downloadFileName(url, title);
   final dot = name.lastIndexOf('.');
@@ -66,7 +80,7 @@ Future<void> downloadDoc(
   final ext = dot > 0 ? name.substring(dot + 1) : 'pdf';
   final android = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
-  messenger.showSnackBar(SnackBar(content: Text('Mengunduh $name...')));
+  messenger.showSnackBar(SnackBar(content: Text(l.downloading(name))));
   try {
     if (kIsWeb || android) {
       await FileSaver.instance.downloadLink(
@@ -85,14 +99,7 @@ Future<void> downloadDoc(
     // galat pengunduh berisi jejak teknis; yang berguna bagi pengguna adalah
     // langkah berikutnya
     if (kDebugMode) debugPrint('downloadDoc: $e');
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Berkas gagal diunduh. Periksa koneksi dan ruang penyimpanan, '
-          'lalu coba lagi.',
-        ),
-      ),
-    );
+    messenger.showSnackBar(SnackBar(content: Text(l.downloadFailed)));
   } finally {
     _sedangDiunduh.remove(url);
   }
@@ -127,13 +134,13 @@ class _DocPreviewScreenState extends State<DocPreviewScreen> {
     final pilihan = await showDialog<int>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('Buka halaman'),
+        title: Text(c.l10n.goToPage),
         content: TextFormField(
           initialValue: teks,
           autofocus: true,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            labelText: 'Nomor halaman',
+            labelText: c.l10n.pageNumber,
             hintText: '1 - $_total',
           ),
           onChanged: (v) => teks = v,
@@ -142,11 +149,11 @@ class _DocPreviewScreenState extends State<DocPreviewScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
-            child: const Text('Batal'),
+            child: Text(c.l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, int.tryParse(teks.trim())),
-            child: const Text('Buka'),
+            child: Text(c.l10n.go),
           ),
         ],
       ),
@@ -155,7 +162,7 @@ class _DocPreviewScreenState extends State<DocPreviewScreen> {
     if (pilihan < 1 || pilihan > _total) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Dokumen ini hanya punya halaman 1 sampai $_total.'),
+          content: Text(context.l10n.pageOutOfRange(_total)),
         ),
       );
       return;
@@ -166,10 +173,15 @@ class _DocPreviewScreenState extends State<DocPreviewScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      // nama berkas yang sama dengan hasil unduhan, bukan kode di server
+      title: Text(
+        downloadFileName(widget.url, widget.title),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
       actions: [
         IconButton(
-          tooltip: 'Unduh',
+          tooltip: context.l10n.download,
           icon: const Icon(Icons.download_outlined),
           onPressed: () =>
               downloadDoc(context, widget.url, title: widget.title),
@@ -181,18 +193,17 @@ class _DocPreviewScreenState extends State<DocPreviewScreen> {
       controller: _ctrl,
       params: PdfViewerParams(
         backgroundColor: C.lightSubtle,
-        loadingBannerBuilder: (_, done, total) => Center(
-          child: CircularProgressIndicator(
-            value: (total ?? 0) > 0 ? done / total! : null,
-          ),
-        ),
+        // fisika gulir bawaan platform: lemparan jari meluncur jauh seperti
+        // daftar biasa. Tanpa ini InteractiveViewer mengerem fling dengan cepat
+        scrollPhysics: PdfViewerParams.getScrollPhysics(context),
+        loadingBannerBuilder: (_, done, total) =>
+            _HalamanMemuat((total ?? 0) > 0 ? done / total! : null),
         errorBannerBuilder: (_, error, _, _) => ErrorRetry(
           // galat pdfium tidak bermakna bagi pembaca; berkasnya masih bisa
           // dibuka di aplikasi lain lewat unduhan
-          'Dokumen ini tidak dapat ditampilkan di aplikasi, tetapi masih '
-          'bisa diunduh dan dibuka dengan aplikasi pembaca PDF.',
+          context.l10n.pdfCannotDisplay,
           onRetry: () => downloadDoc(context, widget.url, title: widget.title),
-          retryLabel: 'Unduh saja',
+          retryLabel: context.l10n.downloadInstead,
         ),
         onViewerReady: (doc, _) {
           if (mounted) setState(() => _total = doc.pages.length);
@@ -212,16 +223,19 @@ class _DocPreviewScreenState extends State<DocPreviewScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  tooltip: 'Halaman sebelumnya',
+                  tooltip: context.l10n.prevPage,
                   icon: const Icon(Icons.chevron_left),
                   onPressed: _page > 1 ? () => _go(_page - 1) : null,
                 ),
                 TextButton(
                   onPressed: _pilihHalaman,
-                  child: Text('Halaman $_page dari $_total', style: T.label),
+                  child: Text(
+                    context.l10n.pageOf(_page, _total),
+                    style: T.label,
+                  ),
                 ),
                 IconButton(
-                  tooltip: 'Halaman berikutnya',
+                  tooltip: context.l10n.nextPage,
                   icon: const Icon(Icons.chevron_right),
                   onPressed: _page < _total ? () => _go(_page + 1) : null,
                 ),
@@ -235,9 +249,21 @@ class _DocPreviewScreenState extends State<DocPreviewScreen> {
 ///
 /// Berkas non-PDF tidak bisa dirender pdfium, jadi hanya menawarkan unduh.
 class DocFileTile extends StatelessWidget {
-  const DocFileTile(this.url, {super.key, required this.title, this.onOpen});
+  const DocFileTile(
+    this.url, {
+    super.key,
+    required this.title,
+    this.nama,
+    this.onOpen,
+  });
   final String url;
+
+  /// Label baris; bisa sekadar "Dokumen Utama".
   final String title;
+
+  /// Dasar nama berkas (judul dokumen), dijadikan slug untuk judul pratinjau
+  /// dan nama unduhan. Default [title].
+  final String? nama;
 
   /// Dipanggil sekali saat Lihat/Unduh ditekan (mis. mencatat hit_download).
   final VoidCallback? onOpen;
@@ -279,7 +305,7 @@ class DocFileTile extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             if (pdf)
               IconButton.filledTonal(
-                tooltip: 'Lihat',
+                tooltip: context.l10n.view,
                 icon: const Icon(Icons.visibility_outlined),
                 // 48dp: target sentuh minimum Android
                 iconSize: 20,
@@ -288,19 +314,20 @@ class DocFileTile extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => DocPreviewScreen(url: url, title: title),
+                      builder: (_) =>
+                          DocPreviewScreen(url: url, title: nama ?? title),
                     ),
                   );
                 },
               ),
             if (pdf) const SizedBox(width: AppSpacing.sm),
             IconButton.filled(
-              tooltip: 'Unduh',
+              tooltip: context.l10n.download,
               icon: const Icon(Icons.download_outlined),
               iconSize: 20,
               onPressed: () {
                 onOpen?.call();
-                downloadDoc(context, url, title: title);
+                downloadDoc(context, url, title: nama ?? title);
               },
             ),
           ],
@@ -308,4 +335,53 @@ class DocFileTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Selagi PDF diunduh: kemajuan unduhan di tepi atas + kerangka satu halaman
+/// A4 (judul, paragraf) di tempat halaman pertama akan muncul.
+class _HalamanMemuat extends StatelessWidget {
+  const _HalamanMemuat(this.kemajuan);
+  final double? kemajuan;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      LinearProgressIndicator(value: kemajuan, minHeight: 3),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: AspectRatio(
+              aspectRatio: 1 / 1.414,
+              child: Skeletonizer.zone(
+                child: Container(
+                  color: C.lightSurface,
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: Column(
+                    children: [
+                      const Bone(width: 48, height: 48, uniRadius: 24),
+                      const SizedBox(height: AppSpacing.lg),
+                      const Bone.text(words: 4),
+                      const SizedBox(height: AppSpacing.sm),
+                      const Bone.text(words: 6),
+                      const SizedBox(height: AppSpacing.xl),
+                      for (var i = 0; i < 8; i++) ...[
+                        Bone(
+                          width: i % 4 == 3 ? 160 : double.infinity,
+                          height: 10,
+                          uniRadius: AppRadius.chip,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
 }

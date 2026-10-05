@@ -4,21 +4,23 @@ import '../api.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
-const _jenisPengguna = [
-  'Mahasiswa',
-  'Akademisi',
-  'Praktisi Hukum',
-  'Masyarakat Umum',
-  'Lainnya',
+/// (nilai, label). Nilai dikirim ke server apa adanya, label diterjemahkan.
+List<(String, String)> _jenisPengguna(AppLocalizations l) => [
+  ('Mahasiswa', l.userStudent),
+  ('Akademisi', l.userAcademic),
+  ('Praktisi Hukum', l.userPractitioner),
+  ('Masyarakat Umum', l.userPublic),
+  ('Lainnya', l.userOther),
 ];
 
-const _aspek = {
-  'kemudahan_akses': 'Kemudahan Akses',
-  'kelengkapan_informasi': 'Kelengkapan Informasi',
-  'kecepatan_loading': 'Kecepatan Loading',
-  'tampilan_antarmuka': 'Tampilan Antarmuka',
-  'relevansi_pencarian': 'Relevansi Pencarian',
-};
+/// (kunci API, label) aspek penilaian.
+List<(String, String)> _aspek(AppLocalizations l) => [
+  ('kemudahan_akses', l.aspectAccess),
+  ('kelengkapan_informasi', l.aspectCompleteness),
+  ('kecepatan_loading', l.aspectSpeed),
+  ('tampilan_antarmuka', l.aspectInterface),
+  ('relevansi_pencarian', l.aspectRelevance),
+];
 
 class SurveyScreen extends StatefulWidget {
   const SurveyScreen({super.key});
@@ -35,7 +37,9 @@ class _SurveyScreenState extends State<SurveyScreen> {
   final _fitur = TextEditingController();
   final _kontak = TextEditingController();
   String? _jenis;
-  final _rating = <String, int>{for (final k in _aspek.keys) k: 0};
+  final _rating = <String, int>{
+    for (final (k, _) in _aspek(l10nAktif)) k: 0,
+  };
   bool _bersedia = false, _sending = false;
 
   /// Galat isian baru ditampilkan setelah percobaan kirim pertama: kolom
@@ -49,20 +53,20 @@ class _SurveyScreenState extends State<SurveyScreen> {
   static final _polaEmail = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
   String? get _galatNama =>
-      _nama.text.trim().isEmpty ? 'Nama wajib diisi.' : null;
+      _nama.text.trim().isEmpty ? context.l10n.errNameRequired : null;
 
   String? get _galatEmail {
     final e = _email.text.trim();
     return e.isEmpty || _polaEmail.hasMatch(e)
         ? null
-        : 'Format email belum benar, contoh: nama@contoh.go.id';
+        : context.l10n.errEmailFormat;
   }
 
   String? get _galatJenis =>
-      _jenis == null ? 'Pilih salah satu jenis pengguna.' : null;
+      _jenis == null ? context.l10n.errPickUserType : null;
 
   String? get _galatRating => _rating.values.any((v) => v == 0)
-      ? 'Beri nilai 1–5 untuk setiap aspek.'
+      ? context.l10n.errRateAll
       : null;
 
   @override
@@ -115,12 +119,12 @@ class _SurveyScreenState extends State<SurveyScreen> {
         context: context,
         builder: (c) => AlertDialog(
           icon: const Icon(Icons.check_circle, color: C.statusActive, size: 48),
-          title: const Text('Terima kasih!'),
-          content: const Text('Survei Anda telah terkirim.'),
+          title: Text(c.l10n.thankYou),
+          content: Text(c.l10n.surveySent),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c),
-              child: const Text('OK'),
+              child: Text(c.l10n.ok),
             ),
           ],
         ),
@@ -182,7 +186,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const BrandAppBar('Survei Kepuasan'),
+    appBar: BrandAppBar(context.l10n.satisfactionSurvey),
     // Column, bukan ListView: formulir pendek ini dibangun utuh, sehingga
     // isian bermasalah di atas tetap bisa dijangkau Scrollable.ensureVisible
     // saat tombol kirim di bawah ditekan
@@ -191,25 +195,34 @@ class _SurveyScreenState extends State<SurveyScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _field('Nama *', _nama, key: _kNama, galat: _galatNama),
           _field(
-            'Email',
+            context.l10n.fieldName,
+            _nama,
+            key: _kNama,
+            galat: _galatNama,
+          ),
+          _field(
+            context.l10n.email,
             _email,
             key: _kEmail,
             type: TextInputType.emailAddress,
             galat: _galatEmail,
           ),
-          _field('Instansi', _instansi),
-          Text('Jenis Pengguna *', key: _kJenis, style: T.labelBesar),
+          _field(context.l10n.fieldInstitution, _instansi),
+          Text(
+            context.l10n.fieldUserType,
+            key: _kJenis,
+            style: T.labelBesar,
+          ),
           RadioGroup<String>(
             groupValue: _jenis,
             onChanged: (v) => setState(() => _jenis = v),
             child: Column(
               children: [
-                for (final j in _jenisPengguna)
+                for (final (nilai, label) in _jenisPengguna(context.l10n))
                   RadioListTile<String>(
-                    title: Text(j),
-                    value: j,
+                    title: Text(label),
+                    value: nilai,
                     contentPadding: EdgeInsets.zero,
                   ),
               ],
@@ -217,27 +230,36 @@ class _SurveyScreenState extends State<SurveyScreen> {
           ),
           _galat(_galatJenis),
           const SizedBox(height: 8),
-          Text('Penilaian (1–5) *', key: _kRating, style: T.labelBesar),
+          Text(context.l10n.fieldRating, key: _kRating, style: T.labelBesar),
           const SizedBox(height: 4),
-          for (final e in _aspek.entries)
+          for (final (k, label) in _aspek(context.l10n))
             _BarisNilai(
-              label: e.value,
-              nilai: _rating[e.key]!,
-              tandai: _dicoba && _rating[e.key] == 0,
-              onPilih: (i) => setState(() => _rating[e.key] = i),
+              label: label,
+              nilai: _rating[k]!,
+              tandai: _dicoba && _rating[k] == 0,
+              onPilih: (i) => setState(() => _rating[k] = i),
             ),
           _galat(_galatRating),
           const SizedBox(height: 8),
-          _field('Saran Perbaikan', _saran, lines: 3, maks: 1000),
-          _field('Fitur yang Diharapkan', _fitur, lines: 3, maks: 1000),
+          _field(
+            context.l10n.fieldSuggestions,
+            _saran,
+            lines: 3,
+            maks: 1000,
+          ),
+          _field(context.l10n.fieldFeatures, _fitur, lines: 3, maks: 1000),
           CheckboxListTile(
-            title: const Text('Bersedia dihubungi'),
+            title: Text(context.l10n.fieldContactOk),
             value: _bersedia,
             contentPadding: EdgeInsets.zero,
             onChanged: (v) => setState(() => _bersedia = v ?? false),
           ),
           if (_bersedia)
-            _field('Kontak (HP/WA)', _kontak, type: TextInputType.phone),
+            _field(
+              context.l10n.fieldContact,
+              _kontak,
+              type: TextInputType.phone,
+            ),
           const SizedBox(height: 8),
           FilledButton(
             // nonaktif selama mengirim: ketukan beruntun tidak menggandakan
@@ -251,7 +273,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                       color: C.ink,
                     ),
                   )
-                : const Text('Kirim Survei'),
+                : Text(context.l10n.submitSurvey),
           ),
           const SizedBox(height: 24),
         ],
@@ -283,7 +305,7 @@ class _BarisNilai extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          nilai == 0 ? label : '$label · $nilai dari 5',
+          nilai == 0 ? label : context.l10n.ratingOf(label, nilai),
           style: TextStyle(
             color: tandai ? Theme.of(context).colorScheme.error : null,
             fontWeight: tandai ? FontWeight.w600 : null,
@@ -294,7 +316,7 @@ class _BarisNilai extends StatelessWidget {
             for (var i = 1; i <= 5; i++)
               IconButton(
                 // pembaca layar: "Kemudahan Akses, 3 dari 5", terpilih
-                tooltip: '$label, $i dari 5',
+                tooltip: context.l10n.ratingTooltip(label, i),
                 isSelected: nilai == i,
                 icon: Icon(
                   nilai >= i ? Icons.star : Icons.star_border,

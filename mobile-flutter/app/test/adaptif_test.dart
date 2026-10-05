@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:jdih_kendari/api.dart';
 import 'package:jdih_kendari/main.dart';
 import 'package:jdih_kendari/screens/documents.dart';
 import 'package:jdih_kendari/screens/home.dart';
@@ -78,7 +79,13 @@ void main() {
     await http.runWithClient(() async {
       rootTab.value = 0;
       await tester.pumpWidget(
-        MaterialApp(theme: appTheme(Brightness.light), home: const RootShell()),
+        MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: appTheme(Brightness.light),
+          home: const RootShell(),
+        ),
       );
       await _tunggu(tester);
       expect(find.byType(NavigationRail), findsOneWidget);
@@ -102,7 +109,13 @@ void main() {
     await http.runWithClient(() async {
       rootTab.value = 0;
       await tester.pumpWidget(
-        MaterialApp(theme: appTheme(Brightness.light), home: const RootShell()),
+        MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: appTheme(Brightness.light),
+          home: const RootShell(),
+        ),
       );
       await _tunggu(tester);
       expect(find.byType(NavigationRail), findsOneWidget);
@@ -117,6 +130,9 @@ void main() {
     await _tablet(tester, const Size(892, 412));
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: appTheme(Brightness.light),
         home: MediaQuery(
           data: const MediaQueryData(
@@ -142,6 +158,9 @@ void main() {
     await http.runWithClient(() async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: appTheme(Brightness.light),
           home: const DocumentListScreen(category: 'peraturan'),
         ),
@@ -167,6 +186,9 @@ void main() {
       await _tablet(tester, size);
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: appTheme(Brightness.light),
           home: const HomeScreen(),
         ),

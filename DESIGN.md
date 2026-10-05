@@ -24,64 +24,64 @@ colors:
   overlay: "#000000a6"
 typography:
   display:
-    fontFamily: "Source Sans 3, sans-serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "36px"
     fontWeight: 700
     lineHeight: 1.1
     fontFeature: "tnum"
   judul-detail:
-    fontFamily: "Source Serif 4, Georgia, serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "22px"
-    fontWeight: 700
+    fontWeight: 600
     lineHeight: 1.3
   judul:
-    fontFamily: "Source Sans 3, sans-serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "20px"
     fontWeight: 700
     lineHeight: 1.3
   angka:
-    fontFamily: "Source Sans 3, sans-serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "20px"
     fontWeight: 700
     lineHeight: 1.15
     fontFeature: "tnum"
   subjudul:
-    fontFamily: "Source Sans 3, sans-serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "17px"
     fontWeight: 700
     lineHeight: 1.35
   judul-item:
-    fontFamily: "Source Sans 3, sans-serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "15px"
     fontWeight: 700
     lineHeight: 1.35
   bacaan:
-    fontFamily: "Source Serif 4, Georgia, serif"
-    fontSize: "16.5px"
+    fontFamily: "Kanit, sans-serif"
+    fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.65
   isi:
-    fontFamily: "Source Sans 3, sans-serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "15px"
     fontWeight: 400
     lineHeight: 1.5
   isi-kecil:
-    fontFamily: "Source Sans 3, sans-serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "13px"
     fontWeight: 400
     lineHeight: 1.45
   label-besar:
-    fontFamily: "Source Sans 3, sans-serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "15px"
     fontWeight: 600
     lineHeight: 1.25
   label:
-    fontFamily: "Source Sans 3, sans-serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "13px"
     fontWeight: 600
     lineHeight: 1.25
   label-kecil:
-    fontFamily: "Source Sans 3, sans-serif"
+    fontFamily: "Kanit, sans-serif"
     fontSize: "12px"
     fontWeight: 600
     lineHeight: 1.25
@@ -167,7 +167,7 @@ One system, two surfaces: the public website (Laravel + Tailwind 4, `resources/c
 
 **Creative North Star: "The Civic Reading Room"**
 
-JDIH Kota Kendari behaves like a well-run public reading room for legal records: calm, bright, and orderly. Every screen exists for retrieval. A citizen or a legal practitioner arrives looking for a specific regulation, ruling, or document, and the interface walks them to it with as little friction as possible. Hierarchy does the guiding and the tool disappears into the task. The app is the same room carried in a pocket. It reads more than the website does, so long-form text gets a serif companion. Its chrome is quieter still: flat bordered surfaces, one corner radius, and no decoration that does not carry meaning.
+JDIH Kota Kendari behaves like a well-run public reading room for legal records: calm, bright, and orderly. Every screen exists for retrieval. A citizen or a legal practitioner arrives looking for a specific regulation, ruling, or document, and the interface walks them to it with as little friction as possible. Hierarchy does the guiding and the tool disappears into the task. The app is the same room carried in a pocket. It reads more than the website does, so long-form text gets its own reading role (Bacaan). Its chrome is quieter still: flat bordered surfaces, one corner radius, and no decoration that does not carry meaning.
 
 The palette is disciplined. Kendari Amber is the room's signage. It points to the main action, marks where you are, and stays rare enough to keep that meaning. Civic Blue is the institutional voice for links, information, form controls, and data. Everything else is quiet: white content on a cool slate canvas, readable ink, and hairline borders. Warmth comes from the amber signage and from generous, legible type, never from a tinted page.
 
@@ -177,7 +177,7 @@ The system rejects the old-government-portal feel: dense raw tables without hier
 - Retrieval-first: every screen shortens the path to a document.
 - One warm signal (amber) used sparingly, one institutional voice (blue) for everything informational.
 - Flat at rest, separated by hairlines and a white-on-slate tonal step.
-- One UI family (Source Sans 3) on both surfaces; a serif (Source Serif 4) only for text that is read, in the app.
+- One family per surface: Source Sans 3 on the web, Kanit for everything in the app, reading text included.
 - One corner: 4px.
 - Accessible by default: WCAG 2.1 AA contrast, 48dp targets, text scaling to 200%, reduced motion, four languages.
 
@@ -193,7 +193,7 @@ A civic palette of two branded accents on white surfaces and cool slate neutrals
 - **Civic Blue** (`accent`): the institutional voice, safe as text (6.9:1) and as a fill under white text. It carries links and text buttons, the document-type chip and category icons (8 to 12% tint), selected radios and checkboxes, focus rings and cursor, chart bars, the user's question bubble in AI chat, and the selected document in a master-detail list (2px border). **Civic Blue Deep** (`accent-hover`) is the web's hover state and the app's document-detail header band. In the app it is named `C.accentDeep`.
 
 ### Neutral
-- **Ink** (`ink`, slate-900): primary text on light surfaces, and the dark surfaces too: the web's `darkbg` footer, the app's AI promo card and snackbar.
+- **Ink** (`ink`, slate-900): primary text on light surfaces, and the dark surfaces too: the web's `darkbg` footer and the app's snackbar. (The app's AI promo card now sits on the `PolaBiru` blue pattern, like the app bar.)
 - **Ink Soft** (`ink-soft`, slate-800): secondary dark tone. It is the band behind an app article that has no image.
 - **Ink Muted** (`ink-muted`, slate-600): metadata, captions, placeholders, and inactive navigation, at 7.6:1. Nothing body-sized goes lighter.
 - **Reading Room White** (`surface`): cards, panels, inputs, sheets, and the app bar.
@@ -216,20 +216,19 @@ Legal status uses fixed semantic pairs: **Berlaku** is green (`status-active` on
 
 ## Typography
 
-**UI Font:** Source Sans 3 (bundled in the app; Google Fonts on the web), with `sans-serif` fallback. In the app, Han and Hangul fall back to Noto Sans SC and Noto Sans KR.
-**Reading Font (Android app only):** Source Serif 4: Regular, Italic, and Bold, statically bundled.
+**UI Font:** Kanit in the Android app (statically bundled: Regular, Italic, Medium, SemiBold, Bold, Bold Italic); Source Sans 3 on the web (Google Fonts). Both fall back to `sans-serif`. In the app, Han and Hangul fall back to Noto Sans SC and Noto Sans KR.
 
-**Character:** A humanist sans carries every label, control, and card, so the tool stays plain and unpretentious. In the app, its serif sibling from the same Source superfamily takes over wherever the user settles in to read. The switch from sans to serif signals "now you are reading the law" without ornament.
+**Character:** A plain sans carries every label, control, and card, so the tool stays unpretentious. In the app, reading text stays in Kanit and is set apart by size and generous leading (Bacaan), not by a second face.
 
 ### Hierarchy
-The frontmatter roles are the app's `T` class in `theme.dart`. The scale steps by about 1.15 (12 · 13 · 15 · 17 · 20 · 36), and roles that share a size differ by weight. Source Sans 3 has a small x-height, so body text sits at 15 and nothing goes below 12.
+The frontmatter roles are the app's `T` class in `theme.dart`. The scale steps by about 1.15 (12 · 13 · 15 · 17 · 20 · 36), and roles that share a size differ by weight. Body text sits at 15 and nothing goes below 12. **Hero** (600, 26, 1.2) is the one headline on the app's Home header.
 - **Display** (700, 36, 1.1, tabular figures): the single headline number on a screen, such as the collection total.
-- **Judul Detail** (Serif 700, 22, 1.3): the title of a document, article, or other detail page. It pairs with Bacaan.
+- **Judul Detail** (600, 22, 1.3): the title of a document, article, or other detail page. It pairs with Bacaan.
 - **Judul** (700, 20, 1.3): screen and section titles, app bar titles.
 - **Angka** (700, 20, 1.15, tabular): standout data such as the document number and KPI values.
 - **Subjudul** (700, 17, 1.35): subsection titles and featured-card titles.
 - **Judul Item** (700, 15, 1.35): card titles in lists.
-- **Bacaan** (Serif 400, 16.5, 1.65): long reading text: article bodies, abstracts, PUU and disability descriptions, AI answers. It sits in a column of at most 720dp.
+- **Bacaan** (400, 16, 1.65): long reading text: article bodies, abstracts, PUU and disability descriptions, AI answers. It sits in a column of at most 720dp.
 - **Isi** (400, 15, 1.5): ordinary UI text. Input text and list-tile titles take 16.
 - **Isi Kecil** (400, 13, 1.45): metadata, summaries, notes.
 - **Label Besar / Label / Label Kecil** (600, 15 / 13 / 12): button labels, chips and pills, then badges and chart axes.
@@ -239,9 +238,9 @@ Tracking is normal (0) on every role, as on the web. Each `T` role sets `letterS
 **Web:** the web uses Tailwind steps in the same family. Body is mostly `text-sm` (14) with `text-xs` (12) metadata. The hero headline runs `text-2xl → md:text-4xl → lg:text-5xl`, bold, `leading-[1.1]`, `tracking-tight`, `text-balance`. All headings h1 to h6 are 700 via the base layer.
 
 ### Named Rules
-**The One-Family UI Rule.** Source Sans 3 carries every interface element on both surfaces. No display face, and no Poppins or Inter, which were legacy on two web screens.
+**The One-Family UI Rule.** One sans carries every interface element on each surface: Kanit in the app, Source Sans 3 on the web. No extra display face, and no Poppins or Inter, which were legacy on two web screens.
 
-**The Serif-Is-For-Reading Rule.** Source Serif 4 appears only on text that is read: Bacaan and Judul Detail. A serif on a button, card, label, or number is wrong.
+**The Reading-Role Rule.** Long text that is read (article bodies, abstracts, AI answers) uses Bacaan, never Isi: the larger size and 1.65 leading are what make it readable. The app had Source Serif 4 for this until 2026-10-05; the owner asked for Kanit everywhere.
 
 **The Role-Not-Size Rule.** Every app text uses a `T` role. A literal `fontSize:` outside `theme.dart` fails `test/tipografi_test.dart`. The app once had 21 ad-hoc sizes, and this test keeps that from coming back.
 
@@ -250,8 +249,8 @@ Tracking is normal (0) on every role, as on the web. Each `T` role sets `letterS
 **Spacing:** a 4-based scale (`xs` 4 · `sm` 8 · `md` 12 · `lg` 16 · `xl` 24 · `xxl` 32). Groups are tight and sections are separated generously. A section header opens with 28 of space above and 14 below. Screen gutters are 16.
 
 **Android app: window classes, not devices.** Layout follows the window width (Material 3 classes), so a rotated phone, an unfolded foldable, and split-screen all follow the same rules.
-- **Under 600dp (compact):** single column; the floating bottom nav with the raised Ask-AI action.
-- **600dp and up (medium):** a NavigationRail replaces the bottom nav, with Ask AI as a 56dp amber square at the top. Card lists become a grid of 2 columns from 720dp of content width and 3 columns from 1200dp. The grid is capped at 1200dp and centered.
+- **Under 600dp (compact):** single column; the full-width bottom nav with the raised circular Ask-AI action.
+- **600dp and up (medium):** a NavigationRail replaces the bottom nav, with Ask AI as a 56dp amber circle at the top. Card lists become a grid of 2 columns from 720dp of content width and 3 columns from 1200dp. The grid is capped at 1200dp and centered.
 - **840dp and up (expanded):** document lists and text-search results go master-detail: a 400dp list on the left, detail on the right, and a tap swaps the panel instead of pushing a page. Home splits into two columns.
 - **Reading column:** detail pages, profile, survey, menu, and AI chat cap their content at 720dp (video at 960dp) and center it, while the scroll area stays full width.
 - Tab state survives rotation, and AI conversations, search results, and scroll positions are never lost when the window class changes.
@@ -278,7 +277,7 @@ Flat at rest. Surfaces sit flat on the Cool Page canvas and are separated by hai
 
 ## Shapes
 
-One corner for everything: **4px** (`rounded.sm`). It covers cards, buttons, inputs, chips, badges, sheets, dialogs, snackbars, nav indicators, and the Ask-AI square on both surfaces. The app expresses it as `AppRadius` (chip, button, card, sheet = 4), and the web uses the `rounded` class, by explicit owner convention. `rounded.full` is only for dots, avatars, and true pills on the web. Edges and accent lines take no radius. The section-header bar (4×20, amber) and the app bar's signature line are square. The signature line is 3dp, a gradient from amber to blue, and mirrors the web's `from-primary to-accent`.
+One corner for everything: **4px** (`rounded.sm`). It covers cards, buttons, inputs, chips, badges, sheets, dialogs, snackbars, and nav indicators on both surfaces. The app expresses it as `AppRadius` (chip, button, card, sheet = 4), and the web uses the `rounded` class, by explicit owner convention. `rounded.full` is only for dots, avatars, and true pills on the web. Edges and accent lines take no radius. The section-header bar (4×20, amber) is square. The one exception is the app's Ask-AI action, a circle (owner request, 2026-10-05).
 
 ### Named Rules
 **The One-Corner Rule.** If it is rounded, it is 4px. Larger radii on cards or buttons (8, 12, 16) are pre-redesign leftovers and should not spread.
@@ -312,10 +311,11 @@ Clear and efficient: familiar shapes, 48dp targets, and the full state set (defa
 - **Error:** a `status-revoked` border with an inline message under the field. Forms scroll to the first error. A character counter appears past 80% of `maxLength`.
 
 ### Navigation
-- **App bar (app):** white, no elevation, left-aligned Judul title on one line, and the 3dp amber-to-blue signature line beneath it.
-- **Bottom nav (app, under 600dp):** a floating white bar with a 4px corner, hairline border, and the floating-nav shadow. Labels always show (Label, clamped at 1.5×). The active item has a 52×30 indicator in amber at 16% with a 55% amber border, and Amber Ink for its icon and label. Inactive items are Ink Muted.
-- **Ask-AI center action (app):** a 48dp amber square with an ink sparkle icon, raised 16dp above the bar inside a 4dp canvas-colored ring. Its accessible label is "Tanya AI dan pencarian". The bar hides inside the AI screen, so the conversation gets the full height.
-- **Rail (app, 600dp and up):** a NavigationRail with a white background, a minimum width of 88, and the same amber indicator and Amber Ink labels. Ask AI leads it as a 56dp amber square.
+- **App bar (app):** `PolaBiru`: a Civic Blue → Blue Night (`#02315c`) gradient with a dot grid fading from the top-right corner, three thin white rings, and one short amber arc. White Judul title on one line, light status-bar icons. Tabs sit on a white strip beneath it. The same pattern is the app's Home header (greeting, Hero title, and a white search card overlapping the blue edge) and the document-detail hero, and the Home AI promo card. It replaced the old 3dp amber-to-blue signature line.
+- **Loading (app):** every page's skeleton is the page itself: `LoadView(contoh: …)` renders the real builder with sample data inside Skeletonizer, and lists render real cards with `kSkeletonItem`. The PDF viewer shows a download bar over an A4 page skeleton. No generic card-list skeleton.
+- **Bottom nav (app, under 600dp):** a full-width white bar with a hairline top edge and a soft upward shadow, extending under the system gesture area. Labels always show (Label, clamped at 1.5×). The active item has a 24×3 amber marker on the bar's top edge, a slightly enlarged icon, and Amber Ink for its icon and label. Inactive items are Ink Muted.
+- **Ask-AI center action (app):** a 56dp amber circle with an ink sparkle icon and an amber glow, raised 24dp above the bar inside a 5dp white ring, labeled like the other items. Its accessible label is "Tanya AI dan pencarian". The bar hides inside the AI screen, so the conversation gets the full height.
+- **Rail (app, 600dp and up):** a NavigationRail with a white background, a minimum width of 88, and the same amber indicator and Amber Ink labels. Ask AI leads it as a 56dp amber circle.
 - **System back (app):** from any tab other than Home, Back returns to Home first, and from Ask AI it returns to the originating tab. Only Home exits.
 - **Web:** a horizontal top bar with ink links, an amber active marker, the language switcher (id / en / zh / ko), and accessibility controls (text-to-speech, voice search). On small screens it collapses to a toggle menu with targets of 44px or more.
 
@@ -327,7 +327,7 @@ The heart of retrieval. A 56-wide number block on the canvas color shows "No." i
 
 ### AI Chat (signature)
 - **User question:** a Civic Blue bubble with white Isi text, padding 10×14.
-- **AI answer:** a white bordered card with an Ink Muted label beside the Amber Ink sparkle, answer text in Bacaan (serif), and a typing reveal at 12ms per character, held between 0.8 and 6 seconds.
+- **AI answer:** a white bordered card with an Ink Muted label beside the Amber Ink sparkle, answer text in Bacaan, and a typing reveal at 12ms per character, held between 0.8 and 6 seconds.
 - **Attachments:** a document attachment list that expands in place without scrolling the view.
 - **Mode switch:** a 52-high track on Second Layer, with the selected segment white, bordered, and lifted by the Segment shadow.
 
@@ -344,8 +344,8 @@ Motion is one quiet grammar, an ease-out rise.
 - **Do** put Ink (`#0f172a`) on amber fills, and use Amber Ink (`#a65307`) whenever amber must be text.
 - **Do** use Civic Blue for links, information chips, form controls, focus, data, and the user's own chat bubble.
 - **Do** hold body text at Ink or Ink Muted on white, at 4.5:1 or better (3:1 for large text and UI component edges).
-- **Do** use the `T` roles in the app and Source Sans 3 for every UI element on both surfaces.
-- **Do** reserve Source Serif 4 for reading text and detail titles in the app.
+- **Do** use the `T` roles in the app, Kanit for every UI element in the app, and Source Sans 3 on the web.
+- **Do** set reading text and detail titles in the app with the Bacaan and Judul Detail roles.
 - **Do** use a 4px corner on everything rounded, and keep edge lines square.
 - **Do** keep surfaces flat at rest with hairline borders; shadow only what floats or responds to state.
 - **Do** cap reading content at 720dp and switch layout by window width (600 / 840), not by device.
@@ -357,7 +357,7 @@ Motion is one quiet grammar, an ease-out rise.
 - **Don't** put white text on amber; it is 2.4:1.
 - **Don't** flood sections with amber fills, or use amber for status. Legal status keeps its green, yellow, and red pairs.
 - **Don't** use colored side stripes (a left or right border over 1px) on cards, answers, or alerts; all of them were removed from the app. Use a badge, a tint, or a full border.
-- **Don't** introduce a display face or a second UI font, and don't set UI, numbers, or buttons in the serif.
+- **Don't** introduce a display face or a second font in the app.
 - **Don't** write literal font sizes in app screens; add or reuse a `T` role.
 - **Don't** use radii above 4px on cards and buttons, or uppercase-tracked labels above headings.
 - **Don't** stagger cards one by one or animate whole sections in; one rise per list is enough.

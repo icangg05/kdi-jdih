@@ -10,6 +10,7 @@ import 'package:jdih_kendari/main.dart';
 import 'package:jdih_kendari/screens/documents.dart';
 import 'package:jdih_kendari/screens/home.dart';
 import 'package:jdih_kendari/screens/kabar.dart';
+import 'package:jdih_kendari/screens/search.dart';
 import 'package:jdih_kendari/screens/statistik.dart';
 import 'package:jdih_kendari/screens/survey.dart';
 import 'package:jdih_kendari/theme.dart';
@@ -95,7 +96,13 @@ void main() {
     await http.runWithClient(() async {
       rootTab.value = 0;
       await tester.pumpWidget(
-        MaterialApp(theme: appTheme(Brightness.light), home: const RootShell()),
+        MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: appTheme(Brightness.light),
+          home: const RootShell(),
+        ),
       );
       await tester.pump(const Duration(seconds: 2));
 
@@ -120,6 +127,54 @@ void main() {
     }, () => MockClient((_) async => http.Response('{}', 500)));
   });
 
+  testWidgets('Tanya AI naik menutupi tab asal, turun lagi saat keluar', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await http.runWithClient(() async {
+      rootTab.value = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: appTheme(Brightness.light),
+          home: const RootShell(),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      final beranda = find.byType(HomeScreen);
+      final ai = find.byType(SearchScreen);
+      double puncak() => tester.getTopLeft(ai).dy;
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavBawah),
+          matching: find.text('Tanya AI'),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 120));
+      // di tengah gerak: beranda masih terlihat di bawah lembar yang naik
+      expect(beranda, findsOneWidget);
+      expect(puncak(), greaterThan(0));
+      await tester.pump(const Duration(seconds: 1));
+      expect(puncak(), 0);
+      expect(beranda, findsNothing); // offstage
+
+      await tester.binding.handlePopRoute();
+      await tester.pump(); // frame pertama = awal gerak
+      await tester.pump(const Duration(milliseconds: 120));
+      expect(beranda, findsOneWidget);
+      expect(puncak(), greaterThan(0)); // lembar AI turun
+      await tester.pump(const Duration(seconds: 1));
+      expect(ai, findsNothing);
+      expect(rootTab.value, 0);
+      await tester.pump(const Duration(seconds: 2));
+    }, () => MockClient((_) async => http.Response('{}', 500)));
+  });
+
   testWidgets('survei: galat tampil di isian, tidak ada yang terkirim', (
     tester,
   ) async {
@@ -128,6 +183,9 @@ void main() {
       () async {
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('id'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             theme: appTheme(Brightness.light),
             home: const SurveyScreen(),
           ),
@@ -193,6 +251,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: appTheme(Brightness.light),
         home: MediaQuery(
           data: const MediaQueryData(
@@ -227,6 +288,9 @@ void main() {
   testWidgets('kartu dokumen: badge status rata kanan', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: appTheme(Brightness.light),
         home: const Scaffold(
           body: Padding(
@@ -268,6 +332,9 @@ void main() {
     Future<double> selisihBaris(double skala) async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: appTheme(Brightness.light),
           home: MediaQuery(
             data: MediaQueryData(
@@ -305,6 +372,9 @@ void main() {
   testWidgets('judul seksi: tautan "Lihat semua" rata kanan', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: appTheme(Brightness.light),
         home: Scaffold(body: SectionHeader('Dokumen', onSeeAll: () {})),
       ),
@@ -344,6 +414,9 @@ void main() {
       () async {
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('id'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             theme: appTheme(Brightness.light),
             home: MediaQuery(
               data: const MediaQueryData(
@@ -374,6 +447,9 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: appTheme(Brightness.light),
         home: const Scaffold(
           body: SizedBox(

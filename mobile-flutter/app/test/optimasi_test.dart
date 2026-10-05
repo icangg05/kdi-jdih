@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:jdih_kendari/api.dart';
 import 'package:jdih_kendari/main.dart';
 import 'package:jdih_kendari/theme.dart';
 import 'package:jdih_kendari/widgets.dart';
@@ -21,13 +22,19 @@ void main() {
         rootTab.value = 0;
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('id'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             theme: appTheme(Brightness.light),
             home: const RootShell(),
           ),
         );
         await tester.pump(const Duration(seconds: 1));
-        // dulu 5: /home dua kali, /documents, /news, statistik
-        expect(diminta, ['/api/v1/home', '/api/jdih/statistics']);
+        // dulu 5: /home dua kali, /documents, /news, statistik. Statistik ada
+        // di dasar beranda: dimuat bila daftar sudah sampai ke sana
+        expect(diminta.where((p) => p != '/api/jdih/statistics'), [
+          '/api/v1/home',
+        ]);
 
         // Kabar dibuka saat jaringan lambat (kerangka muat berkilau), lalu
         // pengguna kembali ke Beranda sebelum isinya tiba

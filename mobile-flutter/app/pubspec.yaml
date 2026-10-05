@@ -11,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   http: ^1.2.0
   cached_network_image: ^4.0.4
   flutter_widget_from_html_core: ^0.17.4
@@ -23,6 +25,7 @@ dependencies:
   skeletonizer: ^3.0.0
   share_plus: ^13.3.1
   package_info_plus: ^10.2.2
+  custom_refresh_indicator: ^4.0.2
 
 dev_dependencies:
   flutter_test:
@@ -58,31 +61,27 @@ flutter_native_splash:
 
 flutter:
   uses-material-design: true
+  # teks UI: lib/l10n/app_*.arb -> AppLocalizations (lihat l10n.yaml)
+  generate: true
   assets:
     - assets/img/
-    - assets/fonts/OFL.txt
-    - assets/fonts/OFL-SourceSerif4.txt
-  # Source Sans 3 (sama dengan web) untuk UI, Source Serif 4 untuk teks bacaan.
+    - assets/fonts/OFL-Kanit.txt
+  # Kanit untuk seluruh app (UI dan teks bacaan).
   # Dibundel agar tetap tampil offline. Statis, bukan variable font: FontWeight
   # Flutter tidak menggerakkan sumbu wght.
   fonts:
-    - family: Source Serif 4
+    - family: Kanit
       fonts:
-        - asset: assets/fonts/SourceSerif4-Regular.ttf
-        - asset: assets/fonts/SourceSerif4-It.ttf
+        - asset: assets/fonts/Kanit-Regular.ttf
+        - asset: assets/fonts/Kanit-Italic.ttf
           style: italic
-        - asset: assets/fonts/SourceSerif4-Bold.ttf
-          weight: 700
-    - family: Source Sans 3
-      fonts:
-        - asset: assets/fonts/SourceSans3-Regular.ttf
-        - asset: assets/fonts/SourceSans3-Medium.ttf
+        - asset: assets/fonts/Kanit-Medium.ttf
           weight: 500
-        - asset: assets/fonts/SourceSans3-Semibold.ttf
+        - asset: assets/fonts/Kanit-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/SourceSans3-Bold.ttf
+        - asset: assets/fonts/Kanit-Bold.ttf
           weight: 700
-        - asset: assets/fonts/SourceSans3-BoldIt.ttf
+        - asset: assets/fonts/Kanit-BoldItalic.ttf
           weight: 700
           style: italic
 

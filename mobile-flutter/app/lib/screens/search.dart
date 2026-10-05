@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../api.dart';
 import '../theme.dart';
@@ -46,13 +49,13 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: BrandAppBar(
-      'Cari Pintar',
+      context.l10n.smartSearch,
       showBack: widget.showBack,
       leading: widget.onExit == null
           ? null
           : IconButton(
               icon: const Icon(Icons.arrow_back),
-              tooltip: 'Kembali',
+              tooltip: context.l10n.back,
               onPressed: widget.onExit,
             ),
     ),
@@ -131,8 +134,8 @@ class _ModeSwitch extends StatelessWidget {
               ),
               Row(
                 children: [
-                  _pil(w, _Mode.teks, Icons.search, 'Pencarian Teks'),
-                  _pil(w, _Mode.ai, Icons.auto_awesome, 'Tanya AI'),
+                  _pil(w, _Mode.teks, Icons.search, context.l10n.textSearch),
+                  _pil(w, _Mode.ai, Icons.auto_awesome, context.l10n.navAskAi),
                 ],
               ),
             ],
@@ -178,7 +181,8 @@ class _ModeSwitch extends StatelessWidget {
 }
 
 /// Kata kunci contoh: satu ketukan untuk mencoba pencarian, jauh lebih ramah
-/// daripada halaman kosong yang menyuruh "ketik kata kunci".
+/// daripada halaman kosong yang menyuruh "ketik kata kunci". Tidak
+/// diterjemahkan: pencarian teks mencocokkan judul berbahasa Indonesia.
 const _contohKata = ['Retribusi', 'Pajak Daerah', 'Perwali 2024', 'APBD'];
 
 class _DocSearchTab extends StatefulWidget {
@@ -219,13 +223,13 @@ class _DocSearchTabState extends State<_DocSearchTab> {
           child: TextField(
             controller: _ctrl,
             decoration: InputDecoration(
-              hintText: 'Cari judul, nomor, atau topik...',
+              hintText: context.l10n.searchDocsHint,
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _q.isEmpty
                   ? null
                   : IconButton(
                       icon: const Icon(Icons.close),
-                      tooltip: 'Hapus pencarian',
+                      tooltip: context.l10n.clearSearch,
                       onPressed: () {
                         _ctrl.clear();
                         _cari('');
@@ -244,7 +248,10 @@ class _DocSearchTabState extends State<_DocSearchTab> {
             0,
           ),
           child: FilterPills(
-            labels: [for (final c in docCategories) c.short],
+            labels: [
+              for (final c in docCategories)
+                docCategoryText(context, c.slug).short,
+            ],
             selected: docCategories.indexWhere((c) => c.slug == _category),
             onSelected: (i) => setState(() {
               _category = docCategories[i].slug;
@@ -263,7 +270,7 @@ class _DocSearchTabState extends State<_DocSearchTab> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                '$_total hasil untuk "$_q"',
+                context.l10n.resultsFor(_total!, _q),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: T.labelKecil.copyWith(color: C.lightInkMuted),
@@ -280,9 +287,7 @@ class _DocSearchTabState extends State<_DocSearchTab> {
                   onTotal: (t) => setState(() => _total = t),
                   emptyView: NoResults(
                     _q,
-                    saran:
-                        'Coba kata kunci yang lebih pendek, ganti '
-                        'kategori di atas, atau tanyakan langsung ke AI.',
+                    saran: context.l10n.noMatchHintAi,
                     actions: [
                       OutlinedButton.icon(
                         onPressed: () {
@@ -290,12 +295,12 @@ class _DocSearchTabState extends State<_DocSearchTab> {
                           _cari('');
                         },
                         icon: const Icon(Icons.close, size: 18),
-                        label: const Text('Hapus pencarian'),
+                        label: Text(context.l10n.clearSearch),
                       ),
                       FilledButton.icon(
                         onPressed: () => widget.onTanyaAi(_q),
                         icon: const Icon(Icons.auto_awesome, size: 18),
-                        label: const Text('Tanya AI'),
+                        label: Text(context.l10n.navAskAi),
                       ),
                     ],
                   ),
@@ -322,39 +327,28 @@ class _DocSearchTabState extends State<_DocSearchTab> {
         ),
       ),
       const SizedBox(height: AppSpacing.lg),
-      const Text(
-        'Cari Produk Hukum',
+      Text(
+        context.l10n.searchLegalProducts,
         textAlign: TextAlign.center,
         style: T.judul,
       ),
       const SizedBox(height: AppSpacing.sm),
       Text(
-        'Ketik judul, nomor, atau topik peraturan lalu tekan tombol cari '
-        'pada papan ketik. Kategori di atas mempersempit hasilnya.',
+        context.l10n.searchIntro,
         textAlign: TextAlign.center,
         style: T.isiKecil.copyWith(color: C.lightInkMuted),
       ),
       const SizedBox(height: AppSpacing.xl),
-      Wrap(
-        alignment: WrapAlignment.center,
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.sm,
-        children: [
-          for (final k in _contohKata)
-            ActionChip(
-              label: Text(k, style: T.isi),
-              avatar: const Icon(Icons.north_east, size: 14),
-              onPressed: () {
-                _ctrl.text = k;
-                _cari(k);
-              },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.chip),
-                side: const BorderSide(color: C.lightLine),
-              ),
-              backgroundColor: C.lightSurface,
-            ),
-        ],
+      // animasi sama dengan saran Tanya AI; kata kunci melesat ke atas,
+      // ke arah kolom cari yang akan diisinya
+      _Saran(
+        items: [for (final k in _contohKata) (label: k, tanya: k)],
+        rata: WrapAlignment.center,
+        arah: const Offset(0, -96),
+        onPick: (k) {
+          _ctrl.text = k;
+          _cari(k);
+        },
       ),
     ],
   );
@@ -371,10 +365,15 @@ const _maxHistory = 12;
 /// Panjang pertanyaan maksimum (validasi `query` di AiSearchController).
 const _maxPanjang = 500;
 
-const _contohPertanyaan = [
-  'Apa aturan retribusi sampah?',
-  'Perwali terbaru tentang apa?',
-  'Bagaimana cara mengurus IMB?',
+/// Saran pertanyaan: label pendek di chip (beberapa muat sebaris), kalimat
+/// lengkapnya yang dikirim ke AI.
+List<({String label, String tanya})> _contohPertanyaan(AppLocalizations l) => [
+  (label: l.aiSuggest1, tanya: l.aiSuggest1Ask),
+  (label: l.aiSuggest2, tanya: l.aiSuggest2Ask),
+  (label: l.aiSuggest3, tanya: l.aiSuggest3Ask),
+  (label: l.aiSuggest4, tanya: l.aiSuggest4Ask),
+  (label: l.aiSuggest5, tanya: l.aiSuggest5Ask),
+  (label: l.aiSuggest6, tanya: l.aiSuggest6Ask),
 ];
 
 /// Satu pesan percakapan. Mutable: balasan AI diisi setelah respons tiba.
@@ -391,6 +390,9 @@ class _Msg {
   /// Animasi ketik sudah selesai: jangan diulang saat pesan dibangun ulang
   /// (mis. tergulir keluar layar lalu kembali).
   bool typed = false;
+
+  /// Animasi masuk gelembung pengguna sudah diputar.
+  bool muncul = false;
 }
 
 /// Tanya AI mode percakapan, mekanismenya sama dengan modal web: riwayat
@@ -419,6 +421,11 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
 
   bool get _penuh =>
       _history.where((h) => h['role'] == 'user').length >= _maxTurns;
+
+  /// Jawaban belum utuh: masih ditunggu dari server ATAU masih diketik.
+  /// Bagi pembaca keduanya sama-sama "sedang diproses".
+  bool get _proses =>
+      _busy || _msgs.any((m) => m.ai && !m.typed && m.failed == null);
 
   @override
   void initState() {
@@ -489,10 +496,8 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
     _keDasar(animasi: true);
     try {
       final r = await api.aiSearch(q, history: history);
-      if (sesi != _sesi) return;
-      reply.text =
-          r.sn('explanation') ??
-          'Maaf, saya belum bisa menjawab pertanyaan itu.';
+      if (sesi != _sesi || !mounted) return;
+      reply.text = r.sn('explanation') ?? context.l10n.aiNoAnswer;
       reply.docs = r.l('documents');
       // server menolak teks riwayat > 4000 karakter; jangan sampai satu
       // jawaban panjang mematahkan seluruh percakapan
@@ -527,8 +532,8 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
 
   /// Bersihkan percakapan, dengan jalan pulang: satu ketukan tak sengaja
   /// tidak boleh menghapus seluruh tanya-jawab tanpa bisa dikembalikan.
-  /// Hanya bisa saat tidak menunggu jawaban, jadi tidak ada balasan
-  /// tertunda yang ikut tersimpan.
+  /// Hanya bisa saat jawaban terakhir sudah utuh (lihat [_proses]), jadi
+  /// tidak ada balasan tertunda yang ikut tersimpan.
   void _bersihkan() {
     final msgs = List.of(_msgs), history = List.of(_history);
     _reset();
@@ -536,9 +541,9 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: const Text('Percakapan dibersihkan.'),
+          content: Text(context.l10n.chatCleared),
           action: SnackBarAction(
-            label: 'Urungkan',
+            label: context.l10n.undo,
             onPressed: () {
               if (!mounted || _msgs.isNotEmpty) return;
               setState(() {
@@ -560,8 +565,15 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
         (
           ObjectKey(m),
           m.ai
-              ? _AiBubble(m, onRetry: ask, onTumbuh: _ikuti)
-              : _UserBubble(m.text),
+              ? _AiBubble(
+                  m,
+                  onRetry: ask,
+                  onTumbuh: _ikuti,
+                  onSelesai: () {
+                    if (mounted) setState(() {});
+                  },
+                )
+              : _Masuk(m, child: _UserBubble(m.text)),
         ),
       if (_penuh && !_busy) (const ValueKey('batas'), _Batas(onReset: _reset)),
     ];
@@ -613,9 +625,11 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
                   // sapu, bukan ikon plus: tombol ini menghapus, bukan menambah
                   if (_msgs.isNotEmpty)
                     IconButton(
-                      tooltip: 'Bersihkan percakapan',
+                      tooltip: context.l10n.clearChat,
                       icon: const Icon(Icons.cleaning_services_outlined),
-                      onPressed: _busy ? null : _bersihkan,
+                      // mati sampai jawaban terakhir utuh: membersihkan di
+                      // tengah ketikan membuang jawaban yang belum terbaca
+                      onPressed: _proses ? null : _bersihkan,
                     ),
                   Expanded(
                     child: TextField(
@@ -639,15 +653,15 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
                       textInputAction: TextInputAction.send,
                       decoration: InputDecoration(
                         hintText: _penuh
-                            ? 'Batas $_maxTurns pertanyaan tercapai'
-                            : 'Tulis pertanyaan Anda...',
+                            ? context.l10n.chatLimitReached(_maxTurns)
+                            : context.l10n.askHint,
                       ),
                       onSubmitted: (_) => ask(),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   IconButton.filled(
-                    tooltip: 'Kirim',
+                    tooltip: context.l10n.send,
                     style: IconButton.styleFrom(
                       minimumSize: const Size(48, 48),
                     ),
@@ -658,7 +672,7 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 6),
               Text(
-                'Jawaban dibuat otomatis oleh AI. Selalu periksa dokumen aslinya.',
+                context.l10n.aiDisclaimer,
                 textAlign: TextAlign.center,
                 style: T.isiKecil.copyWith(color: C.lightInkMuted),
               ),
@@ -693,7 +707,7 @@ class _KartuAi extends StatelessWidget {
             Icon(Icons.auto_awesome, size: 16, color: C.primaryInk),
             SizedBox(width: 6),
             Text(
-              'Asisten JDIH',
+              context.l10n.jdihAssistant,
               style: T.label.copyWith(color: C.lightInkMuted),
             ),
           ],
@@ -703,6 +717,58 @@ class _KartuAi extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Gelembung pertanyaan meluncur masuk dari kanan sambil membesar dari
+/// sudut kanan bawah, sekali per pesan (tidak diulang saat tergulir kembali).
+class _Masuk extends StatefulWidget {
+  const _Masuk(this.m, {required this.child});
+  final _Msg m;
+  final Widget child;
+
+  @override
+  State<_Masuk> createState() => _MasukState();
+}
+
+class _MasukState extends State<_Masuk> with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 380),
+    value: widget.m.muncul ? 1 : 0,
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.m.muncul) return;
+    widget.m.muncul = true;
+    MediaQuery.of(context).disableAnimations ? _c.value = 1 : _c.forward();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final a = CurvedAnimation(parent: _c, curve: Curves.easeOutBack);
+    return FadeTransition(
+      opacity: CurvedAnimation(parent: _c, curve: Curves.easeOut),
+      child: SlideTransition(
+        position: Tween(
+          begin: const Offset(.25, .1),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: _c, curve: Curves.easeOutCubic)),
+        child: ScaleTransition(
+          scale: Tween(begin: .85, end: 1.0).animate(a),
+          alignment: Alignment.bottomRight,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
 }
 
 class _UserBubble extends StatelessWidget {
@@ -743,41 +809,143 @@ class _Sapaan extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      const _KartuAi(
-        child: MdLite(
-          'Halo! Tanyakan apa saja seputar hukum atau '
-          'peraturan Kota Kendari. Saya akan menjawab sekaligus '
-          'menunjukkan dokumen JDIH yang terkait.',
-        ),
-      ),
+      _KartuAi(child: MdLite(context.l10n.aiGreeting)),
       if (onPick != null) ...[
-        const SizedBox(height: AppSpacing.md),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            for (final q in _contohPertanyaan)
-              ActionChip(
-                label: Text(q, style: T.isi),
-                onPressed: () => onPick!(q),
-                backgroundColor: C.lightSurface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.chip),
-                  side: const BorderSide(color: C.lightLine),
-                ),
-              ),
-          ],
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          context.l10n.tryAsking,
+          style: T.labelKecil.copyWith(color: C.lightInkMuted),
         ),
+        const SizedBox(height: AppSpacing.sm),
+        _Saran(items: _contohPertanyaan(context.l10n), onPick: onPick!),
       ],
     ],
   );
 }
 
+/// Chip saran (pertanyaan AI / kata kunci cari). Diketuk: chip itu menyala
+/// biru, membesar, lalu melesat ke [arah] seperti terkirim, sementara chip
+/// lain memudar — baru kemudian [onPick] dijalankan.
+class _Saran extends StatefulWidget {
+  const _Saran({
+    required this.items,
+    required this.onPick,
+    this.rata = WrapAlignment.start,
+    this.arah = const Offset(48, -28),
+  });
+  final List<({String label, String tanya})> items;
+  final ValueChanged<String> onPick;
+  final WrapAlignment rata;
+  final Offset arah;
+
+  @override
+  State<_Saran> createState() => _SaranState();
+}
+
+class _SaranState extends State<_Saran> with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 460),
+  );
+  int? _dipilih;
+
+  void _pilih(int i) {
+    if (_dipilih != null) return;
+    final tanya = widget.items[i].tanya;
+    if (MediaQuery.of(context).disableAnimations) return widget.onPick(tanya);
+    HapticFeedback.selectionClick();
+    setState(() => _dipilih = i);
+    _c.forward().whenComplete(() {
+      if (mounted) widget.onPick(tanya);
+    });
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _c,
+    builder: (context, _) {
+      final t = _c.value;
+      double fase(double a, double b, [Curve c = Curves.easeOutCubic]) =>
+          c.transform(((t - a) / (b - a)).clamp(0.0, 1.0));
+      // runSpacing 0: chip sudah membawa target sentuh 48dp di sekelilingnya
+      return Wrap(
+        alignment: widget.rata,
+        spacing: AppSpacing.sm,
+        children: [
+          for (final (i, q) in widget.items.indexed)
+            if (_dipilih == null)
+              _chip(i, q.label, q.tanya, false)
+            else if (i == _dipilih)
+              Transform.translate(
+                offset: widget.arah * fase(.42, 1, Curves.easeInCubic),
+                child: Transform.scale(
+                  scale:
+                      1 +
+                      .08 * fase(0, .3, Curves.easeOutBack) -
+                      .2 * fase(.42, 1, Curves.easeInCubic),
+                  child: Opacity(
+                    opacity: 1 - fase(.6, 1),
+                    child: _chip(i, q.label, q.tanya, true),
+                  ),
+                ),
+              )
+            else
+              Opacity(
+                opacity: 1 - fase(0, .4),
+                child: Transform.scale(
+                  scale: 1 - .08 * fase(0, .4),
+                  child: _chip(i, q.label, q.tanya, false),
+                ),
+              ),
+        ],
+      );
+    },
+  );
+
+  Widget _chip(int i, String label, String tanya, bool aktif) => ActionChip(
+    avatar: Icon(
+      aktif ? Icons.send : Icons.north_east,
+      size: 16,
+      color: aktif ? Colors.white : C.accent,
+    ),
+    label: Text(
+      label,
+      style: T.label.copyWith(
+        fontWeight: FontWeight.w500,
+        color: aktif ? Colors.white : null,
+      ),
+    ),
+    tooltip: tanya,
+    onPressed: () => _pilih(i),
+    backgroundColor: aktif ? C.accent : C.lightSurface,
+    side: BorderSide(color: aktif ? C.accent : C.accent.withValues(alpha: .3)),
+    labelPadding: const EdgeInsets.only(right: 4),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadius.chip),
+    ),
+  );
+}
+
 /// Balasan AI: menunggu -> diketik -> lampiran dokumen muncul setelahnya.
 class _AiBubble extends StatefulWidget {
-  const _AiBubble(this.m, {required this.onRetry, required this.onTumbuh});
+  const _AiBubble(
+    this.m, {
+    required this.onRetry,
+    required this.onTumbuh,
+    required this.onSelesai,
+  });
   final _Msg m;
   final ValueChanged<String> onRetry;
+
+  /// Dipanggil sekali saat efek ketik selesai (atau dilewati): induk
+  /// menghidupkan lagi tombol bersihkan.
+  final VoidCallback onSelesai;
 
   /// Dipanggil tiap kali jawaban bertambah panjang (efek ketik, lampiran
   /// muncul), sebelum tata letak frame itu dihitung.
@@ -811,6 +979,8 @@ class _AiBubbleState extends State<_AiBubble>
     if (m.pending || m.failed != null || m.typed || _c != null) return;
     if (MediaQuery.of(context).disableAnimations) {
       m.typed = true;
+      // sedang di tengah build: induk diberi tahu sesudah frame ini
+      WidgetsBinding.instance.addPostFrameCallback((_) => widget.onSelesai());
       return;
     }
     _c =
@@ -825,6 +995,7 @@ class _AiBubbleState extends State<_AiBubble>
             if (s != AnimationStatus.completed) return;
             setState(() => m.typed = true);
             widget.onTumbuh(); // lampiran dokumen muncul di bawah jawaban
+            widget.onSelesai();
           })
           ..forward();
   }
@@ -832,7 +1003,11 @@ class _AiBubbleState extends State<_AiBubble>
   @override
   void dispose() {
     // keluar layar di tengah ketikan: saat kembali, tampilkan utuh
-    if (_c != null) widget.m.typed = true;
+    if (_c != null && !widget.m.typed) {
+      widget.m.typed = true;
+      final selesai = widget.onSelesai;
+      WidgetsBinding.instance.addPostFrameCallback((_) => selesai());
+    }
     _c?.dispose();
     super.dispose();
   }
@@ -842,12 +1017,7 @@ class _AiBubbleState extends State<_AiBubble>
     final m = widget.m;
     final Widget isi;
     if (m.pending) {
-      isi = Pulse(
-        child: Text(
-          'Menelusuri dokumen...',
-          style: T.isi.copyWith(color: C.lightInkMuted),
-        ),
-      );
+      isi = const _Menelusuri();
     } else if (m.failed != null) {
       isi = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -856,7 +1026,7 @@ class _AiBubbleState extends State<_AiBubble>
           TextButton.icon(
             onPressed: () => widget.onRetry(m.failed!),
             icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Kirim ulang'),
+            label: Text(context.l10n.resend),
           ),
         ],
       );
@@ -879,6 +1049,200 @@ class _AiBubbleState extends State<_AiBubble>
       ],
     );
   }
+}
+
+/// Penanda menunggu jawaban: halaman dokumen yang dipindai berkas amber,
+/// tahap kerja yang berganti, dan pita kemajuan. Tahap berganti tiap 1,8
+/// detik lalu berhenti di "Menyusun jawaban" sampai respons tiba — ia
+/// menceritakan apa yang dikerjakan server, bukan persen palsu.
+class _Menelusuri extends StatefulWidget {
+  const _Menelusuri();
+
+  static List<String> tahap(AppLocalizations l) => [
+    l.aiStepUnderstand,
+    l.aiStepSearch,
+    l.aiStepMatch,
+    l.aiStepCompose,
+  ];
+
+  /// Jumlah [tahap].
+  static const jumlahTahap = 4;
+
+  @override
+  State<_Menelusuri> createState() => _MenelusuriState();
+}
+
+class _MenelusuriState extends State<_Menelusuri>
+    with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final diam = MediaQuery.of(context).disableAnimations;
+    if (diam) _c.stop();
+    return Semantics(
+      liveRegion: true,
+      label: context.l10n.aiSearching,
+      excludeSemantics: true,
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (context, _) {
+          // waktu ticker, bukan jam dinding: ikut berhenti saat tab tersembunyi
+          final lewat = _c.lastElapsedDuration?.inMilliseconds ?? 0;
+          final n = diam
+              ? 1
+              : math.min(lewat ~/ 1800, _Menelusuri.jumlahTahap - 1);
+          return Row(
+            children: [
+              CustomPaint(
+                size: const Size(40, 48),
+                painter: _PindaiPainter(diam ? .5 : _c.value),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      transitionBuilder: (child, a) => FadeTransition(
+                        opacity: a,
+                        child: SlideTransition(
+                          position: Tween(
+                            begin: const Offset(0, .4),
+                            end: Offset.zero,
+                          ).animate(a),
+                          child: child,
+                        ),
+                      ),
+                      layoutBuilder: (cur, prev) => Stack(
+                        alignment: Alignment.centerLeft,
+                        children: [...prev, ?cur],
+                      ),
+                      child: Text(
+                        '${_Menelusuri.tahap(context.l10n)[n]}'
+                        '${diam ? '...' : _titik()}',
+                        key: ValueKey(n),
+                        style: T.isi.copyWith(color: C.lightInk),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    // satu ruas per tahap: yang sedang berjalan berkilau
+                    Row(
+                      children: [
+                        for (var i = 0; i < _Menelusuri.jumlahTahap; i++) ...[
+                          if (i > 0) const SizedBox(width: 4),
+                          Expanded(
+                            child: Container(
+                              height: 4,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(2),
+                                color: i < n
+                                    ? C.accent
+                                    : i == n
+                                    ? Color.lerp(
+                                        C.accent.withValues(alpha: .35),
+                                        C.primary,
+                                        math.sin(_c.value * math.pi),
+                                      )
+                                    : C.lightLine,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// Elipsis yang bertambah satu titik tiap sepertiga putaran.
+  String _titik() => '.' * (1 + (_c.value * 3).floor().clamp(0, 2));
+}
+
+/// Dua halaman bertumpuk; berkas amber menyapu halaman depan dari atas ke
+/// bawah dan baris teks yang dilewatinya menyala.
+class _PindaiPainter extends CustomPainter {
+  _PindaiPainter(this.t);
+  final double t;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final belakang = RRect.fromRectAndRadius(
+      const Offset(6, 0) & Size(size.width - 6, size.height - 6),
+      const Radius.circular(3),
+    );
+    canvas.drawRRect(
+      belakang,
+      Paint()..color = C.accent.withValues(alpha: .12),
+    );
+    final halaman = Rect.fromLTWH(0, 6, size.width - 6, size.height - 6);
+    final depan = RRect.fromRectAndRadius(halaman, const Radius.circular(3));
+    canvas.drawRRect(depan, Paint()..color = C.lightSurface);
+    canvas.drawRRect(
+      depan,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..color = C.accent.withValues(alpha: .5),
+    );
+    // naik-turun: 0->1->0 dengan perlambatan di ujung
+    final y =
+        halaman.top +
+        4 +
+        (halaman.height - 8) *
+            Curves.easeInOut.transform(t < .5 ? t * 2 : 2 - t * 2);
+    final baris = Paint()
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < 4; i++) {
+      final by = halaman.top + 9 + i * 8;
+      final dekat = (by - y).abs() < 5;
+      baris.color = dekat ? C.primary : C.accent.withValues(alpha: .28);
+      canvas.drawLine(
+        Offset(halaman.left + 6, by),
+        Offset(halaman.right - (i == 3 ? 14 : 6), by),
+        baris,
+      );
+    }
+    canvas.drawRect(
+      Rect.fromLTRB(halaman.left, y - 6, halaman.right, y + 6),
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            C.primary.withValues(alpha: 0),
+            C.primary.withValues(alpha: .28),
+            C.primary.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromLTRB(0, y - 6, 1, y + 6)),
+    );
+    canvas.drawLine(
+      Offset(halaman.left - 2, y),
+      Offset(halaman.right + 2, y),
+      Paint()
+        ..color = C.primary
+        ..strokeWidth = 1.5,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_PindaiPainter old) => old.t != t;
 }
 
 /// Dokumen relevan sebagai lampiran jawaban. Tertutup secara bawaan, sama
@@ -906,9 +1270,9 @@ class _Lampiran extends StatelessWidget {
         AppSpacing.md,
       ),
       leading: const Icon(Icons.attach_file, size: 20, color: C.accent),
-      title: const Text('Dokumen terkait', style: T.judulItem),
+      title: Text(context.l10n.relatedDocs, style: T.judulItem),
       subtitle: Text(
-        '${docs.length} dokumen dilampirkan',
+        context.l10n.docsAttached(docs.length),
         style: T.isiKecil.copyWith(color: C.lightInkMuted),
       ),
       children: [
@@ -960,7 +1324,10 @@ class _DocLampiran extends StatelessWidget {
               children: [
                 if (d.sn('type') != null) JenisChip(d.sn('type')),
                 if (d.sn('year') != null)
-                  MetaPill(Icons.event_outlined, 'Tahun ${d.s('year')}'),
+                  MetaPill(
+                    Icons.event_outlined,
+                    context.l10n.yearValue(d.s('year')),
+                  ),
                 StatusBadge(d.sn('status')),
               ],
             ),
@@ -979,7 +1346,7 @@ class _DocLampiran extends StatelessWidget {
                 // keduanya boleh menyusut: huruf besar tidak meluapkan baris
                 Expanded(
                   child: Text(
-                    '${d.i('accuracy').clamp(0, 100)}% relevan',
+                    context.l10n.percentRelevant(d.i('accuracy').clamp(0, 100)),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: T.label.copyWith(color: C.lightInkMuted),
@@ -987,7 +1354,7 @@ class _DocLampiran extends StatelessWidget {
                 ),
                 Flexible(
                   child: Text(
-                    'Lihat dokumen',
+                    context.l10n.viewDocument,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: T.label.copyWith(
@@ -1029,8 +1396,7 @@ class _Batas extends StatelessWidget {
             SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
-                'Percakapan ini sudah mencapai $_maxTurns pertanyaan. '
-                'Mulai percakapan baru untuk bertanya lagi.',
+                context.l10n.chatFull(_maxTurns),
                 style: T.isi.copyWith(color: C.lightInkMuted),
               ),
             ),
@@ -1040,7 +1406,7 @@ class _Batas extends StatelessWidget {
         FilledButton.icon(
           onPressed: onReset,
           icon: const Icon(Icons.add_comment_outlined, size: 18),
-          label: const Text('Percakapan baru'),
+          label: Text(context.l10n.newChat),
         ),
       ],
     ),
@@ -1077,7 +1443,7 @@ class MdLite extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // serif: jawaban asisten adalah teks bacaan, beda suara dari pertanyaan
+    // jawaban asisten adalah teks bacaan: peran bacaan, bukan isi UI
     final base = T.bacaan.copyWith(color: C.lightInk);
     final blok = <Widget>[];
     var sebelumnyaButir = false;

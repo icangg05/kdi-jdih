@@ -17,15 +17,15 @@ class _DisabilityListScreenState extends State<DisabilityListScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const BrandAppBar('Layanan Disabilitas'),
+    appBar: BrandAppBar(context.l10n.disabilityServices),
     body: Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: TextField(
-            decoration: const InputDecoration(
-              hintText: 'Cari dokumen disabilitas...',
-              prefixIcon: Icon(Icons.search),
+            decoration: InputDecoration(
+              hintText: context.l10n.searchDisabilityHint,
+              prefixIcon: const Icon(Icons.search),
             ),
             textInputAction: TextInputAction.search,
             onSubmitted: (v) => setState(() => _q = v),
@@ -71,10 +71,24 @@ class DisabilityDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const BrandAppBar('Layanan Disabilitas'),
+    appBar: BrandAppBar(context.l10n.disabilityServices),
     body: LoadView(
       load: () => api.disabilityDetail(id),
-      builder: (context, x) => ListView(
+      contoh: const {
+        'judul':
+            'Peraturan Daerah tentang Penghormatan Hak Penyandang Disabilitas',
+        'jenis_dokumen': 'Peraturan Daerah',
+        'status_dokumen': 'Berlaku',
+        'nomor_dokumen': '3',
+        'tahun': '2022',
+        'lembaga_penetap': 'Pemerintah Kota Kendari',
+        'jenis_disabilitas': 'Semua ragam',
+        'bahasa': 'Indonesia',
+        'abstrak': kSkeletonTeks,
+      },
+      builder: (context, x) {
+        final l = context.l10n;
+        return ListView(
         padding: padTengah(context),
         children: [
           if (x.sn('cover_url') != null)
@@ -94,37 +108,46 @@ class DisabilityDetailScreen extends StatelessWidget {
           Text(x.s('judul'), style: T.judulDetail),
           const SizedBox(height: 16),
           MetaTable({
-            'Nomor': x.sn('nomor_dokumen'),
-            'Tahun': x.sn('tahun'),
-            'Tempat Penetapan': x.sn('tempat_penetapan'),
-            'Tgl. Penetapan': fmtDate(x.sn('tanggal_penetapan')),
-            'Lembaga Penetap': x.sn('lembaga_penetap'),
-            'Jenis Disabilitas': x.sn('jenis_disabilitas'),
-            'Ruang Lingkup': x.sn('ruang_lingkup'),
-            'Sektor Kebijakan': x.sn('sektor_kebijakan'),
-            'Kata Kunci': x.sn('kata_kunci'),
-            'Jumlah Halaman': x.sn('jumlah_halaman'),
-            'Bahasa': x.sn('bahasa'),
-            'Penulis': x.sn('penulis'),
-            'Penerbit': x.sn('penerbit'),
-            'Sumber': x.sn('sumber'),
+            l.number: x.sn('nomor_dokumen'),
+            l.year: x.sn('tahun'),
+            l.metaPlaceEnacted: x.sn('tempat_penetapan'),
+            l.metaDateEnacted: fmtDate(x.sn('tanggal_penetapan')),
+            l.metaEnactedBy: x.sn('lembaga_penetap'),
+            l.metaDisabilityType: x.sn('jenis_disabilitas'),
+            l.metaScope: x.sn('ruang_lingkup'),
+            l.metaPolicySector: x.sn('sektor_kebijakan'),
+            l.metaKeywords: x.sn('kata_kunci'),
+            l.metaPages: x.sn('jumlah_halaman'),
+            l.language: x.sn('bahasa'),
+            l.metaWriter: x.sn('penulis'),
+            l.publisher: x.sn('penerbit'),
+            l.source: x.sn('sumber'),
           }),
           if (x.sn('abstrak') != null) ...[
-            const SectionHeader('Abstrak'),
+            SectionHeader(l.abstract),
             Text(x.s('abstrak'), style: T.bacaan),
           ],
           const SizedBox(height: 16),
           if (x.sn('dokumen_url') != null) ...[
-            const SectionHeader('Dokumen'),
-            DocFileTile(x.s('dokumen_url'), title: 'Dokumen Utama'),
+            SectionHeader(l.document),
+            DocFileTile(
+              x.s('dokumen_url'),
+              title: l.mainDocument,
+              nama: l.fileDocumentOf(x.s('judul')),
+            ),
           ],
           if (x.sn('lampiran_url') != null) ...[
             const SizedBox(height: AppSpacing.md),
-            DocFileTile(x.s('lampiran_url'), title: 'Lampiran'),
+            DocFileTile(
+              x.s('lampiran_url'),
+              title: l.attachment,
+              nama: l.fileAttachmentOf(x.s('judul')),
+            ),
           ],
           const SizedBox(height: 24),
         ],
-      ),
+      );
+      },
     ),
   );
 }

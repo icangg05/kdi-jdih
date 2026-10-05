@@ -9,12 +9,12 @@ import 'puu.dart';
 import 'statistik.dart';
 import 'survey.dart';
 
-const _profilItems = [
-  (slug: 'sekilas-sejarah', label: 'Sekilas Sejarah'),
-  (slug: 'dasar-hukum', label: 'Dasar Hukum'),
-  (slug: 'visi', label: 'Visi'),
-  (slug: 'misi', label: 'Misi'),
-  (slug: 'sto', label: 'Struktur Organisasi'),
+List<({String slug, String label})> _profilItems(AppLocalizations l) => [
+  (slug: 'sekilas-sejarah', label: l.profileHistory),
+  (slug: 'dasar-hukum', label: l.profileLegalBasis),
+  (slug: 'visi', label: l.profileVision),
+  (slug: 'misi', label: l.profileMission),
+  (slug: 'sto', label: l.profileStructure),
 ];
 
 /// Tab "Lainnya": profil, layanan, pengaturan, tentang.
@@ -26,17 +26,17 @@ class LainnyaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const BrandAppBar('Lainnya'),
+    appBar: BrandAppBar(context.l10n.more),
     body: ListView(
       padding: padTengah(context, maks: 640),
       children: [
         Card(
           child: ExpansionTile(
             leading: const Icon(Icons.info_outline, color: C.accent),
-            title: const Text('Profil JDIH'),
+            title: Text(context.l10n.jdihProfile),
             shape: const Border(),
             children: [
-              for (final p in _profilItems)
+              for (final p in _profilItems(context.l10n))
                 ListTile(
                   title: Text(p.label),
                   trailing: const Icon(Icons.chevron_right),
@@ -54,28 +54,28 @@ class LainnyaScreen extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.accessible, color: C.accent),
-                title: const Text('Layanan Disabilitas'),
+                title: Text(context.l10n.disabilityServices),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _push(context, const DisabilityListScreen()),
               ),
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.balance, color: C.accent),
-                title: const Text('Pembentukan PUU'),
+                title: Text(context.l10n.lawMaking),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _push(context, const PuuListScreen()),
               ),
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.bar_chart, color: C.accent),
-                title: const Text('Statistik Koleksi'),
+                title: Text(context.l10n.collectionStats),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _push(context, const StatistikScreen()),
               ),
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.star_outline, color: C.accent),
-                title: const Text('Survei Kepuasan'),
+                title: Text(context.l10n.satisfactionSurvey),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _push(context, const SurveyScreen()),
               ),
@@ -88,14 +88,14 @@ class LainnyaScreen extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.translate, color: C.accent),
-                title: const Text('Bahasa Konten'),
+                title: Text(context.l10n.language),
                 trailing: Text(kLangs[langNotifier.value] ?? ''),
                 onTap: () => pickLang(context),
               ),
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.public, color: C.accent),
-                title: const Text('Tentang JDIH'),
+                title: Text(context.l10n.aboutJdih),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _push(context, const AboutScreen()),
               ),
@@ -116,14 +116,16 @@ class ProfilScreen extends StatelessWidget {
     appBar: BrandAppBar(title),
     body: LoadView(
       load: () => api.profile(kategori),
+      contoh: const {
+        'body':
+            '<p>$kSkeletonTeks</p><p>$kSkeletonTeks</p><p>$kSkeletonTeks</p>',
+      },
       builder: (context, d) => ListView(
         padding: padTengah(context),
         children: [
           d.sn('body') != null
               ? HtmlBody(d.s('body'))
-              : const Text(
-                  'Konten struktur organisasi tersedia di situs web JDIH Kota Kendari.',
-                ),
+              : Text(context.l10n.orgStructureOnWeb),
         ],
       ),
     ),
@@ -135,26 +137,39 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const BrandAppBar('Tentang JDIH'),
+    appBar: BrandAppBar(context.l10n.aboutJdih),
     body: LoadView(
       load: api.meta,
+      contoh: const {
+        'app_name': 'JDIH Kota Kendari',
+        'contact': {
+          'phone': '(0401) 312 3456',
+          'email': 'jdih@kendarikota.go.id',
+          'address': 'Jl. Drs. H. Abdullah Silondae No. 8, Kendari',
+        },
+        'social': [
+          {'label': 'Facebook', 'url': '-'},
+          {'label': 'Instagram', 'url': '-'},
+          {'label': 'YouTube', 'url': '-'},
+        ],
+      },
       builder: (context, d) {
         final contact = d.m('contact');
         return ListView(
           padding: padTengah(context, maks: 640),
           children: [
-            Text(d.s('app_name'), style: T.judul),
-            const Text(
-              'Jaringan Dokumentasi dan Informasi Hukum',
-              style: TextStyle(color: C.lightInkMuted),
+            Text(context.l10n.appName, style: T.judul),
+            Text(
+              context.l10n.jdihFull,
+              style: const TextStyle(color: C.lightInkMuted),
             ),
             const SizedBox(height: 16),
             MetaTable({
-              'Telepon': contact.sn('phone'),
-              'Email': contact.sn('email'),
-              'Alamat': contact.sn('address'),
+              context.l10n.phone: contact.sn('phone'),
+              context.l10n.email: contact.sn('email'),
+              context.l10n.address: contact.sn('address'),
             }),
-            const SectionHeader('Media Sosial'),
+            SectionHeader(context.l10n.socialMedia),
             Card(
               child: Column(
                 children: [
@@ -174,7 +189,7 @@ class AboutScreen extends StatelessWidget {
               future: PackageInfo.fromPlatform(),
               builder: (_, s) => Center(
                 child: Text(
-                  'Aplikasi JDIH Kota Kendari'
+                  '${context.l10n.appLabel}'
                   '${s.hasData ? ' v${s.data!.version}' : ''}',
                   style: T.isiKecil.copyWith(color: C.lightInkMuted),
                 ),

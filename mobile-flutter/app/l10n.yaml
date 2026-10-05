@@ -1,0 +1,7 @@
+# Teks UI app. Sumber = app_id.arb (bahasa Indonesia); en/zh/ko terjemahannya.
+# Kunci yang belum diterjemahkan dicatat di untranslated.json saat build.
+arb-dir: lib/l10n
+template-arb-file: app_id.arb
+output-localization-file: app_localizations.dart
+untranslated-messages-file: build/l10n_untranslated.json
+nullable-getter: false

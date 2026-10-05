@@ -24,14 +24,15 @@ class C {
   static const accent = Color(0xFF015BA5);
   static const accentDeep = Color(0xFF014F8E);
 
+  /// Ujung gelap gradien kepala halaman ([PolaBiru]).
+  static const accentNight = Color(0xFF02315C);
+
   /// Teks/ikon di atas permukaan gelap (slate-900, biru).
   static const onDark = Color(0xFFF8FAFC);
 
   /// Slate-900: teks utama, blok gelap (ajakan AI, snackbar).
   static const ink = Color(0xFF0F172A);
 
-  /// Ujung gelap gradien hero artikel tanpa gambar.
-  static const inkSoft = Color(0xFF1E293B);
 
   // Status hukum — sengaja di luar brand agar maknanya tidak ambigu.
   static const statusActive = Color(0xFF166534);
@@ -66,21 +67,15 @@ class C {
   static const accentOnDark = Color(0xFF7FB6E8);
 }
 
-const kFont = 'Source Sans 3';
-
-/// Serif pasangan Source Sans: hanya untuk teks yang DIBACA — isi artikel,
-/// abstrak, jawaban AI, dan judul halaman detail. Label, tombol, kartu, dan
-/// data tetap sans.
-const kSerif = 'Source Serif 4';
+/// Satu keluarga untuk seluruh app, termasuk teks bacaan.
+const kFont = 'Kanit';
 
 /// Peran tipografi: setiap teks memakai salah satu peran ini, bukan ukuran
-/// pilihan per layar. Skala ±1,15 (12 · 13 · 15 · 17 · 20 · 36); peran yang
-/// ukurannya sama dibedakan ketebalan. Source Sans 3 bermata-x kecil, jadi
-/// batas bawahnya 12sp dan isi 15sp. Warna tidak ditetapkan di sini: teks
-/// mewarisi tinta tema, varian redup/tautan memakai copyWith(color: ...).
-/// letterSpacing 0 di tiap peran menimpa tracking bawaan M3 (0,25-0,5 px)
-/// lewat merge textTheme: Source Sans sudah berjarak longgar dan web memakai
-/// tracking normal; label 12 sp dulu tampak renggang 4%.
+/// pilihan per layar. Skala ±1,15 (12 · 13 · 15 · 17 · 20 · 26 · 36); peran
+/// yang ukurannya sama dibedakan ketebalan. Batas bawah 12sp. Warna tidak
+/// ditetapkan di sini: teks mewarisi tinta tema, varian redup/tautan memakai
+/// copyWith(color: ...). letterSpacing 0 di tiap peran menimpa tracking
+/// bawaan M3 (0,25-0,5 px) lewat merge textTheme: Kanit sudah lebar.
 class T {
   /// Satu angka utama di layar (total koleksi).
   static const display = TextStyle(
@@ -91,13 +86,20 @@ class T {
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
-  /// Judul halaman detail — serif, pasangan [bacaan].
+  /// Judul besar di kepala biru beranda.
+  static const hero = TextStyle(
+    letterSpacing: 0,
+    fontSize: 26,
+    height: 1.2,
+    fontWeight: FontWeight.w600,
+  );
+
+  /// Judul halaman detail, pasangan [bacaan].
   static const judulDetail = TextStyle(
     letterSpacing: 0,
-    fontFamily: kSerif,
     fontSize: 22,
     height: 1.3,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
   );
 
   /// Judul layar dan seksi.
@@ -134,12 +136,7 @@ class T {
   );
 
   /// Teks yang DIBACA panjang: isi artikel, abstrak, uraian, jawaban AI.
-  static const bacaan = TextStyle(
-    letterSpacing: 0,
-    fontFamily: kSerif,
-    fontSize: 16.5,
-    height: 1.65,
-  );
+  static const bacaan = TextStyle(letterSpacing: 0, fontSize: 16, height: 1.65);
 
   /// Teks UI biasa.
   static const isi = TextStyle(letterSpacing: 0, fontSize: 15, height: 1.5);
@@ -277,7 +274,7 @@ ThemeData appTheme(Brightness b) {
       outlineVariant: line,
     ),
     scaffoldBackgroundColor: dark ? C.darkBg : C.lightBg,
-    // dibundel (pubspec), sama dengan web; aksara Han/Hangul jatuh ke font sistem
+    // dibundel (pubspec); aksara Han/Hangul jatuh ke font sistem
     fontFamily: kFont,
     fontFamilyFallback: const ['Noto Sans SC', 'Noto Sans KR', 'sans-serif'],
     textTheme: text,

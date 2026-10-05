@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../api.dart';
@@ -101,16 +102,16 @@ class KabarHubScreen extends StatelessWidget {
     length: 4,
     child: Scaffold(
       appBar: BrandAppBar(
-        'Kabar & Informasi',
+        context.l10n.newsAndInfo,
         showBack: showBack,
-        tabs: const TabBar(
+        tabs: TabBar(
           isScrollable: true,
           tabAlignment: TabAlignment.start,
           tabs: [
-            Tab(text: 'Berita'),
-            Tab(text: 'Pengumuman'),
-            Tab(text: 'Video'),
-            Tab(text: 'Info Hukum'),
+            Tab(text: context.l10n.news),
+            Tab(text: context.l10n.announcements),
+            Tab(text: context.l10n.video),
+            Tab(text: context.l10n.legalInfoShort),
           ],
         ),
       ),
@@ -176,7 +177,7 @@ class _SearchableListState extends State<_SearchableList> {
                 ? null
                 : IconButton(
                     icon: const Icon(Icons.close),
-                    tooltip: 'Hapus pencarian',
+                    tooltip: context.l10n.clearSearch,
                     onPressed: () {
                       _ctrl.clear();
                       _apply('');
@@ -197,9 +198,7 @@ class _SearchableListState extends State<_SearchableList> {
               ? null
               : NoResults(
                   _q,
-                  saran:
-                      'Coba kata kunci yang lebih pendek, atau periksa '
-                      'ejaannya.',
+                  saran: context.l10n.noMatchHintShort,
                   actions: [
                     FilledButton.icon(
                       onPressed: () {
@@ -207,7 +206,7 @@ class _SearchableListState extends State<_SearchableList> {
                         _apply('');
                       },
                       icon: const Icon(Icons.arrow_back, size: 18),
-                      label: const Text('Lihat semua'),
+                      label: Text(context.l10n.seeAll),
                     ),
                   ],
                 ),
@@ -225,9 +224,9 @@ class _BeritaTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _SearchableList(
-    hint: 'Cari judul berita...',
+    hint: context.l10n.searchNewsHint,
     fetch: (page, q) => api.news(page: page, q: q),
-    empty: 'Belum ada berita yang dipublikasikan.',
+    empty: context.l10n.emptyNews,
     itemBuilder: (context, b, i, searching) {
       void open() => Navigator.push(
         context,
@@ -249,9 +248,9 @@ class _PengumumanTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _SearchableList(
-    hint: 'Cari judul pengumuman...',
+    hint: context.l10n.searchAnnouncementsHint,
     fetch: (page, q) => api.announcements(page: page, q: q),
-    empty: 'Belum ada pengumuman.',
+    empty: context.l10n.emptyAnnouncements,
     itemBuilder: (context, p, i, searching) {
       void open() => Navigator.push(
         context,
@@ -276,7 +275,7 @@ class _VideoTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PagedListView(
     fetch: (page) => api.videos(page: page),
-    empty: 'Belum ada video di kanal JDIH.',
+    empty: context.l10n.emptyVideos,
     itemBuilder: (context, v, _) => VideoCard(v),
   );
 }
@@ -289,7 +288,7 @@ class BeritaDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ArticleDetail(
-    kicker: 'Berita',
+    kicker: context.l10n.news,
     load: () => api.newsDetail(id),
     // dari mana pun masuknya (beranda, pencarian, berita lain), tombol
     // kembali pulang ke tab Kabar di shell — bukan mem-push halaman indeks
@@ -297,7 +296,7 @@ class BeritaDetailScreen extends StatelessWidget {
     onBack: () => kembaliKeTab(context, kTabKabar),
     footer: (context, b) => [
       _ArtikelLainnya(
-        judul: 'Berita Lainnya',
+        judul: context.l10n.moreNews,
         fetch: api.news,
         kecuali: b.i('id'),
         open: (id) => BeritaDetailScreen(id: id),
@@ -343,8 +342,18 @@ class _ArtikelLainnyaState extends State<_ArtikelLainnya> {
     future: _future,
     builder: (context, snap) {
       if (snap.connectionState == ConnectionState.waiting) {
+        // kartu aslinya berisi data contoh: kerangka sebentuk isi
         return _blok(
-          const SkeletonList(count: 3, height: 104, padding: EdgeInsets.zero),
+          Skeletonizer(
+            child: Column(
+              children: [
+                for (var i = 0; i < 3; i++) ...[
+                  MediaCard(kSkeletonItem, onTap: () {}),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+              ],
+            ),
+          ),
         );
       }
       final lain = snap.data ?? const <Json>[];
@@ -416,7 +425,7 @@ class ArticleDetail extends StatelessWidget {
           return CustomScrollView(
             slivers: [
               SliverAppBar(
-                expandedHeight: img != null ? 320 : 136,
+                expandedHeight: img != null ? 320 : 240,
                 pinned: true,
                 stretch: true,
                 backgroundColor: surface,
@@ -430,18 +439,18 @@ class ArticleDetail extends StatelessWidget {
                   padding: const EdgeInsets.only(left: AppSpacing.lg),
                   child: RoundIconButton(
                     Icons.arrow_back,
-                    tooltip: 'Kembali',
+                    tooltip: context.l10n.back,
                     onPressed: onBack ?? () => Navigator.pop(context),
                   ),
                 ),
                 actions: [ShareAction(a)],
                 flexibleSpace: FlexibleSpaceBar(
                   stretchModes: const [StretchMode.zoomBackground],
-                  // tanpa gambar: pita slate polos. Cap air ikon & label kapital
-                  // dulu hanya hiasan; jenisnya sudah dibawa chip di bawah judul
+                  // tanpa gambar: ilustrasi default lanskap, sama dengan kartu
+                  // kabar yang tak bergambar di daftar
                   background: img != null
                       ? _Cover(img, tag: tag)
-                      : const ColoredBox(color: C.inkSoft),
+                      : const NetImage(null),
                 ),
               ),
               SliverToBoxAdapter(
@@ -538,7 +547,7 @@ class _Cover extends StatelessWidget {
           bottom: 40, // di atas lengkungan lembar isi
           child: Semantics(
             button: true,
-            label: 'Perbesar gambar sampul',
+            label: context.l10n.enlargeCover,
             child: Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
@@ -554,7 +563,7 @@ class _Cover extends StatelessWidget {
                   Icon(Icons.zoom_out_map, size: 14, color: Colors.white),
                   SizedBox(width: 6),
                   Text(
-                    'Ketuk untuk perbesar',
+                    context.l10n.tapToEnlarge,
                     style: T.labelKecil.copyWith(color: Colors.white),
                   ),
                 ],
@@ -575,16 +584,19 @@ class PengumumanDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ArticleDetail(
-    kicker: 'Pengumuman',
+    kicker: context.l10n.announcement,
     load: () => api.announcementDetail(id),
     onBack: () => kembaliKeTab(context, kTabKabar),
     footer: (context, p) => [
       if (p.sn('dokumen_url') != null) ...[
         const SizedBox(height: AppSpacing.xl),
-        _LampiranBox(p.s('dokumen_url')),
+        _LampiranBox(
+          p.s('dokumen_url'),
+          nama: context.l10n.fileAttachmentOf(p.s('judul')),
+        ),
       ],
       _ArtikelLainnya(
-        judul: 'Pengumuman Lainnya',
+        judul: context.l10n.moreAnnouncements,
         fetch: api.announcements,
         kecuali: p.i('id'),
         badge: true,
@@ -597,13 +609,14 @@ class PengumumanDetailScreen extends StatelessWidget {
 /// Berkas terlampir: kotak bertanda oranye supaya tidak tenggelam di ujung
 /// teks — lampiran sering jadi alasan orang membuka halamannya.
 class _LampiranBox extends StatelessWidget {
-  const _LampiranBox(
-    this.url, {
-    this.label = 'Lampiran',
-    this.title = 'Lampiran Pengumuman',
-  });
+  const _LampiranBox(this.url, {this.label, this.title, this.nama});
   final String url;
-  final String label, title;
+
+  /// Bawaan: "Lampiran" / "Lampiran Pengumuman".
+  final String? label, title;
+
+  /// Dasar nama berkas (lihat [DocFileTile.nama]).
+  final String? nama;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -627,7 +640,7 @@ class _LampiranBox extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              label,
+              label ?? context.l10n.attachment,
               style: T.labelKecil.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? C.accentOnDark
@@ -637,7 +650,11 @@ class _LampiranBox extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        DocFileTile(url, title: title),
+        DocFileTile(
+          url,
+          title: title ?? context.l10n.announcementAttachment,
+          nama: nama,
+        ),
       ],
     ),
   );
@@ -685,7 +702,10 @@ class _InfoHukumTabState extends State<InfoHukumTab> {
             0,
           ),
           child: FilterPills(
-            labels: ['Semua', for (final t in _types) t.s('singkatan')],
+            labels: [
+              context.l10n.all,
+              for (final t in _types) t.s('singkatan'),
+            ],
             selected: _type.isEmpty
                 ? 0
                 : _types.indexWhere((t) => t.s('id') == _type) + 1,
@@ -696,9 +716,7 @@ class _InfoHukumTabState extends State<InfoHukumTab> {
       Expanded(
         child: PagedListView(
           key: ValueKey(_type),
-          empty:
-              'Naskah akademik, rancangan peraturan, dan kajian hukum '
-              'akan tampil di sini begitu dipublikasikan.',
+          empty: context.l10n.emptyLegalInfo,
           // kosong karena filter ≠ kosong karena belum ada isinya:
           // "Muat ulang" tidak akan mengubah apa pun, yang dibutuhkan
           // pengguna adalah jalan keluar dari filternya
@@ -706,15 +724,14 @@ class _InfoHukumTabState extends State<InfoHukumTab> {
               ? null
               : EmptyState(
                   icon: Icons.filter_alt_outlined,
-                  title: 'Kategori ini masih kosong',
+                  title: context.l10n.emptyCategoryTitle,
                   message: _namaJenis.isEmpty
-                      ? 'Belum ada dokumen pada kategori yang dipilih.'
-                      : 'Belum ada dokumen berjenis $_namaJenis. '
-                            'Kategori lain mungkin sudah terisi.',
+                      ? context.l10n.emptySelectedCategory
+                      : context.l10n.emptyTypeNamed(_namaJenis),
                   action: FilledButton.icon(
                     onPressed: () => setState(() => _type = ''),
                     icon: const Icon(Icons.apps, size: 18),
-                    label: const Text('Lihat semua kategori'),
+                    label: Text(context.l10n.seeAllCategories),
                   ),
                 ),
           fetch: (page) => api.legalInfo(type: _type, page: page),
@@ -823,7 +840,7 @@ class InfoHukumDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ArticleDetail(
-    kicker: 'Informasi Hukum',
+    kicker: context.l10n.legalInfo,
     // judul di basis data KAPITAL SEMUA dan jenisnya bernama lain; dirapikan
     // di sini supaya tata letak artikel dipakai apa adanya
     load: () => api
@@ -839,7 +856,11 @@ class InfoHukumDetailScreen extends StatelessWidget {
     footer: (context, x) => [
       if (x.sn('dokumen_url') != null) ...[
         const SizedBox(height: AppSpacing.xl),
-        _LampiranBox(x.s('dokumen_url'), label: 'Dokumen', title: x.s('judul')),
+        _LampiranBox(
+          x.s('dokumen_url'),
+          label: context.l10n.document,
+          title: x.s('judul'),
+        ),
       ],
     ],
   );
@@ -971,7 +992,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     if (url == null) return;
     Clipboard.setData(ClipboardData(text: url));
     ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Tautan video disalin.')));
+        .showSnackBar(SnackBar(content: Text(context.l10n.linkCopied)));
   }
 
   @override
@@ -1005,7 +1026,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                             Icons.arrow_back,
                             color: Colors.white,
                           ),
-                          tooltip: 'Kembali',
+                          tooltip: context.l10n.back,
                           onPressed: () => Navigator.pop(context),
                         ),
                       ),
@@ -1015,14 +1036,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                         maks: 960,
                         child: _c != null
                             ? YoutubePlayer(controller: _c, aspectRatio: 16 / 9)
-                            : const AspectRatio(
+                            : AspectRatio(
                                 aspectRatio: 16 / 9,
                                 child: Center(
                                   child: Padding(
                                     padding: EdgeInsets.all(AppSpacing.xl),
                                     child: Text(
-                                      'Video ini tersimpan di luar YouTube dan '
-                                      'belum bisa diputar di aplikasi.',
+                                      context.l10n.videoNotPlayable,
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: C.onDark,
@@ -1044,7 +1064,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   children: [
                     Row(
                       children: [
-                        const JenisChip('Video'),
+                        JenisChip(context.l10n.video),
                         const SizedBox(width: AppSpacing.sm),
                         Flexible(
                           child: MetaPill(
@@ -1065,8 +1085,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                               icon: const Icon(Icons.open_in_new, size: 18),
                               label: Text(
                                 _id != null
-                                    ? 'Buka di YouTube'
-                                    : 'Buka tautan video',
+                                    ? context.l10n.openInYoutube
+                                    : context.l10n.openVideoLink,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1079,7 +1099,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                           OutlinedButton.icon(
                             onPressed: _salinTautan,
                             icon: const Icon(Icons.link, size: 20),
-                            label: const Text('Salin'),
+                            label: Text(context.l10n.copy),
                           ),
                         ],
                       ),
@@ -1113,9 +1133,9 @@ class _VideoLainnya extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: SectionHeader('Video Lainnya'),
+              child: SectionHeader(context.l10n.moreVideos),
             ),
             SizedBox(
               // ~60dp dari 240 adalah teks: bagian itu ikut skala huruf

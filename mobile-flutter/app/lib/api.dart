@@ -2,7 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show BuildContext, Locale;
 import 'package:http/http.dart' as http;
+
+import 'l10n/app_localizations.dart';
+
+export 'l10n/app_localizations.dart';
 
 /// Ganti saat run/build: --dart-define=BASE_URL=https://domain-lain.
 /// Default rilis = server produksi (cleartext HTTP hanya diizinkan di debug);
@@ -24,6 +29,15 @@ const kJdihApiKey = String.fromEnvironment(
 
 /// Bahasa konten aktif (id/en/zh/ko); diubah dari tab Lainnya.
 final langNotifier = ValueNotifier<String>('id');
+
+extension L10nX on BuildContext {
+  /// Teks UI bahasa aktif (lib/l10n/app_*.arb).
+  AppLocalizations get l10n => AppLocalizations.of(this);
+}
+
+/// Teks UI bahasa aktif untuk kode tanpa BuildContext (pesan galat API).
+AppLocalizations get l10nAktif =>
+    lookupAppLocalizations(Locale(langNotifier.value));
 
 typedef Json = Map<String, dynamic>;
 
@@ -113,10 +127,7 @@ class Api {
       // HTML, bukan JSON: halaman galat proxy (502/503), atau halaman login
       // Wi-Fi publik yang menyadap semua permintaan sebelum pengguna masuk
       throw ApiException(
-        code >= 500
-            ? 'Server sedang bermasalah. Coba lagi sebentar lagi.'
-            : 'Server mengirim balasan yang tidak dikenali. Jika memakai '
-                  'Wi-Fi publik, pastikan sudah masuk (login) ke jaringannya.',
+        code >= 500 ? l10nAktif.errServer : l10nAktif.errUnknownReply,
         code,
       );
     }
@@ -131,29 +142,31 @@ class Api {
   /// ditemukan"). Sisanya diganti kalimat sendiri: 5xx bisa berisi jejak
   /// teknis (query SQL, path file), 422 produksi berupa kunci mentah
   /// ("validation.required (and 6 more errors)"), dan 429 dari throttle
-  /// Laravel berbahasa Inggris.
-  static String _pesanGagal(int code, Json json) => switch (code) {
-    >= 500 => 'Server sedang bermasalah. Coba lagi sebentar lagi.',
-    429 =>
-      'Terlalu banyak permintaan dalam waktu singkat. Tunggu sebentar, '
-          'lalu coba lagi.',
-    422 =>
-      'Isian belum lengkap atau tidak sesuai. Periksa kembali, lalu kirim '
-          'ulang.',
-    404 => json.sn('message') ?? 'Data yang dicari tidak ditemukan.',
-    _ => 'Permintaan tidak dapat diproses ($code). Coba lagi.',
-  };
+  /// Laravel berbahasa Inggris. Pesan server selalu berbahasa Indonesia,
+  /// jadi hanya dipakai saat bahasa aktif id.
+  static String _pesanGagal(int code, Json json) {
+    final l = l10nAktif;
+    return switch (code) {
+      >= 500 => l.errServer,
+      429 => l.errTooMany,
+      422 => l.errInvalidInput,
+      404 when langNotifier.value == 'id' =>
+        json.sn('message') ?? l.errNotFound,
+      404 => l.errNotFound,
+      _ => l.errRequestFailed(code),
+    };
+  }
 
   /// Pesan untuk pengguna tidak menyebut alamat server; mode debug menambah
   /// alamatnya, agar salah BASE_URL (mis. 10.0.2.2 di HP fisik) langsung
   /// ketahuan saat pengembangan.
   Never _fail(Object e) {
     if (e is TimeoutException) {
-      throw ApiException('Server lambat merespons. Coba lagi.');
+      throw ApiException(l10nAktif.errTimeout);
     }
     throw ApiException(
-      'Tidak dapat terhubung ke server JDIH. Periksa koneksi internet, '
-      'lalu coba lagi.${kDebugMode ? '\n[debug] BASE_URL: $kBaseUrl' : ''}',
+      '${l10nAktif.errOffline}'
+      '${kDebugMode ? '\n[debug] BASE_URL: $kBaseUrl' : ''}',
     );
   }
 
