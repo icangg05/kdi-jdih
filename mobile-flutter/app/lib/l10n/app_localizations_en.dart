@@ -206,9 +206,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeHeadline => 'What regulation are you looking for today?';
 
   @override
-  String get kendariEmblem => 'Kendari City emblem';
-
-  @override
   String get adatMeaning => 'Whoever honors custom will be honored';
 
   @override
@@ -334,6 +331,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabRelated => 'Related';
 
   @override
+  String get tabImplementing => 'Implementing';
+
+  @override
   String get aboutDocument => 'About this Document';
 
   @override
@@ -418,6 +418,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noRelatedHint =>
       'This document stands alone: it does not amend or revoke any other regulation, and no other regulation amends it.';
+
+  @override
+  String get noImplementing => 'No implementing regulations';
+
+  @override
+  String get noImplementingHint =>
+      'Regulations issued to implement this one will appear here.';
 
   @override
   String get statistics => 'Statistics';
@@ -641,6 +648,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutJdih => 'About JDIH';
+
+  @override
+  String get menuServices => 'Services & Information';
+
+  @override
+  String get menuApp => 'App';
 
   @override
   String get orgStructureOnWeb =>
@@ -1067,7 +1080,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errPickUserType => 'Choose a user type.';
 
   @override
-  String get errRateAll => 'Rate every aspect from 1 to 5.';
+  String get errRateAll => 'Rate every aspect.';
 
   @override
   String get thankYou => 'Thank you!';
@@ -1079,16 +1092,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ok => 'OK';
 
   @override
-  String get fieldName => 'Name *';
+  String get fieldName => 'Name';
 
   @override
   String get fieldInstitution => 'Institution';
 
   @override
-  String get fieldUserType => 'User type *';
+  String get fieldUserType => 'User type';
 
   @override
-  String get fieldRating => 'Rating (1–5) *';
+  String get fieldRating => 'Rate our service';
 
   @override
   String get fieldSuggestions => 'Suggestions for improvement';
@@ -1106,8 +1119,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get submitSurvey => 'Submit Survey';
 
   @override
-  String ratingOf(String label, int n) {
-    return '$label · $n of 5';
+  String get surveyHeading => 'Help us serve you better';
+
+  @override
+  String get surveyIntro =>
+      'Your rating helps us improve JDIH services. Fields marked Optional can be skipped.';
+
+  @override
+  String get surveyAbout => 'About you';
+
+  @override
+  String get surveyFeedback => 'Feedback';
+
+  @override
+  String get optional => 'Optional';
+
+  @override
+  String ratingWord(String n) {
+    String _temp0 = intl.Intl.selectLogic(n, {
+      '1': 'Very poor',
+      '2': 'Poor',
+      '3': 'Fair',
+      '4': 'Good',
+      'other': 'Very good',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String surveyProgress(int done, int total) {
+    return '$done of $total required';
   }
 
   @override

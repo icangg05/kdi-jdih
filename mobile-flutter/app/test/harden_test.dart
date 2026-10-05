@@ -202,14 +202,12 @@ void main() {
         // digulir kembali ke isian pertama yang bermasalah
         expect(find.text('Nama wajib diisi.'), findsOneWidget);
 
-        // email salah format ditandai begitu diketik
-        await tester.enterText(find.widgetWithText(TextField, 'Email'), 'abc');
+        // email salah format ditandai begitu diketik (label di atas kolom,
+        // bukan di dalamnya: kolom kedua)
+        await tester.enterText(find.byType(TextField).at(1), 'abc');
         await tester.pump();
         expect(find.textContaining('Format email belum benar'), findsOneWidget);
-        await tester.enterText(
-          find.widgetWithText(TextField, 'Email'),
-          'a@b.go.id',
-        );
+        await tester.enterText(find.byType(TextField).at(1), 'a@b.go.id');
         await tester.pump();
         expect(find.textContaining('Format email belum benar'), findsNothing);
         expect(tester.takeException(), isNull);
@@ -431,6 +429,65 @@ void main() {
         await tester.pump(const Duration(seconds: 1));
         expect(tester.takeException(), isNull);
         expect(find.textContaining('1.234.567 dilihat'), findsOneWidget);
+      },
+      () => MockClient(
+        (_) async => http.Response(
+          jsonEncode(detail),
+          200,
+          headers: {'content-type': 'application/json'},
+        ),
+      ),
+    );
+  });
+
+  testWidgets('detail: peraturan pelaksana tampil dalam tiga bentuknya', (
+    tester,
+  ) async {
+    final detail = {
+      'data': {
+        'id': 7,
+        'judul': 'PERATURAN DAERAH KOTA KENDARI NOMOR 2 TAHUN 2024',
+        'status': 'Berlaku',
+        'lampiran': [],
+        'statistik': {'dilihat': 1, 'diunduh': 0},
+        'peraturan_terkait': [],
+        'peraturan_pelaksana': [
+          {'id': 9, 'judul': 'PERATURAN WALI KOTA NOMOR 5', 'catatan': null},
+          {
+            'id': null,
+            'judul': 'Juknis Retribusi',
+            'url': 'https://h/storage/dokumen/b.pdf',
+            'catatan': 'mengatur pasal 3',
+          },
+          {'id': null, 'judul': 'Keputusan Kepala Dinas', 'url': null},
+        ],
+      },
+    };
+    await http.runWithClient(
+      () async {
+        await tester.pumpWidget(
+          MaterialApp(
+            locale: const Locale('id'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            theme: appTheme(Brightness.light),
+            home: const DocumentDetailScreen(id: 7),
+          ),
+        );
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump(const Duration(seconds: 1));
+        await tester.tap(find.text('Pelaksana'));
+        await tester.pump(const Duration(seconds: 1));
+        // bertautan: kartu dengan panah ke detailnya
+        expect(find.text('Peraturan Wali Kota Nomor 5'), findsOneWidget);
+        expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+        // berkas unggahan: baris berkas + catatan
+        expect(find.text('Juknis Retribusi'), findsOneWidget);
+        expect(find.text('mengatur pasal 3'), findsOneWidget);
+        expect(find.byIcon(Icons.picture_as_pdf_outlined), findsOneWidget);
+        // judul saja
+        expect(find.text('Keputusan Kepala Dinas'), findsOneWidget);
+        expect(tester.takeException(), isNull);
       },
       () => MockClient(
         (_) async => http.Response(

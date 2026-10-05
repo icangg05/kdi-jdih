@@ -462,12 +462,6 @@ abstract class AppLocalizations {
   /// **'Cari aturan apa hari ini?'**
   String get homeHeadline;
 
-  /// No description provided for @kendariEmblem.
-  ///
-  /// In id, this message translates to:
-  /// **'Lambang Kota Kendari'**
-  String get kendariEmblem;
-
   /// Arti semboyan adat Tolaki
   ///
   /// In id, this message translates to:
@@ -654,6 +648,12 @@ abstract class AppLocalizations {
   /// **'Terkait'**
   String get tabRelated;
 
+  /// No description provided for @tabImplementing.
+  ///
+  /// In id, this message translates to:
+  /// **'Pelaksana'**
+  String get tabImplementing;
+
   /// No description provided for @aboutDocument.
   ///
   /// In id, this message translates to:
@@ -809,6 +809,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Dokumen ini berdiri sendiri: tidak mengubah, mencabut, atau diubah oleh peraturan lain.'**
   String get noRelatedHint;
+
+  /// No description provided for @noImplementing.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada peraturan pelaksana'**
+  String get noImplementing;
+
+  /// No description provided for @noImplementingHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Peraturan turunan yang diterbitkan untuk melaksanakan peraturan ini akan tampil di sini.'**
+  String get noImplementingHint;
 
   /// No description provided for @statistics.
   ///
@@ -1211,6 +1223,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Tentang JDIH'**
   String get aboutJdih;
+
+  /// No description provided for @menuServices.
+  ///
+  /// In id, this message translates to:
+  /// **'Layanan & Informasi'**
+  String get menuServices;
+
+  /// No description provided for @menuApp.
+  ///
+  /// In id, this message translates to:
+  /// **'Aplikasi'**
+  String get menuApp;
 
   /// No description provided for @orgStructureOnWeb.
   ///
@@ -1911,7 +1935,7 @@ abstract class AppLocalizations {
   /// No description provided for @errRateAll.
   ///
   /// In id, this message translates to:
-  /// **'Beri nilai 1–5 untuk setiap aspek.'**
+  /// **'Beri nilai untuk setiap aspek.'**
   String get errRateAll;
 
   /// No description provided for @thankYou.
@@ -1935,7 +1959,7 @@ abstract class AppLocalizations {
   /// No description provided for @fieldName.
   ///
   /// In id, this message translates to:
-  /// **'Nama *'**
+  /// **'Nama'**
   String get fieldName;
 
   /// No description provided for @fieldInstitution.
@@ -1947,13 +1971,13 @@ abstract class AppLocalizations {
   /// No description provided for @fieldUserType.
   ///
   /// In id, this message translates to:
-  /// **'Jenis Pengguna *'**
+  /// **'Jenis pengguna'**
   String get fieldUserType;
 
   /// No description provided for @fieldRating.
   ///
   /// In id, this message translates to:
-  /// **'Penilaian (1–5) *'**
+  /// **'Penilaian layanan'**
   String get fieldRating;
 
   /// No description provided for @fieldSuggestions.
@@ -1986,11 +2010,47 @@ abstract class AppLocalizations {
   /// **'Kirim Survei'**
   String get submitSurvey;
 
-  /// No description provided for @ratingOf.
+  /// No description provided for @surveyHeading.
   ///
   /// In id, this message translates to:
-  /// **'{label} · {n} dari 5'**
-  String ratingOf(String label, int n);
+  /// **'Bantu kami melayani lebih baik'**
+  String get surveyHeading;
+
+  /// No description provided for @surveyIntro.
+  ///
+  /// In id, this message translates to:
+  /// **'Penilaian Anda membantu kami memperbaiki layanan JDIH. Isian bertanda Opsional boleh dilewati.'**
+  String get surveyIntro;
+
+  /// No description provided for @surveyAbout.
+  ///
+  /// In id, this message translates to:
+  /// **'Tentang Anda'**
+  String get surveyAbout;
+
+  /// No description provided for @surveyFeedback.
+  ///
+  /// In id, this message translates to:
+  /// **'Masukan'**
+  String get surveyFeedback;
+
+  /// No description provided for @optional.
+  ///
+  /// In id, this message translates to:
+  /// **'Opsional'**
+  String get optional;
+
+  /// No description provided for @ratingWord.
+  ///
+  /// In id, this message translates to:
+  /// **'{n, select, 1{Sangat kurang} 2{Kurang} 3{Cukup} 4{Baik} other{Sangat baik}}'**
+  String ratingWord(String n);
+
+  /// No description provided for @surveyProgress.
+  ///
+  /// In id, this message translates to:
+  /// **'{done} dari {total} isian wajib'**
+  String surveyProgress(int done, int total);
 
   /// No description provided for @ratingTooltip.
   ///

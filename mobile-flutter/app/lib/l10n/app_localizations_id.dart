@@ -204,9 +204,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeHeadline => 'Cari aturan apa hari ini?';
 
   @override
-  String get kendariEmblem => 'Lambang Kota Kendari';
-
-  @override
   String get adatMeaning => 'Siapa yang menghargai adat, ia akan dihormati';
 
   @override
@@ -329,6 +326,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get tabRelated => 'Terkait';
 
   @override
+  String get tabImplementing => 'Pelaksana';
+
+  @override
   String get aboutDocument => 'Tentang Dokumen';
 
   @override
@@ -413,6 +413,13 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get noRelatedHint =>
       'Dokumen ini berdiri sendiri: tidak mengubah, mencabut, atau diubah oleh peraturan lain.';
+
+  @override
+  String get noImplementing => 'Belum ada peraturan pelaksana';
+
+  @override
+  String get noImplementingHint =>
+      'Peraturan turunan yang diterbitkan untuk melaksanakan peraturan ini akan tampil di sini.';
 
   @override
   String get statistics => 'Statistik';
@@ -636,6 +643,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get aboutJdih => 'Tentang JDIH';
+
+  @override
+  String get menuServices => 'Layanan & Informasi';
+
+  @override
+  String get menuApp => 'Aplikasi';
 
   @override
   String get orgStructureOnWeb =>
@@ -1055,7 +1068,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get errPickUserType => 'Pilih salah satu jenis pengguna.';
 
   @override
-  String get errRateAll => 'Beri nilai 1–5 untuk setiap aspek.';
+  String get errRateAll => 'Beri nilai untuk setiap aspek.';
 
   @override
   String get thankYou => 'Terima kasih!';
@@ -1067,16 +1080,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get ok => 'OK';
 
   @override
-  String get fieldName => 'Nama *';
+  String get fieldName => 'Nama';
 
   @override
   String get fieldInstitution => 'Instansi';
 
   @override
-  String get fieldUserType => 'Jenis Pengguna *';
+  String get fieldUserType => 'Jenis pengguna';
 
   @override
-  String get fieldRating => 'Penilaian (1–5) *';
+  String get fieldRating => 'Penilaian layanan';
 
   @override
   String get fieldSuggestions => 'Saran Perbaikan';
@@ -1094,8 +1107,36 @@ class AppLocalizationsId extends AppLocalizations {
   String get submitSurvey => 'Kirim Survei';
 
   @override
-  String ratingOf(String label, int n) {
-    return '$label · $n dari 5';
+  String get surveyHeading => 'Bantu kami melayani lebih baik';
+
+  @override
+  String get surveyIntro =>
+      'Penilaian Anda membantu kami memperbaiki layanan JDIH. Isian bertanda Opsional boleh dilewati.';
+
+  @override
+  String get surveyAbout => 'Tentang Anda';
+
+  @override
+  String get surveyFeedback => 'Masukan';
+
+  @override
+  String get optional => 'Opsional';
+
+  @override
+  String ratingWord(String n) {
+    String _temp0 = intl.Intl.selectLogic(n, {
+      '1': 'Sangat kurang',
+      '2': 'Kurang',
+      '3': 'Cukup',
+      '4': 'Baik',
+      'other': 'Sangat baik',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String surveyProgress(int done, int total) {
+    return '$done dari $total isian wajib';
   }
 
   @override

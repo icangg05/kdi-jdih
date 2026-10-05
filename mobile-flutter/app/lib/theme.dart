@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -33,7 +34,6 @@ class C {
   /// Slate-900: teks utama, blok gelap (ajakan AI, snackbar).
   static const ink = Color(0xFF0F172A);
 
-
   // Status hukum — sengaja di luar brand agar maknanya tidak ambigu.
   static const statusActive = Color(0xFF166534);
   static const statusActiveBg = Color(0xFFDCFCE7);
@@ -48,9 +48,14 @@ class C {
   static const lightSubtle = Color(0xFFF1F5F9); // slate-100: lapis kedua
   static const lightLine = Color(0xFFE2E8F0); // slate-200: tepi kartu, pemisah
 
-  /// Tepi KONTROL (kolom isian, tombol bergaris): 3,5:1 di putih, syarat
-  /// WCAG 1.4.11 agar kolom isian terlihat sebagai kolom.
+  /// Tepi kontrol kecil (kotak centang, radio): 3,5:1 di putih, syarat
+  /// WCAG 1.4.11.
   static const lightLineStrong = Color(0xFF7C8AA0);
+
+  /// Tepi kolom isian & tombol bergaris (slate-300, sama dengan formulir web).
+  /// Lebih terang dari [lightLineStrong] atas permintaan pemilik: kolom tetap
+  /// dikenali lewat ikon/placeholder/label, dan fokus = biru 2dp.
+  static const lightLineField = Color(0xFFCBD5E1);
   static const lightInk = ink;
   static const lightInkMuted = Color(0xFF475569); // slate-600, 7,6:1
 
@@ -67,15 +72,18 @@ class C {
   static const accentOnDark = Color(0xFF7FB6E8);
 }
 
-/// Satu keluarga untuk seluruh app, termasuk teks bacaan.
-const kFont = 'Kanit';
+/// Satu keluarga untuk seluruh app, termasuk teks bacaan: Roboto bawaan
+/// sistem Android (tidak dibundel). Di iOS jatuh ke font sistem.
+const kFont = 'Roboto';
 
 /// Peran tipografi: setiap teks memakai salah satu peran ini, bukan ukuran
 /// pilihan per layar. Skala ±1,15 (12 · 13 · 15 · 17 · 20 · 26 · 36); peran
-/// yang ukurannya sama dibedakan ketebalan. Batas bawah 12sp. Warna tidak
+/// yang ukurannya sama dibedakan ketebalan. Batas bawah 12sp, isi 15sp.
+/// Warna tidak
 /// ditetapkan di sini: teks mewarisi tinta tema, varian redup/tautan memakai
 /// copyWith(color: ...). letterSpacing 0 di tiap peran menimpa tracking
-/// bawaan M3 (0,25-0,5 px) lewat merge textTheme: Kanit sudah lebar.
+/// bawaan M3 (0,25-0,5 px) lewat merge textTheme: web memakai
+/// tracking normal.
 class T {
   /// Satu angka utama di layar (total koleksi).
   static const display = TextStyle(
@@ -91,7 +99,7 @@ class T {
     letterSpacing: 0,
     fontSize: 26,
     height: 1.2,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w700,
   );
 
   /// Judul halaman detail, pasangan [bacaan].
@@ -99,7 +107,7 @@ class T {
     letterSpacing: 0,
     fontSize: 22,
     height: 1.3,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w700,
   );
 
   /// Judul layar dan seksi.
@@ -136,7 +144,11 @@ class T {
   );
 
   /// Teks yang DIBACA panjang: isi artikel, abstrak, uraian, jawaban AI.
-  static const bacaan = TextStyle(letterSpacing: 0, fontSize: 16, height: 1.65);
+  static const bacaan = TextStyle(
+    letterSpacing: 0,
+    fontSize: 16.5,
+    height: 1.65,
+  );
 
   /// Teks UI biasa.
   static const isi = TextStyle(letterSpacing: 0, fontSize: 15, height: 1.5);
@@ -191,9 +203,11 @@ class AppRadius {
   static const double sheet = 4;
 }
 
-/// Transisi halaman "rise": fade + naik sedikit, cermin animate-rise website.
-class _RisePageTransitions extends PageTransitionsBuilder {
-  const _RisePageTransitions();
+/// Transisi halaman ala WhatsApp: halaman baru meluncur dari kanan, halaman
+/// asal bergeser sedikit ke kiri, dan halaman bisa ditutup dengan mengusap
+/// dari tepi kiri. Gerak dikurangi: langsung tampil.
+class _GeserKanan extends CupertinoPageTransitionsBuilder {
+  const _GeserKanan();
 
   @override
   Widget buildTransitions<R>(
@@ -202,22 +216,15 @@ class _RisePageTransitions extends PageTransitionsBuilder {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
     Widget child,
-  ) {
-    final curved = CurvedAnimation(
-      parent: animation,
-      curve: Curves.easeOutCubic,
-    );
-    return FadeTransition(
-      opacity: curved,
-      child: SlideTransition(
-        position: Tween(
-          begin: const Offset(0, .03),
-          end: Offset.zero,
-        ).animate(curved),
-        child: child,
-      ),
-    );
-  }
+  ) => MediaQuery.of(context).disableAnimations
+      ? child
+      : super.buildTransitions(
+          route,
+          context,
+          animation,
+          secondaryAnimation,
+          child,
+        );
 }
 
 ThemeData appTheme(Brightness b) {
@@ -228,6 +235,7 @@ ThemeData appTheme(Brightness b) {
   final surface = dark ? C.darkSurface : C.lightSurface;
   final subtle = dark ? C.darkSubtle : C.lightSubtle;
   final lineStrong = dark ? C.darkInkMuted : C.lightLineStrong;
+  final lineField = dark ? C.darkLine : C.lightLineField;
   final accent = dark ? C.accentOnDark : C.accent;
 
   // peran Material dipetakan ke peran T: komponen bawaan (ListTile, kolom
@@ -290,11 +298,11 @@ ThemeData appTheme(Brightness b) {
           ? SystemUiOverlayStyle.light
           : SystemUiOverlayStyle.dark,
     ),
-    // iOS tidak di-set -> tetap transisi Cupertino bawaan.
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
-        TargetPlatform.android: _RisePageTransitions(),
-        TargetPlatform.linux: _RisePageTransitions(),
+        TargetPlatform.android: _GeserKanan(),
+        TargetPlatform.iOS: _GeserKanan(),
+        TargetPlatform.linux: _GeserKanan(),
       },
     ),
     cardTheme: CardThemeData(
@@ -317,8 +325,8 @@ ThemeData appTheme(Brightness b) {
       labelStyle: text.labelMedium?.copyWith(color: ink),
       secondaryLabelStyle: text.labelMedium?.copyWith(color: C.ink),
     ),
-    // kolom isian seperti web: putih, tepi kontrol 3,5:1, fokus biru 2dp.
-    // Isian tint di atas putih dulu nyaris tak terlihat (1,08:1)
+    // kolom isian seperti formulir web: putih, tepi slate-300, fokus biru
+    // 2dp. Isian tint di atas putih dulu nyaris tak terlihat (1,08:1)
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: surface,
@@ -326,11 +334,11 @@ ThemeData appTheme(Brightness b) {
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.card),
-        borderSide: BorderSide(color: lineStrong),
+        borderSide: BorderSide(color: lineField),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.card),
-        borderSide: BorderSide(color: lineStrong),
+        borderSide: BorderSide(color: lineField),
       ),
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.card),
@@ -363,7 +371,7 @@ ThemeData appTheme(Brightness b) {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: ink,
-        side: BorderSide(color: lineStrong),
+        side: BorderSide(color: lineField),
         minimumSize: const Size(48, 48),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.button),

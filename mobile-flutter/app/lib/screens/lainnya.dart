@@ -9,15 +9,18 @@ import 'puu.dart';
 import 'statistik.dart';
 import 'survey.dart';
 
-List<({String slug, String label})> _profilItems(AppLocalizations l) => [
-  (slug: 'sekilas-sejarah', label: l.profileHistory),
-  (slug: 'dasar-hukum', label: l.profileLegalBasis),
-  (slug: 'visi', label: l.profileVision),
-  (slug: 'misi', label: l.profileMission),
-  (slug: 'sto', label: l.profileStructure),
+List<({String slug, String label, IconData icon})> _profilItems(
+  AppLocalizations l,
+) => [
+  (slug: 'sekilas-sejarah', label: l.profileHistory, icon: Icons.history_edu),
+  (slug: 'dasar-hukum', label: l.profileLegalBasis, icon: Icons.gavel),
+  (slug: 'visi', label: l.profileVision, icon: Icons.visibility_outlined),
+  (slug: 'misi', label: l.profileMission, icon: Icons.flag_outlined),
+  (slug: 'sto', label: l.profileStructure, icon: Icons.account_tree_outlined),
 ];
 
-/// Tab "Lainnya": profil, layanan, pengaturan, tentang.
+/// Tab "Lainnya": menu dikelompokkan per tujuan (profil, layanan, aplikasi),
+/// tiap kelompok satu panel berjudul.
 class LainnyaScreen extends StatelessWidget {
   const LainnyaScreen({super.key});
 
@@ -25,85 +28,123 @@ class LainnyaScreen extends StatelessWidget {
       Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: BrandAppBar(context.l10n.more),
-    body: ListView(
-      padding: padTengah(context, maks: 640),
-      children: [
-        Card(
-          child: ExpansionTile(
-            leading: const Icon(Icons.info_outline, color: C.accent),
-            title: Text(context.l10n.jdihProfile),
-            shape: const Border(),
-            children: [
-              for (final p in _profilItems(context.l10n))
-                ListTile(
-                  title: Text(p.label),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _push(
-                    context,
-                    ProfilScreen(kategori: p.slug, title: p.label),
-                  ),
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return Scaffold(
+      appBar: BrandAppBar(l.more),
+      body: ListView(
+        padding: padTengah(context, maks: 640, atas: 0),
+        children: [
+          _Kelompok(l.jdihProfile, [
+            for (final p in _profilItems(l))
+              _Menu(
+                icon: p.icon,
+                label: p.label,
+                onTap: () => _push(
+                  context,
+                  ProfilScreen(kategori: p.slug, title: p.label),
                 ),
+              ),
+          ]),
+          _Kelompok(l.menuServices, [
+            _Menu(
+              icon: Icons.accessible,
+              label: l.disabilityServices,
+              onTap: () => _push(context, const DisabilityListScreen()),
+            ),
+            _Menu(
+              icon: Icons.balance,
+              label: l.lawMaking,
+              onTap: () => _push(context, const PuuListScreen()),
+            ),
+            _Menu(
+              icon: Icons.bar_chart,
+              label: l.collectionStats,
+              onTap: () => _push(context, const StatistikScreen()),
+            ),
+            _Menu(
+              icon: Icons.star_outline,
+              label: l.satisfactionSurvey,
+              onTap: () => _push(context, const SurveyScreen()),
+            ),
+          ]),
+          _Kelompok(l.menuApp, [
+            _Menu(
+              icon: Icons.translate,
+              label: l.language,
+              nilai: kLangs[langNotifier.value],
+              onTap: () => pickLang(context),
+            ),
+            _Menu(
+              icon: Icons.public,
+              label: l.aboutJdih,
+              onTap: () => _push(context, const AboutScreen()),
+            ),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+/// Satu kelompok menu: judul seksi, lalu panel berisi barisnya.
+class _Kelompok extends StatelessWidget {
+  const _Kelompok(this.judul, this.menu);
+  final String judul;
+  final List<Widget> menu;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      SectionHeader(judul),
+      Card(
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            for (final (i, m) in menu.indexed) ...[
+              // garis mulai sejajar teks, bukan ikon: baris tetap terbaca
+              // satu kelompok
+              if (i > 0) const Divider(height: 1, indent: 68),
+              m,
             ],
-          ),
+          ],
         ),
-        const SizedBox(height: 12),
-        Card(
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.accessible, color: C.accent),
-                title: Text(context.l10n.disabilityServices),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(context, const DisabilityListScreen()),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.balance, color: C.accent),
-                title: Text(context.l10n.lawMaking),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(context, const PuuListScreen()),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.bar_chart, color: C.accent),
-                title: Text(context.l10n.collectionStats),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(context, const StatistikScreen()),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.star_outline, color: C.accent),
-                title: Text(context.l10n.satisfactionSurvey),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(context, const SurveyScreen()),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        Card(
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.translate, color: C.accent),
-                title: Text(context.l10n.language),
-                trailing: Text(kLangs[langNotifier.value] ?? ''),
-                onTap: () => pickLang(context),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.public, color: C.accent),
-                title: Text(context.l10n.aboutJdih),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(context, const AboutScreen()),
-              ),
-            ],
-          ),
-        ),
-      ],
+      ),
+    ],
+  );
+}
+
+class _Menu extends StatelessWidget {
+  const _Menu({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.nilai,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  /// Nilai saat ini (mis. bahasa), menggantikan panah.
+  final String? nilai;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    leading: Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: C.accent.withValues(alpha: .08),
+        borderRadius: BorderRadius.circular(AppRadius.chip),
+      ),
+      child: Icon(icon, size: 20, color: C.accent),
     ),
+    title: Text(label),
+    trailing: nilai != null
+        ? Text(nilai!, style: T.isiKecil.copyWith(color: C.lightInkMuted))
+        : const Icon(Icons.chevron_right, color: C.lightInkMuted),
+    onTap: onTap,
   );
 }
 

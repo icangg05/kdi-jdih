@@ -981,6 +981,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     final tahun = d.sn('tahun_terbit');
     final lampiran = d.l('lampiran');
     final terkait = d.l('peraturan_terkait');
+    final pelaksana = d.l('peraturan_pelaksana');
     return [
       Wrap(
         spacing: AppSpacing.sm,
@@ -1013,6 +1014,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
           context.l10n.tabAbout,
           context.l10n.tabFiles(lampiran.length),
           context.l10n.tabRelated,
+          context.l10n.tabImplementing,
         ],
         selected: _tab,
         onSelected: (i) => setState(() => _tab = i),
@@ -1021,6 +1023,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       ...switch (_tab) {
         1 => _berkasTab(context, lampiran, d.s('judul')),
         2 => _terkaitTab(context, terkait),
+        3 => _pelaksanaTab(context, pelaksana),
         _ => _tentangTab(d),
       },
       const SizedBox(height: AppSpacing.lg),
@@ -1133,54 +1136,107 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     }
     return [
       for (final (i, l) in lampiran.indexed)
-        if (l.sn('url') != null)
+        if (l.sn('url') case final url?)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
-            child: DocFileTile(
-              l.s('url'),
-              title: l.sn('judul') ?? context.l10n.document,
-              // judul_lampiran berisi kode ("2026pw7416021"): nama berkas
-              // dari judul dokumen, berkas kedua dst. diberi nomor
-              nama: i == 0 ? judul : context.l10n.fileAttachmentN(judul, i + 1),
-              onOpen: () => api.documentDownload(widget.id).ignore(),
+            // judul_lampiran berisi kode ("2026pw7416021"): nama berkas dari
+            // judul dokumen, berkas kedua dst. diberi nomor. Baris memakai
+            // nama yang sama dengan judul penampil dan berkas unduhan
+            child: Builder(
+              builder: (context) {
+                final nama = i == 0
+                    ? judul
+                    : context.l10n.fileAttachmentN(judul, i + 1);
+                return DocFileTile(
+                  url,
+                  title: downloadFileName(url, nama),
+                  nama: nama,
+                  onOpen: () => api.documentDownload(widget.id).ignore(),
+                );
+              },
             ),
           ),
     ];
   }
 
-  List<Widget> _terkaitTab(BuildContext context, List<Json> terkait) {
-    if (terkait.isEmpty) {
-      return [
-        EmptyState(
-          icon: Icons.link_off,
-          title: context.l10n.noRelated,
-          message: context.l10n.noRelatedHint,
-        ),
-      ];
-    }
-    return [
-      for (final t in terkait)
+  List<Widget> _terkaitTab(BuildContext context, List<Json> terkait) => [
+    if (terkait.isEmpty)
+      EmptyState(
+        icon: Icons.link_off,
+        title: context.l10n.noRelated,
+        message: context.l10n.noRelatedHint,
+      ),
+    for (final t in terkait) _kartuPeraturan(context, t),
+  ];
+
+  /// Peraturan turunan yang melaksanakan peraturan ini, sama dengan web
+  /// (dokumen-show): tautan ke dokumen lain, berkas unggahan, atau judul saja.
+  List<Widget> _pelaksanaTab(BuildContext context, List<Json> pelaksana) => [
+    if (pelaksana.isEmpty)
+      EmptyState(
+        icon: Icons.account_tree_outlined,
+        title: context.l10n.noImplementing,
+        message: context.l10n.noImplementingHint,
+      ),
+    for (final p in pelaksana)
+      if (p.sn('url') case final url? when p['id'] == null)
         Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: Card(
-            child: ListTile(
-              leading: const IconTile(Icons.account_balance, size: 40),
-              title: Text(
-                t.s('judul'),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DocumentDetailScreen(id: t.i('id')),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DocFileTile(url, title: p.s('judul')),
+              if (p.sn('catatan') case final c?)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.xs,
+                    AppSpacing.md,
+                    0,
+                  ),
+                  child: Text(
+                    c,
+                    style: T.isiKecil.copyWith(color: C.lightInkMuted),
+                  ),
                 ),
-              ),
-            ),
+            ],
           ),
+        )
+      else
+        _kartuPeraturan(context, p),
+  ];
+
+  /// Kartu peraturan lain: bertautan ke detailnya bila punya id, selain itu
+  /// judul saja. Catatan (mis. "mengubah pasal 5") di bawah judul.
+  Widget _kartuPeraturan(BuildContext context, Json t) {
+    final id = t['id'] == null ? null : t.i('id');
+    final catatan = t.sn('catatan');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Card(
+        child: ListTile(
+          leading: IconTile(
+            id == null ? Icons.description_outlined : Icons.account_balance,
+            size: 40,
+          ),
+          title: Text(
+            titleCase(t.s('judul')),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: catatan == null ? null : Text(catatan),
+          trailing: id == null ? null : const Icon(Icons.chevron_right),
+          onTap: id == null
+              ? null
+              : () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DocumentDetailScreen(id: id),
+                  ),
+                ),
         ),
-    ];
+      ),
+    );
   }
 
   /// Bilah aksi tetap: statistik + tombol utama membuka pratinjau berkas.

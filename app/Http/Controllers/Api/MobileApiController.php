@@ -335,6 +335,23 @@ class MobileApiController extends Controller
             ->filter(fn ($t) => $t->id)
             ->map(fn ($t) => ['id' => (int) $t->id, 'judul' => $t->judul])->values();
 
+        // Peraturan turunan yang melaksanakan peraturan ini, sama dengan web
+        // (dokumen-show): tautan ke dokumen lain, berkas unggahan, atau judul saja.
+        $pelaksana = DB::table('peraturan_pelaksana')->where('id_dokumen', $id)
+            ->leftJoin('document', 'peraturan_pelaksana.peraturan_pelaksana', 'document.id')
+            ->orderBy('peraturan_pelaksana.urutan')
+            ->select('document.id', 'document.judul', 'peraturan_pelaksana.judul_pelaksana',
+                'peraturan_pelaksana.file_pelaksana', 'peraturan_pelaksana.catatan_pelaksana')
+            ->get()
+            ->map(fn ($p) => [
+                'id'      => $p->id ? (int) $p->id : null,
+                'judul'   => $p->id ? $p->judul : $p->judul_pelaksana,
+                'url'     => $p->id ? null : $this->docUrl($p->file_pelaksana),
+                'catatan' => filled($p->catatan_pelaksana) && trim($p->catatan_pelaksana) !== '-'
+                    ? trim($p->catatan_pelaksana) : null,
+            ])
+            ->filter(fn ($p) => filled($p['judul']))->values();
+
         return response()->json(['data' => [
             'id'                   => (int) $d->id,
             'category'             => self::CATS[$d->tipe_dokumen] ?? 'peraturan',
@@ -375,6 +392,7 @@ class MobileApiController extends Controller
             'statistik'            => ['dilihat' => (int) ($d->hit_see ?? 0) + 1, 'diunduh' => (int) ($d->hit_download ?? 0)],
             'lampiran'             => $lampiran,
             'peraturan_terkait'    => $terkait,
+            'peraturan_pelaksana'  => $pelaksana,
             'created_at'           => $d->created_at,
             'updated_at'           => $d->updated_at,
         ]]);
@@ -562,12 +580,15 @@ class MobileApiController extends Controller
             return response()->json(['message' => 'Kategori tidak ditemukan'], 404);
         }
 
-        $body = __("profil.{$kategori}.body");
+        // nilai null di lang (body 'sto') membuat __() mengembalikan kuncinya
+        // sendiri, dan app menampilkan "profil.sto.body" apa adanya
+        $kunci = "profil.{$kategori}.body";
+        $body = __($kunci);
 
         return response()->json(['data' => [
             'kategori' => $kategori,
             'title'    => __("profil.{$kategori}.title"),
-            'body'     => is_string($body) ? $body : null,
+            'body'     => is_string($body) && $body !== $kunci ? $body : null,
         ]]);
     }
 

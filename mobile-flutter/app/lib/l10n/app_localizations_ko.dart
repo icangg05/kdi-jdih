@@ -199,9 +199,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeHeadline => '오늘은 어떤 법규를 찾으시나요?';
 
   @override
-  String get kendariEmblem => '켄다리시 문장';
-
-  @override
   String get adatMeaning => '관습을 존중하는 자는 존중받는다';
 
   @override
@@ -323,6 +320,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tabRelated => '관련';
 
   @override
+  String get tabImplementing => '시행 규정';
+
+  @override
   String get aboutDocument => '문서 개요';
 
   @override
@@ -406,6 +406,12 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get noRelatedHint =>
       '이 문서는 독립적입니다. 다른 규정을 개정하거나 폐지하지 않으며, 다른 규정에 의해 개정되지도 않았습니다.';
+
+  @override
+  String get noImplementing => '시행 규정 없음';
+
+  @override
+  String get noImplementingHint => '이 규정을 시행하기 위해 제정된 하위 규정이 여기에 표시됩니다.';
 
   @override
   String get statistics => '통계';
@@ -624,6 +630,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get aboutJdih => 'JDIH 소개';
+
+  @override
+  String get menuServices => '서비스 및 정보';
+
+  @override
+  String get menuApp => '앱';
 
   @override
   String get orgStructureOnWeb => '조직 구조는 켄다리시 JDIH 웹사이트에서 볼 수 있습니다.';
@@ -1038,7 +1050,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get errPickUserType => '사용자 유형을 하나 선택해 주세요.';
 
   @override
-  String get errRateAll => '모든 항목에 1~5점을 매겨 주세요.';
+  String get errRateAll => '모든 항목을 평가해 주세요.';
 
   @override
   String get thankYou => '감사합니다!';
@@ -1050,16 +1062,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get ok => '확인';
 
   @override
-  String get fieldName => '이름 *';
+  String get fieldName => '이름';
 
   @override
   String get fieldInstitution => '소속 기관';
 
   @override
-  String get fieldUserType => '사용자 유형 *';
+  String get fieldUserType => '사용자 유형';
 
   @override
-  String get fieldRating => '평가(1~5) *';
+  String get fieldRating => '서비스 평가';
 
   @override
   String get fieldSuggestions => '개선 제안';
@@ -1077,8 +1089,36 @@ class AppLocalizationsKo extends AppLocalizations {
   String get submitSurvey => '설문 제출';
 
   @override
-  String ratingOf(String label, int n) {
-    return '$label · 5점 중 $n점';
+  String get surveyHeading => '더 나은 서비스를 위해 도와주세요';
+
+  @override
+  String get surveyIntro =>
+      '평가는 JDIH 서비스 개선에 도움이 됩니다. \'선택\' 표시 항목은 건너뛰어도 됩니다.';
+
+  @override
+  String get surveyAbout => '본인 정보';
+
+  @override
+  String get surveyFeedback => '의견';
+
+  @override
+  String get optional => '선택';
+
+  @override
+  String ratingWord(String n) {
+    String _temp0 = intl.Intl.selectLogic(n, {
+      '1': '매우 나쁨',
+      '2': '나쁨',
+      '3': '보통',
+      '4': '좋음',
+      'other': '매우 좋음',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String surveyProgress(int done, int total) {
+    return '필수 항목 $done/$total';
   }
 
   @override

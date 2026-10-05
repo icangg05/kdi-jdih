@@ -198,9 +198,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeHeadline => '今天想查找哪项法规？';
 
   @override
-  String get kendariEmblem => '肯达里市徽';
-
-  @override
   String get adatMeaning => '尊重习俗者，必受人尊重';
 
   @override
@@ -321,6 +318,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tabRelated => '相关';
 
   @override
+  String get tabImplementing => '实施法规';
+
+  @override
   String get aboutDocument => '文件简介';
 
   @override
@@ -403,6 +403,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noRelatedHint => '此文件独立存在：既未修改或废止其他法规，也未被其他法规修改。';
+
+  @override
+  String get noImplementing => '暂无实施法规';
+
+  @override
+  String get noImplementingHint => '为实施本法规而发布的下位法规将显示在此处。';
 
   @override
   String get statistics => '统计';
@@ -620,6 +626,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aboutJdih => '关于 JDIH';
+
+  @override
+  String get menuServices => '服务与信息';
+
+  @override
+  String get menuApp => '应用';
 
   @override
   String get orgStructureOnWeb => '组织架构内容请访问肯达里市 JDIH 网站。';
@@ -1031,7 +1043,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get errPickUserType => '请选择一种用户类型。';
 
   @override
-  String get errRateAll => '请为每一项打分（1–5）。';
+  String get errRateAll => '请为每一项打分。';
 
   @override
   String get thankYou => '谢谢！';
@@ -1043,16 +1055,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ok => '好';
 
   @override
-  String get fieldName => '姓名 *';
+  String get fieldName => '姓名';
 
   @override
   String get fieldInstitution => '单位';
 
   @override
-  String get fieldUserType => '用户类型 *';
+  String get fieldUserType => '用户类型';
 
   @override
-  String get fieldRating => '评分（1–5）*';
+  String get fieldRating => '服务评价';
 
   @override
   String get fieldSuggestions => '改进建议';
@@ -1070,8 +1082,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get submitSurvey => '提交问卷';
 
   @override
-  String ratingOf(String label, int n) {
-    return '$label · $n/5';
+  String get surveyHeading => '帮助我们做得更好';
+
+  @override
+  String get surveyIntro => '您的评价将帮助我们改进 JDIH 服务。标有“选填”的项目可以跳过。';
+
+  @override
+  String get surveyAbout => '关于您';
+
+  @override
+  String get surveyFeedback => '意见与建议';
+
+  @override
+  String get optional => '选填';
+
+  @override
+  String ratingWord(String n) {
+    String _temp0 = intl.Intl.selectLogic(n, {
+      '1': '很差',
+      '2': '较差',
+      '3': '一般',
+      '4': '好',
+      'other': '很好',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String surveyProgress(int done, int total) {
+    return '必填项 $done/$total';
   }
 
   @override

@@ -77,8 +77,6 @@ class HomeScreen extends StatelessWidget {
       final pintu = <Widget>[
         const SizedBox(height: AppSpacing.md),
         _CategoryTiles(stats),
-        const SizedBox(height: AppSpacing.lg),
-        const _AdatBanner(),
         const SizedBox(height: AppSpacing.xl),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -233,28 +231,54 @@ class _KepalaBeranda extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  // logo berwarna butuh alas putih di atas biru
+                  // alas putih transparan, sama dengan pil bahasa. Logo versi
+                  // terang (globe putih, huruf bertepi putih): warna aslinya
+                  // biru dan tenggelam di latar biru
                   Container(
-                    padding: const EdgeInsets.all(4),
+                    width: 44,
+                    height: 44,
+                    padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                      color: C.lightSurface,
+                      color: C.onDark.withValues(alpha: .14),
                       borderRadius: BorderRadius.circular(AppRadius.chip),
+                      border: Border.all(
+                        color: C.onDark.withValues(alpha: .35),
+                      ),
                     ),
                     child: Image(
-                      image: AssetImage('assets/img/logo-jdihn.png'),
-                      width: 30,
+                      image: const AssetImage(
+                        'assets/img/logo-jdihn-putih.png',
+                      ),
                       semanticLabel: context.l10n.logoJdihn,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
-                    child: Text(
-                      context.l10n.appName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: T.labelBesar.copyWith(color: C.onDark),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.l10n.appName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: T.labelBesar.copyWith(
+                            color: C.onDark,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          context.l10n.jdihFull,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: T.labelKecil.copyWith(
+                            color: C.onDark.withValues(alpha: .8),
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(width: AppSpacing.sm),
                   ListenableBuilder(
                     listenable: langNotifier,
                     builder: (context, _) =>
@@ -272,6 +296,8 @@ class _KepalaBeranda extends StatelessWidget {
                 context.l10n.homeHeadline,
                 style: T.hero.copyWith(color: C.onDark),
               ),
+              const SizedBox(height: AppSpacing.lg),
+              const _Semboyan(),
               const SizedBox(height: AppSpacing.xl),
               const _HomeSearchBar(),
             ],
@@ -282,52 +308,54 @@ class _KepalaBeranda extends StatelessWidget {
   );
 }
 
-/// Lambang Kota Kendari + semboyan adat Tolaki: identitas daerah yang
-/// dibawa dari aplikasi versi pertama.
-class _AdatBanner extends StatelessWidget {
-  const _AdatBanner();
+/// Semboyan adat Tolaki, identitas daerah dari aplikasi versi pertama, sebagai
+/// kutipan di kepala biru: urutan sama dengan hero web (judul, semboyan, lalu
+/// kolom cari). Tanda kutip amber menggantung di kiri.
+class _Semboyan extends StatelessWidget {
+  const _Semboyan();
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-    // permukaan terang: blok gelap di beranda disisakan untuk ajakan AI
-    child: Container(
-      decoration: BoxDecoration(
-        color: C.lightSurface,
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: C.lightLine),
-      ),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Row(
-        children: [
-          Image(
-            image: AssetImage('assets/img/logo-kendari.png'),
-            width: 44,
-            semanticLabel: context.l10n.kendariEmblem,
+  Widget build(BuildContext context) => Stack(
+    clipBehavior: Clip.none,
+    children: [
+      Positioned(
+        left: -4,
+        top: -2,
+        // ikon, bukan glyph “: bentuk & letaknya tak bergantung font.
+        // format_quote = tanda tutup, diputar 180° jadi tanda buka
+        child: Transform.rotate(
+          angle: math.pi,
+          child: const Icon(
+            Icons.format_quote_rounded,
+            size: 28,
+            color: C.primary,
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Inae konasara ie'e pinesara inae lia",
-                  style: T.subjudul.copyWith(
-                    color: C.accent,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  context.l10n.adatMeaning,
-                  style: T.isiKecil.copyWith(color: C.lightInkMuted),
-                ),
-              ],
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Inae konasara ie'e pinesara inae lia",
+              style: T.subjudul.copyWith(
+                color: C.onDark,
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w400,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              context.l10n.adatMeaning,
+              style: T.isiKecil.copyWith(
+                color: C.onDark.withValues(alpha: .75),
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
+    ],
   );
 }
 

@@ -36,7 +36,9 @@ dev_dependencies:
 
 # Logo sama dengan app lama (mobile-jdih/assets/icon/jdihkendari.png), diambil
 # dari salinan resolusi tinggi public/assets/img/logo-new-jdih.png. icon_fg &
-# splash: logo selebar 600px di kanvas 1024 = di dalam zona aman ikon adaptif.
+# splash: logo selebar 600px di kanvas 1024 = lingkaran terluarnya pas di zona
+# aman 66dp ikon adaptif. Inset 0: bawaan paket menambah 16% lagi di tiap
+# sisi sehingga logo menyusut tinggal ±60% ikon.
 flutter_launcher_icons:
   android: true
   ios: true
@@ -47,6 +49,7 @@ flutter_launcher_icons:
   image_path: assets/icon/icon.png
   adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: assets/icon/icon_fg.png
+  adaptive_icon_foreground_inset: 0
 
 # Slate-50 = kanvas app (C.lightBg). Terang juga di mode gelap: app dikunci
 # tema terang, dan tulisan biru logo tenggelam di latar gelap.
@@ -65,23 +68,5 @@ flutter:
   generate: true
   assets:
     - assets/img/
-    - assets/fonts/OFL-Kanit.txt
-  # Kanit untuk seluruh app (UI dan teks bacaan).
-  # Dibundel agar tetap tampil offline. Statis, bukan variable font: FontWeight
-  # Flutter tidak menggerakkan sumbu wght.
-  fonts:
-    - family: Kanit
-      fonts:
-        - asset: assets/fonts/Kanit-Regular.ttf
-        - asset: assets/fonts/Kanit-Italic.ttf
-          style: italic
-        - asset: assets/fonts/Kanit-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Kanit-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Kanit-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Kanit-BoldItalic.ttf
-          weight: 700
-          style: italic
-
+  # Font UI = Roboto bawaan Android (lihat kFont di theme.dart): tidak
+  # dibundel, sudah ada di setiap HP Android dan tersedia offline.

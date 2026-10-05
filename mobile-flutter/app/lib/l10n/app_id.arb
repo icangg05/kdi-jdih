@@ -89,7 +89,6 @@
   "greetEvening": "Selamat malam",
   "logoJdihn": "Logo JDIHN",
   "homeHeadline": "Cari aturan apa hari ini?",
-  "kendariEmblem": "Lambang Kota Kendari",
   "adatMeaning": "Siapa yang menghargai adat, ia akan dihormati",
   "@adatMeaning": {
     "description": "Arti semboyan adat Tolaki"
@@ -166,6 +165,7 @@
     }
   },
   "tabRelated": "Terkait",
+  "tabImplementing": "Pelaksana",
   "aboutDocument": "Tentang Dokumen",
   "abstract": "Abstrak",
   "abstractOf": "Abstrak {judul}",
@@ -218,6 +218,8 @@
   },
   "noRelated": "Tidak ada peraturan terkait",
   "noRelatedHint": "Dokumen ini berdiri sendiri: tidak mengubah, mencabut, atau diubah oleh peraturan lain.",
+  "noImplementing": "Belum ada peraturan pelaksana",
+  "noImplementingHint": "Peraturan turunan yang diterbitkan untuk melaksanakan peraturan ini akan tampil di sini.",
   "statistics": "Statistik",
   "viewsDownloads": "{views} dilihat · {downloads} unduh",
   "@viewsDownloads": {
@@ -349,6 +351,8 @@
   "lawMaking": "Pembentukan PUU",
   "satisfactionSurvey": "Survei Kepuasan",
   "aboutJdih": "Tentang JDIH",
+  "menuServices": "Layanan & Informasi",
+  "menuApp": "Aplikasi",
   "orgStructureOnWeb": "Konten struktur organisasi tersedia di situs web JDIH Kota Kendari.",
   "jdihFull": "Jaringan Dokumentasi dan Informasi Hukum",
   "phone": "Telepon",
@@ -564,26 +568,39 @@
   "errNameRequired": "Nama wajib diisi.",
   "errEmailFormat": "Format email belum benar, contoh: nama@contoh.go.id",
   "errPickUserType": "Pilih salah satu jenis pengguna.",
-  "errRateAll": "Beri nilai 1–5 untuk setiap aspek.",
+  "errRateAll": "Beri nilai untuk setiap aspek.",
   "thankYou": "Terima kasih!",
   "surveySent": "Survei Anda telah terkirim.",
   "ok": "OK",
-  "fieldName": "Nama *",
+  "fieldName": "Nama",
   "fieldInstitution": "Instansi",
-  "fieldUserType": "Jenis Pengguna *",
-  "fieldRating": "Penilaian (1–5) *",
+  "fieldUserType": "Jenis pengguna",
+  "fieldRating": "Penilaian layanan",
   "fieldSuggestions": "Saran Perbaikan",
   "fieldFeatures": "Fitur yang Diharapkan",
   "fieldContactOk": "Bersedia dihubungi",
   "fieldContact": "Kontak (HP/WA)",
   "submitSurvey": "Kirim Survei",
-  "ratingOf": "{label} · {n} dari 5",
-  "@ratingOf": {
+  "surveyHeading": "Bantu kami melayani lebih baik",
+  "surveyIntro": "Penilaian Anda membantu kami memperbaiki layanan JDIH. Isian bertanda Opsional boleh dilewati.",
+  "surveyAbout": "Tentang Anda",
+  "surveyFeedback": "Masukan",
+  "optional": "Opsional",
+  "ratingWord": "{n, select, 1{Sangat kurang} 2{Kurang} 3{Cukup} 4{Baik} other{Sangat baik}}",
+  "@ratingWord": {
     "placeholders": {
-      "label": {
-        "type": "String"
-      },
       "n": {
+        "type": "String"
+      }
+    }
+  },
+  "surveyProgress": "{done} dari {total} isian wajib",
+  "@surveyProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
         "type": "int"
       }
     }

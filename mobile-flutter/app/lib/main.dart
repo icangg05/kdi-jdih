@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -24,13 +23,6 @@ Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.transparent),
   );
-
-  // lisensi OFL font yang dibundel ikut tampil di halaman lisensi
-  LicenseRegistry.addLicense(() async* {
-    yield LicenseEntryWithLineBreaks([
-      'Kanit',
-    ], await rootBundle.loadString('assets/fonts/OFL-Kanit.txt'));
-  });
 
   final prefs = await SharedPreferences.getInstance();
   langNotifier.value = prefs.getString('lang') ?? 'id';
@@ -106,9 +98,9 @@ class _AwalState extends State<_Awal> {
   );
 }
 
-/// Transisi antar-tab. Tab biasa: fade saja, berpindah tab bukan perjalanan.
-/// Tab [naik] (Tanya AI) naik dari bawah menutupi tab asal dan turun lagi
-/// saat ditinggalkan, seperti halaman yang dibuka di atasnya. Semua tab tetap
+/// Transisi antar-tab. Tab biasa berganti seketika: berpindah tab bukan
+/// perjalanan. Tab [naik] (Tanya AI) naik dari bawah menutupi tab asal dan
+/// turun lagi saat ditinggalkan, seperti halaman yang dibuka di atasnya. Semua tab tetap
 /// hidup di satu Stack (pengganti IndexedStack): hasil cari, percakapan, dan
 /// posisi gulir tidak hilang saat berpindah.
 class _TabTransition extends StatefulWidget {
@@ -127,11 +119,16 @@ class _TabTransition extends StatefulWidget {
 
 class _TabTransitionState extends State<_TabTransition>
     with SingleTickerProviderStateMixin {
-  late final _c = AnimationController(vsync: this, value: 1)
-    // tab asal disembunyikan lagi begitu lembar AI selesai bergerak
-    ..addStatusListener((s) {
-      if (s == AnimationStatus.completed && mounted) setState(() {});
-    });
+  late final _c =
+      AnimationController(
+          vsync: this,
+          value: 1,
+          duration: const Duration(milliseconds: 320),
+        )
+        // tab asal disembunyikan lagi begitu lembar AI selesai bergerak
+        ..addStatusListener((s) {
+          if (s == AnimationStatus.completed && mounted) setState(() {});
+        });
 
   /// Tab sebelumnya: tetap terlihat di bawah lembar AI selama ia bergerak.
   late int _lalu = widget.index;
@@ -144,9 +141,8 @@ class _TabTransitionState extends State<_TabTransition>
     super.didUpdateWidget(old);
     if (old.index == widget.index) return;
     _lalu = old.index;
-    if (MediaQuery.of(context).disableAnimations) return;
     final ai = widget.index == widget.naik || _lalu == widget.naik;
-    _c.duration = Duration(milliseconds: ai ? 320 : 200);
+    if (!ai || MediaQuery.of(context).disableAnimations) return;
     _c.forward(from: 0);
   }
 
@@ -161,7 +157,6 @@ class _TabTransitionState extends State<_TabTransition>
     final lembar = _lembar;
     // lembar AI digambar paling atas: masuk = tab baru, keluar = tab AI
     final atas = lembar && _lalu == widget.naik ? _lalu : widget.index;
-    final masuk = CurvedAnimation(parent: _c, curve: Curves.easeOutCubic);
     final posisi = _lalu == widget.naik && widget.index != widget.naik
         ? geserNaik(ReverseAnimation(_c))
         : geserNaik(_c);
@@ -173,12 +168,7 @@ class _TabTransitionState extends State<_TabTransition>
           position: lembar && i == atas
               ? posisi
               : const AlwaysStoppedAnimation(Offset.zero),
-          child: FadeTransition(
-            opacity: !lembar && i == widget.index
-                ? masuk
-                : kAlwaysCompleteAnimation,
-            child: widget.children[i],
-          ),
+          child: widget.children[i],
         ),
       ),
     );
