@@ -27,6 +27,7 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   langNotifier.value = prefs.getString('lang') ?? 'id';
   langNotifier.addListener(() => prefs.setString('lang', langNotifier.value));
+  percakapanAi.muat(prefs);
 
   runApp(const JdihApp());
 }
@@ -98,91 +99,6 @@ class _AwalState extends State<_Awal> {
   );
 }
 
-/// Transisi antar-tab. Tab biasa berganti seketika: berpindah tab bukan
-/// perjalanan. Tab [naik] (Tanya AI) naik dari bawah menutupi tab asal dan
-/// turun lagi saat ditinggalkan, seperti halaman yang dibuka di atasnya. Semua tab tetap
-/// hidup di satu Stack (pengganti IndexedStack): hasil cari, percakapan, dan
-/// posisi gulir tidak hilang saat berpindah.
-class _TabTransition extends StatefulWidget {
-  const _TabTransition({
-    super.key,
-    required this.index,
-    required this.naik,
-    required this.children,
-  });
-  final int index, naik;
-  final List<Widget> children;
-
-  @override
-  State<_TabTransition> createState() => _TabTransitionState();
-}
-
-class _TabTransitionState extends State<_TabTransition>
-    with SingleTickerProviderStateMixin {
-  late final _c =
-      AnimationController(
-          vsync: this,
-          value: 1,
-          duration: const Duration(milliseconds: 320),
-        )
-        // tab asal disembunyikan lagi begitu lembar AI selesai bergerak
-        ..addStatusListener((s) {
-          if (s == AnimationStatus.completed && mounted) setState(() {});
-        });
-
-  /// Tab sebelumnya: tetap terlihat di bawah lembar AI selama ia bergerak.
-  late int _lalu = widget.index;
-
-  bool get _lembar =>
-      _c.isAnimating && (widget.index == widget.naik || _lalu == widget.naik);
-
-  @override
-  void didUpdateWidget(_TabTransition old) {
-    super.didUpdateWidget(old);
-    if (old.index == widget.index) return;
-    _lalu = old.index;
-    final ai = widget.index == widget.naik || _lalu == widget.naik;
-    if (!ai || MediaQuery.of(context).disableAnimations) return;
-    _c.forward(from: 0);
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final lembar = _lembar;
-    // lembar AI digambar paling atas: masuk = tab baru, keluar = tab AI
-    final atas = lembar && _lalu == widget.naik ? _lalu : widget.index;
-    final posisi = _lalu == widget.naik && widget.index != widget.naik
-        ? geserNaik(ReverseAnimation(_c))
-        : geserNaik(_c);
-    Widget lapis(int i) => KeyedSubtree(
-      key: ValueKey(i),
-      child: Offstage(
-        offstage: i != widget.index && !(lembar && i == _lalu),
-        child: SlideTransition(
-          position: lembar && i == atas
-              ? posisi
-              : const AlwaysStoppedAnimation(Offset.zero),
-          child: widget.children[i],
-        ),
-      ),
-    );
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        for (var i = 0; i < widget.children.length; i++)
-          if (i != atas) lapis(i),
-        lapis(atas),
-      ],
-    );
-  }
-}
-
 class RootShell extends StatefulWidget {
   const RootShell({super.key});
 
@@ -191,17 +107,14 @@ class RootShell extends StatefulWidget {
 }
 
 class _RootShellState extends State<RootShell> {
-  /// Tab pencarian; navigasi bawah disembunyikan di sini agar kolom cari,
-  /// papan ketik, dan jawaban AI dapat tinggi layar penuh.
-  static const _cari = 2;
-
-  /// Tab asal sebelum masuk pencarian: tujuan tombol kembali di sana, karena
-  /// tanpa nav bar tidak ada cara lain untuk keluar.
-  int _sebelumCari = 0;
+  /// Slot tombol Tanya AI di navigasi bawah dan rail. Bukan tab: ia membuka
+  /// rute yang sama dengan tombol Tanya AI di beranda (lihat bukaTanyaAi),
+  /// jadi animasi buka-tutup dan percakapannya pun sama.
+  static const _ai = 2;
 
   /// Tumpukan tab berpindah induk saat jendela melewati 600dp (HP diputar,
-  /// foldable dibuka). Kunci global membawa state-nya ikut pindah: percakapan
-  /// AI, hasil cari, dan posisi gulir tidak hilang karena rotasi.
+  /// foldable dibuka). Kunci global membawa state-nya ikut pindah: hasil
+  /// cari dan posisi gulir tidak hilang karena rotasi.
   final _tumpukan = GlobalKey();
 
   /// Tab dibangun saat pertama dibuka, lalu dipertahankan. IndexedStack
@@ -210,7 +123,7 @@ class _RootShellState extends State<RootShell> {
   final _dibuka = <int>{};
 
   void _pindah(int i) {
-    if (i == _cari) _sebelumCari = rootTab.value;
+    if (i == _ai) return bukaTanyaAi(context);
     rootTab.value = i;
   }
 
@@ -221,11 +134,10 @@ class _RootShellState extends State<RootShell> {
     valueListenable: rootTab,
     builder: (context, index, _) => PopScope(
       // Back sistem hanya menutup app dari Beranda. Dari tab lain ia pulang
-      // dulu: dari Tanya AI ke tab asal (sama dengan panah di layarnya),
-      // dari tab lain ke Beranda — pola tujuan awal Material
+      // dulu ke Beranda — pola tujuan awal Material
       canPop: index == 0,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _pindah(index == _cari ? _sebelumCari : 0);
+        if (!didPop) rootTab.value = 0;
       },
       child: Builder(
         builder: (context) {
@@ -233,15 +145,15 @@ class _RootShellState extends State<RootShell> {
           final halaman = [
             const HomeScreen(),
             const DocumentsHubScreen(),
-            // tab berlabel Tanya AI: langsung ke percakapan
-            SearchScreen(initialAi: true, onExit: () => _pindah(_sebelumCari)),
+            const SizedBox.shrink(), // slot tombol Tanya AI
             const KabarHubScreen(),
             const LainnyaScreen(),
           ];
-          final tab = _TabTransition(
+          // tab berganti seketika: berpindah tab bukan perjalanan
+          final tab = IndexedStack(
             key: _tumpukan,
             index: index,
-            naik: _cari,
+            sizing: StackFit.expand,
             children: [
               for (final (i, h) in halaman.indexed)
                 // tab tersembunyi tidak dilukis, tetapi animasinya (kilau
@@ -266,9 +178,7 @@ class _RootShellState extends State<RootShell> {
           }
           return Scaffold(
             body: tab,
-            bottomNavigationBar: index == _cari
-                ? null
-                : NavBawah(index: index, onTap: _pindah),
+            bottomNavigationBar: NavBawah(index: index, onTap: _pindah),
           );
         },
       ),
@@ -322,12 +232,12 @@ class RailSamping extends StatelessWidget {
   );
 
   Widget _rail(List<String> label) => NavigationRail(
-    selectedIndex: _tab.contains(index) ? _tab.indexOf(index) : null,
+    selectedIndex: _tab.indexOf(index),
     onDestinationSelected: (i) => onTap(_tab[i]),
     labelType: NavigationRailLabelType.all,
     leading: Padding(
       padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.lg),
-      child: _TombolAiRail(aktif: index == 2, onTap: () => onTap(2)),
+      child: _TombolAiRail(onTap: () => onTap(2)),
     ),
     destinations: [
       for (final i in _tab)
@@ -341,14 +251,12 @@ class RailSamping extends StatelessWidget {
 }
 
 class _TombolAiRail extends StatelessWidget {
-  const _TombolAiRail({required this.aktif, required this.onTap});
-  final bool aktif;
+  const _TombolAiRail({required this.onTap});
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
-    selected: aktif,
     label: context.l10n.aiAndSearch(context.l10n.navAskAi),
     onTap: onTap,
     excludeSemantics: true,
@@ -359,15 +267,10 @@ class _TombolAiRail extends StatelessWidget {
         children: [
           Material(
             color: C.primary,
-            elevation: aktif ? 0 : 2,
+            elevation: 2,
             shadowColor: C.ink.withValues(alpha: .3),
             // lingkaran, sama dengan tombol tengah NavBawah
-            shape: CircleBorder(
-              // terbuka = bertepi gelap tipis, padanan indikator aktif rail
-              side: aktif
-                  ? const BorderSide(color: C.primaryInk, width: 2)
-                  : BorderSide.none,
-            ),
+            shape: const CircleBorder(),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: onTap,
@@ -449,7 +352,6 @@ class NavBawah extends StatelessWidget {
                       child: i == 2
                           ? _TombolTengah(
                               label: labelTujuan[i],
-                              aktif: index == i,
                               onTap: () => onTap(i),
                             )
                           : _Item(
@@ -546,13 +448,8 @@ class _Item extends StatelessWidget {
 /// tujuan lain. Cincin putih selebar 5dp menyatukannya dengan bar sehingga
 /// tombol tampak duduk di lekukan.
 class _TombolTengah extends StatelessWidget {
-  const _TombolTengah({
-    required this.label,
-    required this.aktif,
-    required this.onTap,
-  });
+  const _TombolTengah({required this.label, required this.onTap});
   final String label;
-  final bool aktif;
   final VoidCallback onTap;
 
   static const _isi = 56.0;
@@ -564,7 +461,6 @@ class _TombolTengah extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
-    selected: aktif,
     label: context.l10n.aiAndSearch(label),
     onTap: onTap,
     excludeSemantics: true,

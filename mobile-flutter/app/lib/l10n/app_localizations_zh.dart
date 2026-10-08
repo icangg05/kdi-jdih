@@ -637,6 +637,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get orgStructureOnWeb => '组织架构内容请访问肯达里市 JDIH 网站。';
 
   @override
+  String orgChart(int n) {
+    return '组织架构图（$n）';
+  }
+
+  @override
   String get jdihFull => '法律文献与信息网络';
 
   @override
@@ -846,9 +851,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get clearChat => '清除对话';
 
   @override
-  String chatLimitReached(int max) {
-    return '已达 $max 个问题的上限';
-  }
+  String get chatLimitReached => '输入问题即可开始新对话';
 
   @override
   String get askHint => '输入您的问题…';
@@ -906,7 +909,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String chatFull(int max) {
-    return '本次对话已达 $max 个问题。请开始新对话以继续提问。';
+    return '本次对话已达 $max 个问题。下一个问题将开始新对话。';
   }
 
   @override
@@ -1117,4 +1120,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String ratingTooltip(String label, int n) {
     return '$label，$n/5';
   }
+
+  @override
+  String get logoKendari => '肯达里市政府徽标';
+
+  @override
+  String get statsDocsLabel => '份已收录的法律文件';
+
+  @override
+  String statsReach(String views, String downloads) {
+    return '浏览 $views 次，下载 $downloads 次。';
+  }
+
+  @override
+  String get statsLensYear => '年份';
+
+  @override
+  String get statsLensType => '类型';
+
+  @override
+  String get statsLensStatus => '状态';
+
+  @override
+  String statsYearDocs(int count, String year) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '份文件',
+    );
+    return '$_temp0于 $year 年发布';
+  }
+
+  @override
+  String statsYearSoFar(int count, String year) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '份文件',
+    );
+    return '$_temp0于 $year 年发布（截至目前）';
+  }
+
+  @override
+  String get statsYearHint => '拖动以选择年份';
+
+  @override
+  String get statsInForceShare => '的馆藏仍然有效';
 }

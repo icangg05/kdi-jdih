@@ -606,15 +606,24 @@ class _LatestDocumentsState extends State<_LatestDocuments> {
 }
 
 class DocumentListScreen extends StatefulWidget {
-  const DocumentListScreen({super.key, required this.category});
+  const DocumentListScreen({
+    super.key,
+    required this.category,
+    this.jenis = '',
+  });
   final String category;
+
+  /// Filter jenis yang sudah terpasang saat dibuka (mis. dari statistik
+  /// beranda), nilai mentah `jenis_peraturan`.
+  final String jenis;
 
   @override
   State<DocumentListScreen> createState() => _DocumentListScreenState();
 }
 
 class _DocumentListScreenState extends State<DocumentListScreen> {
-  String _q = '', _jenis = '', _tahun = '', _status = '', _nomor = '';
+  String _q = '', _tahun = '', _status = '', _nomor = '';
+  late String _jenis = widget.jenis;
   Json _filters = {};
   final _qCtrl = TextEditingController(), _nomorCtrl = TextEditingController();
 
@@ -656,7 +665,9 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
     String key,
     void Function(String) set,
   ) {
-    final opts = _filters.ls(key);
+    // nilai yang terpasang dari luar tetap jadi pilihan walau daftar filter
+    // server belum tiba: DropdownButton menolak nilai tanpa item
+    final opts = {..._filters.ls(key), if (value.isNotEmpty) value}.toList();
     if (opts.isEmpty) return const SizedBox.shrink();
     final dark = Theme.of(context).brightness == Brightness.dark;
     final on = value.isNotEmpty;

@@ -641,6 +641,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get orgStructureOnWeb => '조직 구조는 켄다리시 JDIH 웹사이트에서 볼 수 있습니다.';
 
   @override
+  String orgChart(int n) {
+    return '조직도 ($n)';
+  }
+
+  @override
   String get jdihFull => '법률 문서 및 정보 네트워크';
 
   @override
@@ -851,9 +856,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get clearChat => '대화 지우기';
 
   @override
-  String chatLimitReached(int max) {
-    return '질문 $max개 한도에 도달했습니다';
-  }
+  String get chatLimitReached => '질문을 입력하면 새 대화가 시작됩니다';
 
   @override
   String get askHint => '질문을 입력하세요...';
@@ -912,7 +915,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String chatFull(int max) {
-    return '이 대화는 질문 $max개에 도달했습니다. 계속 질문하려면 새 대화를 시작하세요.';
+    return '이 대화는 질문 $max개에 도달했습니다. 다음 질문부터 새 대화가 시작됩니다.';
   }
 
   @override
@@ -1125,4 +1128,50 @@ class AppLocalizationsKo extends AppLocalizations {
   String ratingTooltip(String label, int n) {
     return '$label, 5점 중 $n점';
   }
+
+  @override
+  String get logoKendari => '켄다리시 정부 로고';
+
+  @override
+  String get statsDocsLabel => '건의 법률 문서 수록';
+
+  @override
+  String statsReach(String views, String downloads) {
+    return '조회 $views회, 다운로드 $downloads회.';
+  }
+
+  @override
+  String get statsLensYear => '발행 연도';
+
+  @override
+  String get statsLensType => '유형';
+
+  @override
+  String get statsLensStatus => '상태';
+
+  @override
+  String statsYearDocs(int count, String year) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '건',
+    );
+    return '$_temp0 $year년 발행';
+  }
+
+  @override
+  String statsYearSoFar(int count, String year) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '건',
+    );
+    return '$_temp0 $year년 발행(현재까지)';
+  }
+
+  @override
+  String get statsYearHint => '밀어서 연도 선택';
+
+  @override
+  String get statsInForceShare => '현행 유효 비율';
 }

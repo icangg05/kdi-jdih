@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api.dart';
 import '../theme.dart';
@@ -10,25 +12,35 @@ import 'documents.dart';
 
 enum _Mode { teks, ai }
 
+/// Pintu Tanya AI dari mana pun: navigasi bawah, rail, dan tombol-tombol di
+/// beranda. Satu rute (naik dari bawah menutupi layar, turun lagi saat
+/// ditutup) dan satu percakapan ([percakapanAi]) untuk semuanya.
+/// [pertanyaan] langsung dikirim.
+void bukaTanyaAi(BuildContext context, {String pertanyaan = ''}) {
+  // ketukan ganda tidak menumpuk dua lembar AI
+  if (ModalRoute.isCurrentOf(context) == false) return;
+  Navigator.push(
+    context,
+    ruteNaik(
+      SearchScreen(showBack: true, initialAi: true, initialQuery: pertanyaan),
+    ),
+  );
+}
+
 class SearchScreen extends StatefulWidget {
   const SearchScreen({
     super.key,
     this.initialAi = false,
     this.showBack = false,
     this.initialQuery = '',
-    this.onExit,
   });
   final bool initialAi;
 
   /// Kata kunci yang sudah diketik di layar sebelumnya (mis. kolom cari beranda).
   final String initialQuery;
 
-  /// true bila dibuka via push (bukan sebagai tab).
+  /// true bila dibuka via push.
   final bool showBack;
-
-  /// Dipakai saat layar ini jadi tab tanpa navigasi bawah: tidak ada yang bisa
-  /// di-pop, jadi jalan keluarnya harus disediakan shell lewat callback ini.
-  final VoidCallback? onExit;
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -48,17 +60,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: BrandAppBar(
-      context.l10n.smartSearch,
-      showBack: widget.showBack,
-      leading: widget.onExit == null
-          ? null
-          : IconButton(
-              icon: const Icon(Icons.arrow_back),
-              tooltip: context.l10n.back,
-              onPressed: widget.onExit,
-            ),
-    ),
+    appBar: BrandAppBar(context.l10n.smartSearch, showBack: widget.showBack),
     body: Column(
       children: [
         _ModeSwitch(mode: _mode, onChanged: (m) => setState(() => _mode = m)),
@@ -356,8 +358,12 @@ class _DocSearchTabState extends State<_DocSearchTab> {
 
 /// Pertanyaan per percakapan, sama dengan web: server hanya mengingat
 /// beberapa giliran terakhir, jadi percakapan yang lebih panjang terasa
-/// nyambung padahal awalnya sudah terlupakan.
+/// nyambung padahal awalnya sudah terlupakan. Sekaligus batas riwayat yang
+/// disimpan di perangkat: pertanyaan berikutnya memulai percakapan baru.
 const _maxTurns = 10;
+
+/// Kunci SharedPreferences riwayat Tanya AI.
+const _kunciRiwayat = 'tanya_ai';
 
 /// Giliran yang ikut dikirim ke server (server memotong lagi).
 const _maxHistory = 12;
@@ -395,9 +401,154 @@ class _Msg {
   bool muncul = false;
 }
 
+/// Percakapan Tanya AI untuk seluruh app.
+final percakapanAi = PercakapanAi();
+
+/// Satu percakapan untuk semua pintu Tanya AI (lihat [bukaTanyaAi]): dulu
+/// tiap pintu punya percakapannya sendiri, sehingga riwayatnya tampak
+/// berbeda tergantung tombol yang diketuk. Hidup di luar layar, jadi jawaban
+/// yang tiba setelah layar ditutup tetap tercatat. Giliran yang sudah
+/// dijawab disimpan di perangkat setelah [muat].
+class PercakapanAi extends ChangeNotifier {
+  SharedPreferences? _prefs;
+  final _msgs = <_Msg>[];
+  final _history = <Json>[];
+  bool _busy = false;
+
+  /// Naik tiap percakapan baru; jawaban percakapan lama yang tiba terlambat
+  /// dibuang alih-alih masuk ke riwayat yang baru.
+  int _sesi = 0;
+
+  /// Jawaban sedang ditunggu dari server.
+  bool get sibuk => _busy;
+
+  /// Pertanyaan yang sudah dijawab di percakapan ini.
+  int get jumlahPertanyaan => _history.where((h) => h['role'] == 'user').length;
+
+  /// Batas tercapai: pertanyaan berikutnya memulai percakapan baru.
+  bool get penuh => jumlahPertanyaan >= _maxTurns;
+
+  /// Pulihkan riwayat dari perangkat, lalu simpan setiap perubahannya. Tanpa
+  /// ini (mis. di tes) percakapan hanya hidup di memori.
+  void muat(SharedPreferences prefs) {
+    _prefs = prefs;
+    _kosongkan();
+    try {
+      final giliran = jsonDecode(prefs.getString(_kunciRiwayat) ?? '[]');
+      // melewati batas = bukan riwayat yang ditulis app ini: mulai bersih
+      if (giliran is! List || giliran.length > _maxTurns) {
+        throw const FormatException();
+      }
+      for (final g in giliran.cast<Map>()) {
+        final q = g['q'] as String, a = g['a'] as String;
+        _msgs
+          ..add(_Msg(false, q)..muncul = true)
+          ..add(
+            _Msg(true, a)
+              ..typed = true
+              ..docs = [
+                for (final d in g['docs'] as List? ?? const [])
+                  if (d is Map) Map<String, dynamic>.from(d),
+              ],
+          );
+        _catat(q, a);
+      }
+    } catch (_) {
+      _kosongkan();
+      prefs.remove(_kunciRiwayat);
+    }
+    notifyListeners();
+  }
+
+  void _catat(String q, String a) => _history
+    ..add({'role': 'user', 'text': q})
+    // server menolak teks riwayat > 4000 karakter; jangan sampai satu
+    // jawaban panjang mematahkan seluruh percakapan
+    ..add({'role': 'ai', 'text': a.length > 4000 ? a.substring(0, 4000) : a});
+
+  /// Hanya giliran yang sudah dijawab; yang gagal atau masih ditunggu cukup
+  /// hidup di memori.
+  void _simpan() {
+    final prefs = _prefs;
+    if (prefs == null) return;
+    final giliran = [
+      for (var i = 0; i + 1 < _msgs.length; i += 2)
+        if (!_msgs[i + 1].pending && _msgs[i + 1].failed == null)
+          {
+            'q': _msgs[i].text,
+            'a': _msgs[i + 1].text,
+            'docs': _msgs[i + 1].docs,
+          },
+    ];
+    giliran.isEmpty
+        ? prefs.remove(_kunciRiwayat)
+        : prefs.setString(_kunciRiwayat, jsonEncode(giliran));
+  }
+
+  void _kosongkan() {
+    _sesi++;
+    _busy = false;
+    _msgs.clear();
+    _history.clear();
+  }
+
+  /// Kirim [q]; [tanpaJawaban] tampil bila server tidak memberi penjelasan.
+  Future<void> tanya(String q, {required String tanpaJawaban}) async {
+    if (q.isEmpty || _busy) return;
+    if (penuh) _kosongkan();
+    final sesi = _sesi;
+    final reply = _Msg(true)..pending = true;
+    final history = _history.length > _maxHistory
+        ? _history.sublist(_history.length - _maxHistory)
+        : List.of(_history);
+    _busy = true;
+    _msgs
+      ..add(_Msg(false, q))
+      ..add(reply);
+    notifyListeners();
+    try {
+      final r = await api.aiSearch(q, history: history);
+      if (sesi != _sesi) return;
+      reply.text = r.sn('explanation') ?? tanpaJawaban;
+      reply.docs = r.l('documents');
+      _catat(q, reply.text);
+    } catch (e) {
+      if (sesi != _sesi) return;
+      reply
+        ..text = '$e'
+        ..failed = q;
+    }
+    reply.pending = false;
+    _busy = false;
+    _simpan();
+    notifyListeners();
+  }
+
+  /// Mulai percakapan baru.
+  void reset() {
+    _kosongkan();
+    _simpan();
+    notifyListeners();
+  }
+
+  /// [reset] yang bisa diurungkan: fungsi yang dikembalikan memulihkan
+  /// percakapan, selama belum ada pertanyaan baru.
+  VoidCallback bersihkan() {
+    final msgs = List.of(_msgs), history = List.of(_history);
+    reset();
+    return () {
+      if (_msgs.isNotEmpty) return;
+      _msgs.addAll(msgs);
+      _history.addAll(history);
+      _simpan();
+      notifyListeners();
+    };
+  }
+}
+
 /// Tanya AI mode percakapan, mekanismenya sama dengan modal web: riwayat
 /// dikirim ulang tiap giliran, jawaban "diketik", lalu dokumen yang relevan
-/// dilampirkan di bawahnya.
+/// dilampirkan di bawahnya. Isinya milik [percakapanAi].
 class _AiChat extends StatefulWidget {
   const _AiChat({super.key, this.query = ''});
 
@@ -411,38 +562,41 @@ class _AiChat extends StatefulWidget {
 class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
   final _ctrl = TextEditingController();
   final _scroll = ScrollController();
-  final _msgs = <_Msg>[];
-  final _history = <Json>[];
-  bool _busy = false;
+  final _p = percakapanAi;
 
-  /// Naik tiap percakapan baru; jawaban percakapan lama yang tiba terlambat
-  /// dibuang alih-alih masuk ke riwayat yang baru.
-  int _sesi = 0;
-
-  bool get _penuh =>
-      _history.where((h) => h['role'] == 'user').length >= _maxTurns;
+  List<_Msg> get _msgs => _p._msgs;
 
   /// Jawaban belum utuh: masih ditunggu dari server ATAU masih diketik.
   /// Bagi pembaca keduanya sama-sama "sedang diproses".
   bool get _proses =>
-      _busy || _msgs.any((m) => m.ai && !m.typed && m.failed == null);
+      _p.sibuk || _msgs.any((m) => m.ai && !m.typed && m.failed == null);
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _p.addListener(_berubah);
     final q = widget.query.trim();
     if (q.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) => ask(q));
+    } else if (_msgs.isNotEmpty) {
+      _bukaDiDasar();
     }
   }
 
   @override
   void dispose() {
+    _p.removeListener(_berubah);
     WidgetsBinding.instance.removeObserver(this);
     _ctrl.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  void _berubah() {
+    final ikut = _diDasar;
+    setState(() {});
+    if (ikut) _keDasar();
   }
 
   // Daftar TIDAK dibalik: isi yang tumbuh (lampiran dibuka) memanjang ke
@@ -472,71 +626,46 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
     if (_diDasar) _keDasar();
   }
 
+  /// Percakapan yang dilanjutkan dibuka di pesan terakhirnya. Tinggi pesan
+  /// yang belum dilukis hanya taksiran, jadi lompatan diulang sampai benar
+  /// di dasar.
+  void _bukaDiDasar([int sisa = 5]) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scroll.hasClients) return;
+      final p = _scroll.position;
+      if (p.extentAfter == 0 || sisa == 0) return;
+      p.jumpTo(p.maxScrollExtent);
+      _bukaDiDasar(sisa - 1);
+    });
+  }
+
   /// Papan ketik memperpendek layar dari bawah; tanpa ini pesan terakhir
   /// tertutup begitu kolom pertanyaan disentuh.
   @override
   void didChangeMetrics() => _ikuti();
 
-  Future<void> ask([String? preset]) async {
+  void ask([String? preset]) {
     final q = (preset ?? _ctrl.text).trim();
-    if (q.isEmpty || _busy || _penuh || !mounted) return;
-    FocusScope.of(context).unfocus();
-    final sesi = _sesi;
-    final reply = _Msg(true)..pending = true;
-    final history = _history.length > _maxHistory
-        ? _history.sublist(_history.length - _maxHistory)
-        : List.of(_history);
-    setState(() {
-      _busy = true;
-      _ctrl.clear();
-      _msgs
-        ..add(_Msg(false, q))
-        ..add(reply);
-    });
-    _keDasar(animasi: true);
-    try {
-      final r = await api.aiSearch(q, history: history);
-      if (sesi != _sesi || !mounted) return;
-      reply.text = r.sn('explanation') ?? context.l10n.aiNoAnswer;
-      reply.docs = r.l('documents');
-      // server menolak teks riwayat > 4000 karakter; jangan sampai satu
-      // jawaban panjang mematahkan seluruh percakapan
-      final simpan = reply.text.length > 4000
-          ? reply.text.substring(0, 4000)
-          : reply.text;
-      _history
-        ..add({'role': 'user', 'text': q})
-        ..add({'role': 'ai', 'text': simpan});
-    } catch (e) {
-      if (sesi != _sesi) return;
-      reply
-        ..text = '$e'
-        ..failed = q;
+    if (q.isEmpty || !mounted) return;
+    // jawaban sebelumnya masih ditunggu: pertanyaan dari layar lain tidak
+    // hilang, ia menunggu di kolom isian
+    if (_p.sibuk) {
+      if (preset != null) _ctrl.text = q;
+      return;
     }
-    if (!mounted) return;
-    final ikut = _diDasar;
-    setState(() {
-      reply.pending = false;
-      _busy = false;
-    });
-    if (ikut) _keDasar();
-  }
-
-  void _reset() => setState(() {
-    _sesi++;
-    _busy = false;
-    _msgs.clear();
-    _history.clear();
+    FocusScope.of(context).unfocus();
     _ctrl.clear();
-  });
+    _p.tanya(q, tanpaJawaban: context.l10n.aiNoAnswer);
+    _keDasar(animasi: true);
+  }
 
   /// Bersihkan percakapan, dengan jalan pulang: satu ketukan tak sengaja
   /// tidak boleh menghapus seluruh tanya-jawab tanpa bisa dikembalikan.
   /// Hanya bisa saat jawaban terakhir sudah utuh (lihat [_proses]), jadi
   /// tidak ada balasan tertunda yang ikut tersimpan.
   void _bersihkan() {
-    final msgs = List.of(_msgs), history = List.of(_history);
-    _reset();
+    final pulihkan = _p.bersihkan();
+    _ctrl.clear();
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -545,12 +674,8 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
           action: SnackBarAction(
             label: context.l10n.undo,
             onPressed: () {
-              if (!mounted || _msgs.isNotEmpty) return;
-              setState(() {
-                _msgs.addAll(msgs);
-                _history.addAll(history);
-              });
-              _keDasar();
+              pulihkan();
+              if (mounted) _keDasar();
             },
           ),
         ),
@@ -575,7 +700,8 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
                 )
               : _Masuk(m, child: _UserBubble(m.text)),
         ),
-      if (_penuh && !_busy) (const ValueKey('batas'), _Batas(onReset: _reset)),
+      if (_p.penuh && !_p.sibuk)
+        (const ValueKey('batas'), _Batas(onReset: _p.reset)),
     ];
     return Column(
       children: [
@@ -634,7 +760,6 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
                   Expanded(
                     child: TextField(
                       controller: _ctrl,
-                      enabled: !_penuh,
                       minLines: 1,
                       maxLines: 4,
                       // batas server 500 karakter; penghitung baru muncul saat
@@ -652,8 +777,8 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
                           : null,
                       textInputAction: TextInputAction.send,
                       decoration: InputDecoration(
-                        hintText: _penuh
-                            ? context.l10n.chatLimitReached(_maxTurns)
+                        hintText: _p.penuh
+                            ? context.l10n.chatLimitReached
                             : context.l10n.askHint,
                       ),
                       onSubmitted: (_) => ask(),
@@ -666,7 +791,7 @@ class _AiChatState extends State<_AiChat> with WidgetsBindingObserver {
                       minimumSize: const Size(48, 48),
                     ),
                     icon: const Icon(Icons.send, size: 20),
-                    onPressed: _busy || _penuh ? null : ask,
+                    onPressed: _p.sibuk ? null : ask,
                   ),
                 ],
               ),
@@ -1373,7 +1498,8 @@ class _DocLampiran extends StatelessWidget {
   );
 }
 
-/// Batas [_maxTurns] pertanyaan tercapai: ajak memulai percakapan baru.
+/// Batas [_maxTurns] pertanyaan tercapai: beri tahu bahwa pertanyaan
+/// berikutnya memulai percakapan baru, atau mulai sekarang.
 class _Batas extends StatelessWidget {
   const _Batas({required this.onReset});
   final VoidCallback onReset;

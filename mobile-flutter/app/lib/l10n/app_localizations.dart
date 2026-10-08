@@ -1242,6 +1242,12 @@ abstract class AppLocalizations {
   /// **'Konten struktur organisasi tersedia di situs web JDIH Kota Kendari.'**
   String get orgStructureOnWeb;
 
+  /// No description provided for @orgChart.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagan Struktur Organisasi ({n})'**
+  String orgChart(int n);
+
   /// No description provided for @jdihFull.
   ///
   /// In id, this message translates to:
@@ -1641,8 +1647,8 @@ abstract class AppLocalizations {
   /// No description provided for @chatLimitReached.
   ///
   /// In id, this message translates to:
-  /// **'Batas {max} pertanyaan tercapai'**
-  String chatLimitReached(int max);
+  /// **'Ketik untuk memulai percakapan baru'**
+  String get chatLimitReached;
 
   /// No description provided for @askHint.
   ///
@@ -1737,7 +1743,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatFull.
   ///
   /// In id, this message translates to:
-  /// **'Percakapan ini sudah mencapai {max} pertanyaan. Mulai percakapan baru untuk bertanya lagi.'**
+  /// **'Percakapan ini sudah mencapai {max} pertanyaan. Pertanyaan berikutnya akan memulai percakapan baru.'**
   String chatFull(int max);
 
   /// No description provided for @newChat.
@@ -2057,6 +2063,66 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'{label}, {n} dari 5'**
   String ratingTooltip(String label, int n);
+
+  /// No description provided for @logoKendari.
+  ///
+  /// In id, this message translates to:
+  /// **'Logo Pemerintah Kota Kendari'**
+  String get logoKendari;
+
+  /// No description provided for @statsDocsLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'dokumen hukum terdokumentasi'**
+  String get statsDocsLabel;
+
+  /// No description provided for @statsReach.
+  ///
+  /// In id, this message translates to:
+  /// **'Dilihat {views} kali, diunduh {downloads} kali.'**
+  String statsReach(String views, String downloads);
+
+  /// No description provided for @statsLensYear.
+  ///
+  /// In id, this message translates to:
+  /// **'Tahun terbit'**
+  String get statsLensYear;
+
+  /// No description provided for @statsLensType.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis'**
+  String get statsLensType;
+
+  /// No description provided for @statsLensStatus.
+  ///
+  /// In id, this message translates to:
+  /// **'Status'**
+  String get statsLensStatus;
+
+  /// No description provided for @statsYearDocs.
+  ///
+  /// In id, this message translates to:
+  /// **'{count, plural, other{dokumen}} terbit tahun {year}'**
+  String statsYearDocs(int count, String year);
+
+  /// No description provided for @statsYearSoFar.
+  ///
+  /// In id, this message translates to:
+  /// **'{count, plural, other{dokumen}} terbit tahun {year}, sejauh ini'**
+  String statsYearSoFar(int count, String year);
+
+  /// No description provided for @statsYearHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Geser untuk memilih tahun'**
+  String get statsYearHint;
+
+  /// No description provided for @statsInForceShare.
+  ///
+  /// In id, this message translates to:
+  /// **'koleksi masih berlaku'**
+  String get statsInForceShare;
 }
 
 class _AppLocalizationsDelegate

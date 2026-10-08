@@ -655,6 +655,11 @@ class AppLocalizationsId extends AppLocalizations {
       'Konten struktur organisasi tersedia di situs web JDIH Kota Kendari.';
 
   @override
+  String orgChart(int n) {
+    return 'Bagan Struktur Organisasi ($n)';
+  }
+
+  @override
   String get jdihFull => 'Jaringan Dokumentasi dan Informasi Hukum';
 
   @override
@@ -866,9 +871,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get clearChat => 'Bersihkan percakapan';
 
   @override
-  String chatLimitReached(int max) {
-    return 'Batas $max pertanyaan tercapai';
-  }
+  String get chatLimitReached => 'Ketik untuk memulai percakapan baru';
 
   @override
   String get askHint => 'Tulis pertanyaan Anda...';
@@ -928,7 +931,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String chatFull(int max) {
-    return 'Percakapan ini sudah mencapai $max pertanyaan. Mulai percakapan baru untuk bertanya lagi.';
+    return 'Percakapan ini sudah mencapai $max pertanyaan. Pertanyaan berikutnya akan memulai percakapan baru.';
   }
 
   @override
@@ -1143,4 +1146,50 @@ class AppLocalizationsId extends AppLocalizations {
   String ratingTooltip(String label, int n) {
     return '$label, $n dari 5';
   }
+
+  @override
+  String get logoKendari => 'Logo Pemerintah Kota Kendari';
+
+  @override
+  String get statsDocsLabel => 'dokumen hukum terdokumentasi';
+
+  @override
+  String statsReach(String views, String downloads) {
+    return 'Dilihat $views kali, diunduh $downloads kali.';
+  }
+
+  @override
+  String get statsLensYear => 'Tahun terbit';
+
+  @override
+  String get statsLensType => 'Jenis';
+
+  @override
+  String get statsLensStatus => 'Status';
+
+  @override
+  String statsYearDocs(int count, String year) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'dokumen',
+    );
+    return '$_temp0 terbit tahun $year';
+  }
+
+  @override
+  String statsYearSoFar(int count, String year) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'dokumen',
+    );
+    return '$_temp0 terbit tahun $year, sejauh ini';
+  }
+
+  @override
+  String get statsYearHint => 'Geser untuk memilih tahun';
+
+  @override
+  String get statsInForceShare => 'koleksi masih berlaku';
 }

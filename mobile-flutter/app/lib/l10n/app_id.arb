@@ -354,6 +354,14 @@
   "menuServices": "Layanan & Informasi",
   "menuApp": "Aplikasi",
   "orgStructureOnWeb": "Konten struktur organisasi tersedia di situs web JDIH Kota Kendari.",
+  "orgChart": "Bagan Struktur Organisasi ({n})",
+  "@orgChart": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "jdihFull": "Jaringan Dokumentasi dan Informasi Hukum",
   "phone": "Telepon",
   "email": "Email",
@@ -444,14 +452,7 @@
   "chatCleared": "Percakapan dibersihkan.",
   "undo": "Urungkan",
   "clearChat": "Bersihkan percakapan",
-  "chatLimitReached": "Batas {max} pertanyaan tercapai",
-  "@chatLimitReached": {
-    "placeholders": {
-      "max": {
-        "type": "int"
-      }
-    }
-  },
+  "chatLimitReached": "Ketik untuk memulai percakapan baru",
   "askHint": "Tulis pertanyaan Anda...",
   "send": "Kirim",
   "aiDisclaimer": "Jawaban dibuat otomatis oleh AI. Selalu periksa dokumen aslinya.",
@@ -481,7 +482,7 @@
       }
     }
   },
-  "chatFull": "Percakapan ini sudah mencapai {max} pertanyaan. Mulai percakapan baru untuk bertanya lagi.",
+  "chatFull": "Percakapan ini sudah mencapai {max} pertanyaan. Pertanyaan berikutnya akan memulai percakapan baru.",
   "@chatFull": {
     "placeholders": {
       "max": {
@@ -615,5 +616,45 @@
         "type": "int"
       }
     }
-  }
+  },
+  "logoKendari": "Logo Pemerintah Kota Kendari",
+  "statsDocsLabel": "dokumen hukum terdokumentasi",
+  "statsReach": "Dilihat {views} kali, diunduh {downloads} kali.",
+  "@statsReach": {
+    "placeholders": {
+      "views": {
+        "type": "String"
+      },
+      "downloads": {
+        "type": "String"
+      }
+    }
+  },
+  "statsLensYear": "Tahun terbit",
+  "statsLensType": "Jenis",
+  "statsLensStatus": "Status",
+  "statsYearDocs": "{count, plural, other{dokumen}} terbit tahun {year}",
+  "@statsYearDocs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "statsYearSoFar": "{count, plural, other{dokumen}} terbit tahun {year}, sejauh ini",
+  "@statsYearSoFar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "statsYearHint": "Geser untuk memilih tahun",
+  "statsInForceShare": "koleksi masih berlaku"
 }

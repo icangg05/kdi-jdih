@@ -114,14 +114,19 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       expect(rootTab.value, 0);
 
-      // Dokumen -> Tanya AI -> Back -> kembali ke Dokumen (tab asal)
+      // Dokumen -> Tanya AI -> Back -> kembali ke Dokumen (tab asal):
+      // Tanya AI lembar di atas tab, bukan tab
       await tester.tap(find.text('Dokumen'));
       await tester.pump(const Duration(seconds: 1));
       await tester.tap(find.text('Tanya AI'));
+      await tester.pump(); // frame pertama = awal gerak
       await tester.pump(const Duration(seconds: 1));
-      expect(rootTab.value, 2);
+      expect(find.byType(SearchScreen), findsOneWidget);
+      expect(rootTab.value, 1);
       await tester.binding.handlePopRoute();
+      await tester.pump();
       await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(SearchScreen), findsNothing);
       expect(rootTab.value, 1);
       await tester.pump(const Duration(seconds: 2));
     }, () => MockClient((_) async => http.Response('{}', 500)));
@@ -155,12 +160,15 @@ void main() {
           matching: find.text('Tanya AI'),
         ),
       );
+      await tester.pump(); // frame pertama = awal gerak
       await tester.pump(const Duration(milliseconds: 120));
       // di tengah gerak: beranda masih terlihat di bawah lembar yang naik
       expect(beranda, findsOneWidget);
       expect(puncak(), greaterThan(0));
       await tester.pump(const Duration(seconds: 1));
       expect(puncak(), 0);
+      // selayar penuh, menutupi navigasi bawah — sama dengan pintu beranda
+      expect(tester.getBottomLeft(ai).dy, 844);
       expect(beranda, findsNothing); // offstage
 
       await tester.binding.handlePopRoute();
@@ -168,6 +176,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 120));
       expect(beranda, findsOneWidget);
       expect(puncak(), greaterThan(0)); // lembar AI turun
+      // navigasi bawah diam di tempatnya selama lembar turun
+      final nav = tester.getTopLeft(find.byType(NavBawah)).dy;
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(tester.getTopLeft(find.byType(NavBawah)).dy, nav);
       await tester.pump(const Duration(seconds: 1));
       expect(ai, findsNothing);
       expect(rootTab.value, 0);

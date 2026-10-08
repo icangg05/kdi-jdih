@@ -80,12 +80,7 @@ class HomeScreen extends StatelessWidget {
         const SizedBox(height: AppSpacing.xl),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: AiPromoCard(
-            onTap: () => Navigator.push(
-              context,
-              ruteNaik(const SearchScreen(showBack: true, initialAi: true)),
-            ),
-          ),
+          child: AiPromoCard(onTap: () => bukaTanyaAi(context)),
         ),
       ];
       final dokumen = <Widget>[
@@ -229,62 +224,48 @@ class _KepalaBeranda extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Kop: logo JDIHN lalu lambang Pemkot, urutan sama dengan
+              // header web; bahasa di ujung kanan. Nama layanan di baris
+              // sendiri: di samping dua logo, "JDIH Kota Kendari" terpotong
+              // di HP 360dp dan nama panjangnya pecah jadi tiga baris.
               Row(
                 children: [
-                  // alas putih transparan, sama dengan pil bahasa. Logo versi
-                  // terang (globe putih, huruf bertepi putih): warna aslinya
-                  // biru dan tenggelam di latar biru
-                  Container(
-                    width: 44,
-                    height: 44,
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: C.onDark.withValues(alpha: .14),
-                      borderRadius: BorderRadius.circular(AppRadius.chip),
-                      border: Border.all(
-                        color: C.onDark.withValues(alpha: .35),
-                      ),
-                    ),
-                    child: Image(
-                      image: const AssetImage(
-                        'assets/img/logo-jdihn-putih.png',
-                      ),
-                      semanticLabel: context.l10n.logoJdihn,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.l10n.appName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: T.labelBesar.copyWith(
-                            color: C.onDark,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          context.l10n.jdihFull,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: T.labelKecil.copyWith(
-                            color: C.onDark.withValues(alpha: .8),
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
+                  // versi terang (globe putih, huruf bertepi putih): warna
+                  // aslinya biru dan tenggelam di latar biru
+                  Image(
+                    image: const AssetImage('assets/img/logo-jdihn-putih.png'),
+                    height: 40,
+                    semanticLabel: context.l10n.logoJdihn,
                   ),
                   const SizedBox(width: AppSpacing.sm),
+                  // bingkai hitam-putih lambang sudah memisahkannya dari biru
+                  Image(
+                    image: const AssetImage('assets/img/logo-kendari.png'),
+                    height: 38,
+                    semanticLabel: context.l10n.logoKendari,
+                  ),
+                  const Spacer(),
                   ListenableBuilder(
                     listenable: langNotifier,
                     builder: (context, _) =>
                         LangPill(gelap: true, onTap: () => pickLang(context)),
                   ),
                 ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                context.l10n.appName,
+                style: T.labelBesar.copyWith(
+                  color: C.onDark,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                context.l10n.jdihFull,
+                style: T.labelKecil.copyWith(
+                  color: C.onDark.withValues(alpha: .8),
+                  fontWeight: FontWeight.w400,
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
               Text(
@@ -359,8 +340,8 @@ class _Semboyan extends StatelessWidget {
   );
 }
 
-/// Ringkasan statistik di beranda: angka total + status keberlakuan.
-/// Pelengkap, jadi gagal = senyap; grafik lengkap ada di StatistikScreen.
+/// Ringkasan statistik di beranda ([PanelKoleksi]). Pelengkap, jadi gagal =
+/// senyap; grafik lengkap ada di StatistikScreen.
 class _HomeStats extends StatefulWidget {
   const _HomeStats();
 
@@ -391,21 +372,7 @@ class _HomeStatsState extends State<_HomeStats>
           final d = snap.data;
           return Skeletonizer(
             enabled: d == null,
-            child: Column(
-              children: [
-                RingkasanCard(
-                  total: d?.i('total_dokumen') ?? 1234,
-                  dilihat: d?.i('total_views') ?? 12345,
-                  diunduh: d?.i('total_downloads') ?? 1234,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                StatusChart(
-                  d == null
-                      ? const {StatusKind.berlaku: 3, StatusKind.dicabut: 1}
-                      : statusBuckets(d.l('dokumen_per_status')),
-                ),
-              ],
-            ),
+            child: PanelKoleksi(d ?? PanelKoleksi.contoh),
           );
         },
       ),
@@ -426,14 +393,13 @@ class _HomeSearchBarState extends State<_HomeSearchBar> {
 
   void _go({bool ai = false}) {
     FocusScope.of(context).unfocus();
-    final cari = SearchScreen(
-      showBack: true,
-      initialAi: ai,
-      initialQuery: _ctrl.text.trim(),
-    );
+    final q = _ctrl.text.trim();
+    if (ai) return bukaTanyaAi(context, pertanyaan: q);
     Navigator.push(
       context,
-      ai ? ruteNaik(cari) : MaterialPageRoute(builder: (_) => cari),
+      MaterialPageRoute(
+        builder: (_) => SearchScreen(showBack: true, initialQuery: q),
+      ),
     );
   }
 

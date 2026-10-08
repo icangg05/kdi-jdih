@@ -155,19 +155,96 @@ class ProfilScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: BrandAppBar(title),
-    body: LoadView(
-      load: () => api.profile(kategori),
-      contoh: const {
-        'body':
-            '<p>$kSkeletonTeks</p><p>$kSkeletonTeks</p><p>$kSkeletonTeks</p>',
-      },
-      builder: (context, d) => ListView(
-        padding: padTengah(context),
-        children: [
-          d.sn('body') != null
-              ? HtmlBody(d.s('body'))
-              : Text(context.l10n.orgStructureOnWeb),
-        ],
+    body: kategori == 'sto'
+        ? const _BaganOrganisasi()
+        : LoadView(
+            load: () => api.profile(kategori),
+            contoh: const {
+              'body':
+                  '<p>$kSkeletonTeks</p><p>$kSkeletonTeks</p><p>$kSkeletonTeks</p>',
+            },
+            builder: (context, d) => ListView(
+              padding: padTengah(context),
+              children: [
+                d.sn('body') != null
+                    ? HtmlBody(d.s('body'))
+                    : Text(context.l10n.orgStructureOnWeb),
+              ],
+            ),
+          ),
+  );
+}
+
+/// Bagan struktur organisasi, sama dengan web (public/assets/img). Untuk
+/// sementara gambar bawaan app: API profil 'sto' belum membawa isinya.
+const _bagan = ['assets/img/struktur-1.png', 'assets/img/struktur-2.png'];
+
+class _BaganOrganisasi extends StatelessWidget {
+  const _BaganOrganisasi();
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: padTengah(context),
+    children: [
+      for (final (i, path) in _bagan.indexed) ...[
+        if (i > 0) const SizedBox(height: AppSpacing.lg),
+        _Bagan(path, judul: context.l10n.orgChart(i + 1)),
+      ],
+    ],
+  );
+}
+
+/// Satu bagan: tulisannya kecil di layar HP, jadi diketuk untuk dibuka
+/// layar penuh dan dicubit untuk diperbesar.
+class _Bagan extends StatelessWidget {
+  const _Bagan(this.path, {required this.judul});
+  final String path, judul;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: '$judul. ${context.l10n.tapToEnlarge}',
+    excludeSemantics: true,
+    child: Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => openAssetImage(context, path, tag: path),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Hero(
+                tag: path,
+                child: Image.asset(path, fit: BoxFit.contain),
+              ),
+            ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.account_tree_outlined,
+                    size: 16,
+                    color: C.accent,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      judul,
+                      style: T.isiKecil.copyWith(color: C.lightInkMuted),
+                    ),
+                  ),
+                  const Icon(Icons.zoom_in, size: 20, color: C.lightInkMuted),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     ),
   );

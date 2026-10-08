@@ -9,6 +9,7 @@ import 'package:jdih_kendari/api.dart';
 import 'package:jdih_kendari/main.dart';
 import 'package:jdih_kendari/screens/documents.dart';
 import 'package:jdih_kendari/screens/home.dart';
+import 'package:jdih_kendari/screens/search.dart';
 import 'package:jdih_kendari/theme.dart';
 import 'package:jdih_kendari/widgets.dart';
 
@@ -95,11 +96,11 @@ void main() {
       await _tunggu(tester);
       expect(rootTab.value, 1);
 
-      // Tanya AI di puncak rail; rail tetap ada di layar percakapan
+      // Tanya AI di puncak rail: lembar yang sama dengan pintu lain
       await tester.tap(find.bySemanticsLabel('Tanya AI dan pencarian'));
       await _tunggu(tester);
-      expect(rootTab.value, 2);
-      expect(find.byType(NavigationRail), findsOneWidget);
+      expect(find.byType(SearchScreen), findsOneWidget);
+      expect(rootTab.value, 1);
       expect(tester.takeException(), isNull);
     }, _api);
   });

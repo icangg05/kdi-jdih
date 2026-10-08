@@ -660,6 +660,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'The organizational structure is available on the JDIH Kendari City website.';
 
   @override
+  String orgChart(int n) {
+    return 'Organizational Chart ($n)';
+  }
+
+  @override
   String get jdihFull => 'Legal Documentation and Information Network';
 
   @override
@@ -875,9 +880,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearChat => 'Clear conversation';
 
   @override
-  String chatLimitReached(int max) {
-    return '$max-question limit reached';
-  }
+  String get chatLimitReached => 'Type to start a new conversation';
 
   @override
   String get askHint => 'Type your question...';
@@ -938,7 +941,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatFull(int max) {
-    return 'This conversation has reached $max questions. Start a new conversation to ask more.';
+    return 'This conversation has reached $max questions. Your next question will start a new conversation.';
   }
 
   @override
@@ -1155,4 +1158,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String ratingTooltip(String label, int n) {
     return '$label, $n of 5';
   }
+
+  @override
+  String get logoKendari => 'Kendari City Government logo';
+
+  @override
+  String get statsDocsLabel => 'legal documents on record';
+
+  @override
+  String statsReach(String views, String downloads) {
+    return 'Viewed $views times, downloaded $downloads times.';
+  }
+
+  @override
+  String get statsLensYear => 'Year';
+
+  @override
+  String get statsLensType => 'Type';
+
+  @override
+  String get statsLensStatus => 'Status';
+
+  @override
+  String statsYearDocs(int count, String year) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'documents',
+      one: 'document',
+    );
+    return '$_temp0 issued in $year';
+  }
+
+  @override
+  String statsYearSoFar(int count, String year) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'documents',
+      one: 'document',
+    );
+    return '$_temp0 issued in $year so far';
+  }
+
+  @override
+  String get statsYearHint => 'Drag to pick a year';
+
+  @override
+  String get statsInForceShare => 'of the collection still in force';
 }

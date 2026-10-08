@@ -167,8 +167,9 @@ class BarisKartu extends StatelessWidget {
   );
 }
 
-/// Tab shell utama yang sedang aktif (0 Beranda, 1 Dokumen, 2 Cari, 3 Kabar,
-/// 4 Menu). Halaman detail memakai ini untuk pulang ke tab tertentu.
+/// Tab shell utama yang sedang aktif (0 Beranda, 1 Dokumen, 3 Kabar, 4 Menu;
+/// 2 = slot tombol Tanya AI, yang membuka rute, bukan tab). Halaman detail
+/// memakai ini untuk pulang ke tab tertentu.
 final rootTab = ValueNotifier<int>(0);
 
 const kTabKabar = 3;
@@ -722,19 +723,51 @@ class _SampulCadangan extends StatelessWidget {
 /// [tag] harus sama dengan Hero pada gambar asal agar transisinya menyatu.
 void openImage(BuildContext context, String? url, {required String tag}) {
   if (url == null || url.isEmpty) return;
-  Navigator.push(
+  _bukaGambar(
     context,
-    PageRouteBuilder(
-      opaque: false,
-      barrierColor: C.ink.withValues(alpha: .94),
-      pageBuilder: (_, _, _) => _ImageViewer(url, tag: tag),
+    tag,
+    CachedNetworkImage(
+      imageUrl: url,
+      fit: BoxFit.contain,
+      // versi selebar layar dari NetImage halaman asal sudah ada di memori:
+      // tampil seketika selama Hero terbang, lalu diganti resolusi penuh
+      // untuk diperbesar
+      placeholder: (context, _) => CachedNetworkImage(
+        imageUrl: url,
+        fit: BoxFit.contain,
+        memCacheWidth:
+            (MediaQuery.sizeOf(context).width *
+                    MediaQuery.devicePixelRatioOf(context))
+                .round(),
+        placeholder: (_, _) =>
+            const Center(child: CircularProgressIndicator(color: C.primary)),
+      ),
+      errorWidget: (_, _, _) => const Icon(
+        Icons.broken_image_outlined,
+        color: Colors.white54,
+        size: 48,
+      ),
     ),
   );
 }
 
+/// [openImage] untuk gambar bawaan app (aset lokal).
+void openAssetImage(BuildContext context, String path, {required String tag}) =>
+    _bukaGambar(context, tag, Image.asset(path, fit: BoxFit.contain));
+
+void _bukaGambar(BuildContext context, String tag, Widget gambar) =>
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: C.ink.withValues(alpha: .94),
+        pageBuilder: (_, _, _) => _ImageViewer(gambar, tag: tag),
+      ),
+    );
+
 class _ImageViewer extends StatelessWidget {
-  const _ImageViewer(this.url, {required this.tag});
-  final String url;
+  const _ImageViewer(this.gambar, {required this.tag});
+  final Widget gambar;
   final String tag;
 
   @override
@@ -748,32 +781,7 @@ class _ImageViewer extends StatelessWidget {
             minScale: 1,
             maxScale: 5,
             child: Center(
-              child: Hero(
-                tag: tag,
-                child: CachedNetworkImage(
-                  imageUrl: url,
-                  fit: BoxFit.contain,
-                  // versi selebar layar dari NetImage halaman asal sudah ada
-                  // di memori: tampil seketika selama Hero terbang, lalu
-                  // diganti resolusi penuh untuk diperbesar
-                  placeholder: (context, _) => CachedNetworkImage(
-                    imageUrl: url,
-                    fit: BoxFit.contain,
-                    memCacheWidth:
-                        (MediaQuery.sizeOf(context).width *
-                                MediaQuery.devicePixelRatioOf(context))
-                            .round(),
-                    placeholder: (_, _) => const Center(
-                      child: CircularProgressIndicator(color: C.primary),
-                    ),
-                  ),
-                  errorWidget: (_, _, _) => const Icon(
-                    Icons.broken_image_outlined,
-                    color: Colors.white54,
-                    size: 48,
-                  ),
-                ),
-              ),
+              child: Hero(tag: tag, child: gambar),
             ),
           ),
         ),
