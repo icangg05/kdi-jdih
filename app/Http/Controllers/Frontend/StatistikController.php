@@ -25,18 +25,17 @@ class StatistikController extends Controller
                 'totalKoleksiPUU' => DB::table('document')->where('tipe_dokumen', 1)->count() + 
                                     DB::table('pembentukan_puu')->count(),
                 
-                'totalAkses' => DB::table('document')->sum('views') + 
-                               DB::table('pembentukan_puu')->sum('views') + 
-                               DB::table('disabilitas')->sum('views'),
-                
-                'totalDownload' => DB::table('document')->sum('jumlah_download') + 
-                                  DB::table('pembentukan_puu')->sum('jumlah_download') + 
-                                  DB::table('disabilitas')->sum('jumlah_download'),
-                
+                // Tabel disabilitas tidak punya kolom views maupun jumlah_download.
+                'totalAkses' => DB::table('document')->sum('hit_see') +
+                               DB::table('pembentukan_puu')->sum('views'),
+
+                'totalDownload' => DB::table('document')->sum('hit_download') +
+                                  DB::table('pembentukan_puu')->sum('jumlah_download'),
+
                 'statusKeberlakuan' => DB::table('document')
                     ->where('tipe_dokumen', 1)
-                    ->select('status_keberlakuan', DB::raw('COUNT(*) as total'))
-                    ->groupBy('status_keberlakuan')
+                    ->select('status as status_keberlakuan', DB::raw('COUNT(*) as total'))
+                    ->groupBy('status')
                     ->get()
                     ->concat(DB::table('pembentukan_puu')
                         ->select('status_dokumen as status_keberlakuan', DB::raw('COUNT(*) as total'))

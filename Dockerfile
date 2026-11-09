@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:php8.3
+FROM dunglas/frankenphp:php8.5.12
 
 ENV SERVER_NAME=:8000
 ENV APP_ENV=production
@@ -16,6 +16,8 @@ RUN install-php-extensions \
     intl \
     zip \
     opcache
+
+COPY php/php.ini /usr/local/etc/php/php.ini
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

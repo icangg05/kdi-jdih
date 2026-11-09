@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -71,6 +72,31 @@ class UserController extends Controller
 			'title',
 			'data',
 		));
+	}
+
+
+	public function update(Request $request, $id)
+	{
+		$user = User::findOrFail($id);
+
+		$validated = $request->validate([
+			'username' => ['required', 'string', 'max:255', Rule::unique('user', 'username')->ignore($user->id)],
+			'email'    => ['required', 'string', 'email', 'max:255', Rule::unique('user', 'email')->ignore($user->id)],
+			'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+		]);
+
+		$data = [
+			'username' => $validated['username'],
+			'email'    => $validated['email'],
+		];
+
+		// Password hanya diganti kalau diisi
+		if (filled($validated['password'] ?? null))
+			$data['password_hash'] = Hash::make($validated['password']);
+
+		$user->update($data);
+
+		return redirect()->route('backend.user.index')->with('success', 'Data user berhasil diupdate');
 	}
 
 

@@ -96,24 +96,24 @@ Route::middleware('auth')->prefix('dashboard')->name('backend.')->group(function
 
   // Route form peraturan terkait
   Route::prefix('form/{idDokumen}')->group(function () {
-    Route::resource('form-peraturan-terkait', FormPeraturanTerkaitController::class)->except('index');
+    Route::resource('form-peraturan-terkait', FormPeraturanTerkaitController::class)->except(['index', 'show']);
   });
 
 
   // Route form peraturan pelaksana
   Route::prefix('form/{idDokumen}')->group(function () {
-    Route::resource('form-peraturan-pelaksana', FormPeraturanPelaksanaController::class)->except('index');
+    Route::resource('form-peraturan-pelaksana', FormPeraturanPelaksanaController::class)->except(['index', 'show']);
   });
 
 
   // Route form hasil uji materi
   Route::prefix('form/{idDokumen}')->group(function () {
-    Route::resource('form-hasil-uji-materi', FormHasilUjiMateriController::class)->except('index');
+    Route::resource('form-hasil-uji-materi', FormHasilUjiMateriController::class)->except(['index', 'show']);
   });
 
 
   // Route form status peraturan
   Route::prefix('form/{idDokumen}')->group(function () {
-    Route::resource('form-status', FormStatusController::class)->except('index');
+    Route::resource('form-status', FormStatusController::class)->except(['index', 'show']);
   });
 });

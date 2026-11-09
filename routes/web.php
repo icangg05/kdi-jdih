@@ -108,12 +108,6 @@ Route::prefix('{locale}')->where(['locale' => 'id|en|zh|ko'])->name('frontend.')
 
         // Route untuk abstract
         Route::get('/abstract/{id}', [FrontendPembentukanPuuController::class, 'getAbstract'])->name('abstract');
-
-        // Opsional: Halaman statistik
-        Route::get('/statistik', [FrontendPembentukanPuuController::class, 'statistik'])->name('statistik');
-
-        // Opsional: Halaman tentang
-        Route::get('/tentang', [FrontendPembentukanPuuController::class, 'tentang'])->name('tentang');
     });
 });
 
@@ -122,7 +116,6 @@ Route::middleware(['auth'])->prefix('dashboard')->name('backend.')->group(functi
 
     // Dashboard utama
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/statistik-detail', [DashboardController::class, 'getStatistikDetail'])->name('statistik-detail');
     Route::get('/aktivitas-terbaru', [DashboardController::class, 'getAktivitasTerbaru'])->name('aktivitas-terbaru');
 
     // ========== DISABILITAS MANAGEMENT (BACKEND) ==========
@@ -156,17 +149,9 @@ Route::middleware(['auth'])->prefix('dashboard')->name('backend.')->group(functi
         Route::get('/{id}/download/{type}', [PembentukanPuuController::class, 'download'])
             ->name('download')
             ->where('type', 'dokumen|cover|lampiran');
-
-        // Kategori-kategori spesifik (opsional)
-        Route::get('/naskah-akademik', [PembentukanPuuController::class, 'naskahAkademik'])->name('naskah-akademik');
-        Route::get('/rancangan', [PembentukanPuuController::class, 'rancangan'])->name('rancangan');
-        Route::get('/penelitian', [PembentukanPuuController::class, 'penelitian'])->name('penelitian');
-        Route::get('/pengkajian', [PembentukanPuuController::class, 'pengkajian'])->name('pengkajian');
-        Route::get('/pengkajian-konstitusi', [PembentukanPuuController::class, 'pengkajianKonstitusi'])->name('pengkajian-konstitusi');
-        Route::get('/analisis', [PembentukanPuuController::class, 'analisis'])->name('analisis');
     });
 
     // ========== UTILITY ROUTES ==========
-    Route::get('/export-database', [DashboardController::class, 'exportDatabase'])->name('export-database');
+    Route::redirect('/export-database', '/dashboard/backup-database/download');
     Route::get('/generate-wilayah', [DashboardController::class, 'generateWilayah'])->name('generate-wilayah');
 });

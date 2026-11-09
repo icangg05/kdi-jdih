@@ -12,18 +12,11 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfilController extends Controller
 {
-  // public function index()
-  // {
-  //   $logUser = DB::table('log_pustakawan')
-  //     ->orderBy('created_at', 'desc')
-  //     ->paginate(10);
-  //   $logCount = DB::table('log_pustakawan')->count();
-
-  //   return view('backend.profil', compact(
-  //     'logUser',
-  //     'logCount',
-  //   ));
-  // }
+  // Halaman profil dirender UserController@show.
+  public function index()
+  {
+    return redirect()->route('backend.user.show', Auth::id());
+  }
 
 
 

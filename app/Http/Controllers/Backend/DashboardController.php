@@ -541,43 +541,6 @@ class DashboardController extends Controller
         }
     }
 
-    // Method lainnya tetap sama dengan error handling
-    public function exportDatabase()
-    {
-        try {
-            $dbName   = env('DB_DATABASE');
-            $user     = env('DB_USERNAME');
-            $pass     = env('DB_PASSWORD');
-            $host     = env('DB_HOST');
-            $filename = 'backup_' . $dbName . '_' . now()->format('Y-m-d_H-i-s') . '.sql';
-            $filePath = storage_path("app/public/$filename");
-
-            $mysqldump = 'C:\\laragon\\bin\\mysql\\mysql-8.0.30-winx64\\bin\\mysqldump.exe';
-            $passPart = $pass ? "-p$pass" : '';
-            $command  = "\"$mysqldump\" -h $host -u $user $passPart $dbName > \"$filePath\"";
-
-            exec($command . ' 2>&1', $output, $result);
-
-            if (!file_exists($filePath) || filesize($filePath) < 5000) {
-              return response()->json([
-                'status' => 'error',
-                'message' => 'Dump gagal atau hanya ekspor struktur.',
-                'command' => $command,
-                'output' => $output,
-                'exit_code' => $result,
-                'filesize' => filesize($filePath)
-              ], 500);
-            }
-
-            return response()->download($filePath)->deleteFileAfterSend(true);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-
     public function downloadFile(Request $request)
     {
         try {

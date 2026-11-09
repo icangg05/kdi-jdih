@@ -56,4 +56,11 @@ class User extends Authenticatable
     {
         return $this->password_hash;
     }
+
+    // Dipakai Laravel saat menyimpan ulang hash ketika login (rehash_on_login);
+    // tanpa ini Laravel menulis ke kolom `password` yang tidak ada di tabel user.
+    public function getAuthPasswordName()
+    {
+        return 'password_hash';
+    }
 }

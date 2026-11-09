@@ -33,17 +33,6 @@ class PembentukanPuuController extends Controller
         'analisis-evaluasi' => 'analisis_evaluasi',
     ];
     
-    // Deskripsi kategori
-    private $categoryDescriptions = [
-        'naskah-akademik' => 'Dokumen akademis sebagai dasar penyusunan peraturan',
-        'naskah-keterangan-penjelasan' => 'Naskah keterangan dan/atau penjelasan atas peraturan',
-        'rancangan-puu' => 'Rancangan peraturan yang sedang dalam proses pembahasan',
-        'penelitian-hukum' => 'Hasil penelitian mendalam tentang aspek hukum',
-        'pengkajian-hukum' => 'Kajian mendalam terhadap aspek hukum tertentu',
-        'pengkajian-konstitusi' => 'Analisis kesesuaian dengan konstitusi dan UUD',
-        'analisis-evaluasi' => 'Evaluasi implementasi dan dampak peraturan',
-    ];
-
     // Helper: Get category by value
     private function getCategoryByValue($value)
     {
@@ -322,73 +311,6 @@ class PembentukanPuuController extends Controller
             'title' => $document->judul,
             'year' => $document->tahun,
             'author' => $document->penulis
-        ]);
-    }
-    
-    // Halaman statistik (opsional)
-    public function statistik()
-    {
-        // Ambil statistik dokumen per kategori
-        $stats = [];
-        $totalDocuments = 0;
-        $totalDownloads = 0;
-        $totalViews = 0;
-        
-        foreach ($this->categories as $category) {
-            $dbValue = $this->categoryMapping[$category['value']] ?? null;
-            if (!$dbValue) continue;
-            
-            $documents = PembentukanPuu::where('jenis_dokumen', $dbValue)
-                ->where('status_publikasi', 'published')
-                ->where('hak_akses', 'public')
-                ->get();
-            
-            $count = $documents->count();
-            $downloads = $documents->sum('jumlah_download');
-            $views = $documents->sum('views');
-            
-            $stats[] = [
-                'label' => $category['label'],
-                'value' => $category['value'],
-                'count' => $count,
-                'downloads' => $downloads,
-                'views' => $views,
-                'percentage' => 0 // Akan diisi nanti
-            ];
-            
-            $totalDocuments += $count;
-            $totalDownloads += $downloads;
-            $totalViews += $views;
-        }
-        
-        // Hitung persentase
-        foreach ($stats as &$stat) {
-            $stat['percentage'] = $totalDocuments > 0 ? round(($stat['count'] / $totalDocuments) * 100, 1) : 0;
-        }
-        
-        // Data untuk chart
-        $chartData = [
-            'labels' => array_column($stats, 'label'),
-            'counts' => array_column($stats, 'count'),
-            'colors' => ['#4f46e5', '#8b5cf6', '#6366f1', '#a855f7', '#d946ef', '#ec4899', '#14b8a6']
-        ];
-        
-        return view('frontend.pembentukan-PUU.statistik', [
-            'stats' => $stats,
-            'totalDocuments' => $totalDocuments,
-            'totalDownloads' => $totalDownloads,
-            'totalViews' => $totalViews,
-            'chartData' => $chartData,
-            'categories' => $this->categories,
-        ]);
-    }
-    
-    // Halaman tentang (opsional)
-    public function tentang()
-    {
-        return view('frontend.pembentukan-PUU.tentang', [
-            'categories' => $this->categories,
-            'categoryDescriptions' => $this->categoryDescriptions
         ]);
     }
 }

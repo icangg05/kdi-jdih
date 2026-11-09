@@ -61,18 +61,19 @@
 							label="Password"
 							key="password"
 							type="password"
-							required />
+							:placeholder="$isCreate ? '' : 'Kosongkan jika tidak diganti'"
+							:required="$isCreate" />
 
 						<x-backend.input.text
 							label="Konfirmasi Password"
 							key="password_confirmation"
 							type="password"
-							required />
+							:required="$isCreate" />
 
 					</div>
 					<div class="box-footer">
 						<button type="submit" class="btn btn-primary btn-flat">
-							<i class="fa fa-save"></i> Sign Up</button>
+							<i class="fa fa-save"></i> {{ $isCreate ? 'Sign Up' : 'Simpan' }}</button>
 						<a class="btn btn-danger btn-flat" href="{{ route('backend.user.index') }}">
 							<i class="fa fa-remove"></i> Batal</a>
 					</div>
